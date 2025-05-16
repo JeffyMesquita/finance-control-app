@@ -1,18 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
+
+  // Verificar se há um erro na URL
+  useEffect(() => {
+    const errorParam = searchParams.get("error")
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam))
+    }
+  }, [searchParams])
+
+  // Verificar se o usuário já está autenticado
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (session) {
+        router.push("/dashboard")
+      }
+    }
+
+    checkSession()
+  }, [router, supabase.auth])
 
   const handleGoogleLogin = async () => {
     try {
@@ -35,8 +59,8 @@ export default function LoginPage() {
       }
 
       // O redirecionamento será tratado pelo Supabase
-    } catch (error) {
-      console.error("Error logging in:", error)
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error)
       setError("Falha ao fazer login com Google. Por favor, tente novamente.")
     } finally {
       setIsLoading(false)
@@ -54,10 +78,15 @@ export default function LoginPage() {
           <CardDescription>Entre na sua conta para continuar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Button className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
             {isLoading ? "Carregando..." : "Entrar com Google"}
           </Button>
-          {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{error}</div>}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm text-muted-foreground">

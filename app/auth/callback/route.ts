@@ -3,22 +3,14 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
-  const error = requestUrl.searchParams.get("error")
-  const error_description = requestUrl.searchParams.get("error_description")
 
-  // Se houver um erro no callback, redirecione para a página de login com o erro
-  if (error) {
-    console.error("Auth error:", error, error_description)
-    return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error_description || "Falha na autenticação")}`, request.url),
-    )
-  }
-
-  // Se não houver código, redirecione para a página de login
   if (!code) {
+    // Se não houver código, redirecione para a página de login
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
@@ -26,18 +18,23 @@ export async function GET(request: NextRequest) {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
-    // Troque o código por uma sessão
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    // Troque o código por uma sessão e aguarde a conclusão
+    await supabase.auth.exchangeCodeForSession(code)
 
-    if (error) {
-      console.error("Exchange code error:", error)
-      throw error
+    // Verifique se a sessão foi criada com sucesso
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      throw new Error("Falha ao criar sessão")
     }
 
     // Redirecione para o dashboard após o login bem-sucedido
     return NextResponse.redirect(new URL("/dashboard", request.url))
   } catch (error) {
-    console.error("Callback error:", error)
-    return NextResponse.redirect(new URL("/login?error=Falha+ao+processar+autenticação", request.url))
+    console.error("Erro no callback:", error)
+    // Em caso de erro, redirecione para a página de login com uma mensagem de erro
+    return NextResponse.redirect(new URL("/login?error=Falha+na+autenticação", request.url))
   }
 }

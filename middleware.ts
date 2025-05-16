@@ -6,20 +6,29 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
+  // Verificar se há uma sessão válida
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
+  // URL atual e URL de destino
+  const currentPath = req.nextUrl.pathname
+
+  // Ignorar a rota de callback para evitar loops de redirecionamento
+  if (currentPath.startsWith("/auth/callback")) {
+    return res
+  }
+
   // Se o usuário não estiver autenticado e estiver tentando acessar uma rota protegida
-  if (!session && req.nextUrl.pathname.startsWith("/dashboard")) {
+  if (!session && currentPath.startsWith("/dashboard")) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = "/login"
-    redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname)
+    redirectUrl.searchParams.set("redirectedFrom", currentPath)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Se o usuário estiver autenticado e estiver tentando acessar a página de login
-  if (session && (req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/")) {
+  // Se o usuário estiver autenticado e estiver tentando acessar a página de login ou a raiz
+  if (session && (currentPath === "/login" || currentPath === "/")) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = "/dashboard"
     return NextResponse.redirect(redirectUrl)
@@ -30,5 +39,5 @@ export async function middleware(req: NextRequest) {
 
 // Especifique quais caminhos devem invocar este middleware
 export const config = {
-  matcher: ["/", "/login", "/dashboard/:path*"],
+  matcher: ["/", "/login", "/dashboard/:path*", "/auth/callback"],
 }
