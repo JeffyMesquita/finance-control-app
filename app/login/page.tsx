@@ -10,20 +10,34 @@ import Link from "next/link"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true)
-      await supabase.auth.signInWithOAuth({
+      setError(null)
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       })
+
+      if (error) {
+        throw error
+      }
+
+      // O redirecionamento será tratado pelo Supabase
     } catch (error) {
       console.error("Error logging in:", error)
+      setError("Falha ao fazer login com Google. Por favor, tente novamente.")
     } finally {
       setIsLoading(false)
     }
@@ -36,23 +50,24 @@ export default function LoginPage() {
           <div className="flex justify-center mb-2">
             <DollarSign className="h-10 w-10 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to FinanceTrack</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
+          <CardTitle className="text-2xl font-bold">Bem-vindo ao FinanceTrack</CardTitle>
+          <CardDescription>Entre na sua conta para continuar</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
-            {isLoading ? "Loading..." : "Sign in with Google"}
+            {isLoading ? "Carregando..." : "Entrar com Google"}
           </Button>
+          {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{error}</div>}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
+            Ao continuar, você concorda com nossos{" "}
             <Link href="#" className="underline underline-offset-4 hover:text-primary">
-              Terms of Service
+              Termos de Serviço
             </Link>{" "}
-            and{" "}
+            e{" "}
             <Link href="#" className="underline underline-offset-4 hover:text-primary">
-              Privacy Policy
+              Política de Privacidade
             </Link>
             .
           </div>

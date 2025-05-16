@@ -23,18 +23,26 @@ export function UserNav({ user }: UserNavProps) {
   const supabase = createClientComponentClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.refresh()
+    try {
+      await supabase.auth.signOut()
+      router.push("/login")
+      router.refresh()
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
 
   const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "U"
+  const userName = user.user_metadata?.full_name || user.email || "Usuário"
+  const userEmail = user.email || ""
+  const avatarUrl = user.user_metadata?.avatar_url || ""
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.user_metadata.avatar_url || "/placeholder.svg"} alt={user.email || ""} />
+            <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={userName} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
@@ -42,15 +50,15 @@ export function UserNav({ user }: UserNavProps) {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.user_metadata.full_name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+            <p className="text-sm font-medium leading-none">{userName}</p>
+            <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => router.push("/dashboard/profile")}>Profile</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => router.push("/dashboard/settings")}>Settings</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push("/dashboard/profile")}>Perfil</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push("/dashboard/settings")}>Configurações</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleSignOut}>Log out</DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleSignOut}>Sair</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
