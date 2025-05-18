@@ -21,7 +21,7 @@ export function DashboardCards() {
         const dashboardData = await getDashboardData()
         setData(dashboardData)
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+        console.error("Erro ao carregar dados do painel:", error)
       } finally {
         setIsLoading(false)
       }
@@ -34,7 +34,7 @@ export function DashboardCards() {
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
+          <CardTitle className="text-sm font-medium">Saldo Total</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -45,12 +45,12 @@ export function DashboardCards() {
               formatCurrency(data.totalBalance)
             )}
           </div>
-          <p className="text-xs text-muted-foreground">Your current balance across all accounts</p>
+          <p className="text-xs text-muted-foreground">Seu saldo atual em todas as contas</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Income</CardTitle>
+          <CardTitle className="text-sm font-medium">Receitas</CardTitle>
           <ArrowUpIcon className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -61,12 +61,12 @@ export function DashboardCards() {
               formatCurrency(data.monthlyIncome)
             )}
           </div>
-          <p className="text-xs text-muted-foreground">This month's total income</p>
+          <p className="text-xs text-muted-foreground">Total de receitas deste mês</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Expenses</CardTitle>
+          <CardTitle className="text-sm font-medium">Despesas</CardTitle>
           <ArrowDownIcon className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -77,12 +77,12 @@ export function DashboardCards() {
               formatCurrency(data.monthlyExpenses)
             )}
           </div>
-          <p className="text-xs text-muted-foreground">This month's total expenses</p>
+          <p className="text-xs text-muted-foreground">Total de despesas deste mês</p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Savings</CardTitle>
+          <CardTitle className="text-sm font-medium">Economia</CardTitle>
           <CreditCard className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -93,7 +93,7 @@ export function DashboardCards() {
               formatCurrency(data.monthlySavings)
             )}
           </div>
-          <p className="text-xs text-muted-foreground">This month's total savings</p>
+          <p className="text-xs text-muted-foreground">Total economizado neste mês</p>
         </CardContent>
       </Card>
     </>

@@ -31,7 +31,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
         const monthlyData = await getMonthlyData()
         setData(monthlyData)
       } catch (error) {
-        console.error("Error fetching monthly data:", error)
+        console.error("Erro ao carregar dados mensais:", error)
       } finally {
         setIsLoading(false)
       }
@@ -44,8 +44,8 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>Financial Overview</CardTitle>
-          <CardDescription>View your financial performance over time</CardDescription>
+          <CardTitle>Visão Geral Financeira</CardTitle>
+          <CardDescription>Visualize seu desempenho financeiro ao longo do tempo</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full animate-pulse rounded bg-muted"></div>
@@ -57,15 +57,15 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Financial Overview</CardTitle>
-        <CardDescription>View your financial performance over time</CardDescription>
+        <CardTitle>Visão Geral Financeira</CardTitle>
+        <CardDescription>Visualize seu desempenho financeiro ao longo do tempo</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="monthly">
           <TabsList className="mb-4">
-            <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-            <TabsTrigger value="yearly">Yearly</TabsTrigger>
+            <TabsTrigger value="monthly">Mensal</TabsTrigger>
+            <TabsTrigger value="quarterly">Trimestral</TabsTrigger>
+            <TabsTrigger value="yearly">Anual</TabsTrigger>
           </TabsList>
           <TabsContent value="monthly" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -75,8 +75,8 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="income" fill="#22c55e" name="Income" />
-                <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+                <Bar dataKey="income" fill="#22c55e" name="Receitas" />
+                <Bar dataKey="expenses" fill="#ef4444" name="Despesas" />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -88,9 +88,9 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="income" stroke="#22c55e" name="Income" />
-                <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="Expenses" />
-                <Line type="monotone" dataKey="savings" stroke="#3b82f6" name="Savings" />
+                <Line type="monotone" dataKey="income" stroke="#22c55e" name="Receitas" />
+                <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="Despesas" />
+                <Line type="monotone" dataKey="savings" stroke="#3b82f6" name="Economia" />
               </LineChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -102,9 +102,9 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="income" fill="#22c55e" name="Income" />
-                <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
-                <Bar dataKey="savings" fill="#3b82f6" name="Savings" />
+                <Bar dataKey="income" fill="#22c55e" name="Receitas" />
+                <Bar dataKey="expenses" fill="#ef4444" name="Despesas" />
+                <Bar dataKey="savings" fill="#3b82f6" name="Economia" />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>

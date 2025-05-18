@@ -72,10 +72,10 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
       setCategories(categoriesData)
       setAccounts(accountsData)
     } catch (error) {
-      console.error("Error fetching data:", error)
+      console.error("Erro ao carregar dados:", error)
       toast({
-        title: "Error",
-        description: "Failed to load categories and accounts",
+        title: "Erro",
+        description: "Falha ao carregar categorias e contas",
         variant: "destructive",
       })
     }
@@ -106,19 +106,19 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
 
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Transaction updated successfully",
+          title: "Sucesso",
+          description: "Transação atualizada com sucesso",
         })
         onOpenChange(false)
         if (onSuccess) onSuccess()
       } else {
-        throw new Error(result.error || "Failed to update transaction")
+        throw new Error(result.error || "Falha ao atualizar transação")
       }
     } catch (error) {
-      console.error("Error updating transaction:", error)
+      console.error("Erro ao atualizar transação:", error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to update transaction",
+        title: "Erro",
+        description: error.message || "Falha ao atualizar transação",
         variant: "destructive",
       })
     } finally {
@@ -129,30 +129,35 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
   // Filter categories based on transaction type
   const filteredCategories = categories.filter((category) => category.type === formData.type)
 
+  // Traduzir tipos de transação
+  const translateType = (type: string) => {
+    return type === "INCOME" ? "Receita" : "Despesa"
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Edit Transaction</DialogTitle>
-            <DialogDescription>Update transaction details.</DialogDescription>
+            <DialogTitle>Editar Transação</DialogTitle>
+            <DialogDescription>Atualize os detalhes da transação.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">Tipo</Label>
                 <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)} required>
                   <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INCOME">Income</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">Receita</SelectItem>
+                    <SelectItem value="EXPENSE">Despesa</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">Valor</Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -166,7 +171,7 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
                 id="description"
                 name="description"
@@ -177,13 +182,13 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Categoria</Label>
                 <Select
                   value={formData.category_id}
                   onValueChange={(value) => handleSelectChange("category_id", value)}
                 >
                   <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredCategories.map((category) => (
@@ -195,19 +200,19 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">Data</Label>
                 <Input id="date" name="date" type="date" value={formData.date} onChange={handleChange} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="account">Account</Label>
+              <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
                 onValueChange={(value) => handleSelectChange("account_id", value)}
                 required
               >
                 <SelectTrigger id="account">
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder="Selecione a conta" />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((account) => (
@@ -219,16 +224,16 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">Observações (Opcional)</Label>
               <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Transaction"}
+              {isSubmitting ? "Atualizando..." : "Atualizar Transação"}
             </Button>
           </DialogFooter>
         </form>

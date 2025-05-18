@@ -21,7 +21,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
         const data = await getRecentTransactions(5)
         setTransactions(data)
       } catch (error) {
-        console.error("Error fetching transactions:", error)
+        console.error("Erro ao carregar transações:", error)
       } finally {
         setIsLoading(false)
       }
@@ -34,8 +34,8 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Your latest financial activities</CardDescription>
+          <CardTitle>Transações Recentes</CardTitle>
+          <CardDescription>Suas últimas atividades financeiras</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -59,23 +59,28 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
-          <CardDescription>Your latest financial activities</CardDescription>
+          <CardTitle>Transações Recentes</CardTitle>
+          <CardDescription>Suas últimas atividades financeiras</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex h-[200px] items-center justify-center">
-            <p className="text-sm text-muted-foreground">No transactions found</p>
+            <p className="text-sm text-muted-foreground">Nenhuma transação encontrada</p>
           </div>
         </CardContent>
       </Card>
     )
   }
 
+  // Traduzir tipos de transação
+  const translateType = (type: string) => {
+    return type === "INCOME" ? "Receita" : "Despesa"
+  }
+
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Recent Transactions</CardTitle>
-        <CardDescription>Your latest financial activities</CardDescription>
+        <CardTitle>Transações Recentes</CardTitle>
+        <CardDescription>Suas últimas atividades financeiras</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

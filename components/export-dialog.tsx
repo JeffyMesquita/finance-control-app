@@ -71,7 +71,15 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             selectedAccount || undefined,
           )
 
-          headers = ["Date", "Description", "Category", "Account", "Type", "Amount", ...(includeNotes ? ["Notes"] : [])]
+          headers = [
+            "Data",
+            "Descrição",
+            "Categoria",
+            "Conta",
+            "Tipo",
+            "Valor",
+            ...(includeNotes ? ["Observações"] : []),
+          ]
 
           fields = [
             "date",
@@ -83,36 +91,36 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             ...(includeNotes ? ["notes"] : []),
           ]
 
-          title = "Transactions Export"
-          filename = `transactions_export_${new Date().toISOString().split("T")[0]}`
+          title = "Exportação de Transações"
+          filename = `transacoes_${new Date().toISOString().split("T")[0]}`
           break
 
         case "accounts":
           data = await getAccountsForExport()
-          headers = ["Account Name", "Type", "Balance", "Currency"]
+          headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"]
           fields = ["name", "type", "balance", "currency"]
-          title = "Accounts Export"
-          filename = `accounts_export_${new Date().toISOString().split("T")[0]}`
+          title = "Exportação de Contas"
+          filename = `contas_${new Date().toISOString().split("T")[0]}`
           break
 
         case "categories":
           data = await getCategoriesForExport()
-          headers = ["Category Name", "Type", "Color"]
+          headers = ["Nome da Categoria", "Tipo", "Cor"]
           fields = ["name", "type", "color"]
-          title = "Categories Export"
-          filename = `categories_export_${new Date().toISOString().split("T")[0]}`
+          title = "Exportação de Categorias"
+          filename = `categorias_${new Date().toISOString().split("T")[0]}`
           break
 
         case "goals":
           data = await getGoalsForExport()
           headers = [
-            "Goal Name",
-            "Target Amount",
-            "Current Amount",
-            "Progress",
-            "Start Date",
-            "Target Date",
-            "Account",
+            "Nome da Meta",
+            "Valor Alvo",
+            "Valor Atual",
+            "Progresso",
+            "Data de Início",
+            "Data Alvo",
+            "Conta",
             "Status",
           ]
           fields = [
@@ -124,18 +132,18 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             "start_date",
             "target_date",
             "account.name",
-            (item) => (item.is_completed ? "Completed" : "In Progress"),
+            (item) => (item.is_completed ? "Concluído" : "Em Andamento"),
           ]
-          title = "Financial Goals Export"
-          filename = `goals_export_${new Date().toISOString().split("T")[0]}`
+          title = "Exportação de Metas Financeiras"
+          filename = `metas_${new Date().toISOString().split("T")[0]}`
           break
 
         case "monthly_summary":
           data = await getMonthlySummaryForExport()
-          headers = ["Month", "Income", "Expenses", "Savings"]
+          headers = ["Mês", "Receitas", "Despesas", "Economia"]
           fields = ["month", "income", "expenses", "savings"]
-          title = "Monthly Summary Export"
-          filename = `monthly_summary_export_${new Date().toISOString().split("T")[0]}`
+          title = "Resumo Mensal"
+          filename = `resumo_mensal_${new Date().toISOString().split("T")[0]}`
           break
       }
 
@@ -155,16 +163,16 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
       }
 
       toast({
-        title: "Export Successful",
-        description: `Your ${exportType} data has been exported as ${fileFormat.toUpperCase()}.`,
+        title: "Exportação Concluída",
+        description: `Seus dados foram exportados com sucesso no formato ${fileFormat.toUpperCase()}.`,
       })
 
       onOpenChange(false)
     } catch (error) {
-      console.error("Error exporting data:", error)
+      console.error("Erro ao exportar dados:", error)
       toast({
-        title: "Export Failed",
-        description: "There was an error exporting your data. Please try again.",
+        title: "Falha na Exportação",
+        description: "Ocorreu um erro ao exportar seus dados. Por favor, tente novamente.",
         variant: "destructive",
       })
     } finally {
@@ -176,41 +184,41 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Export Financial Data</DialogTitle>
-          <DialogDescription>Export your financial data in CSV or PDF format.</DialogDescription>
+          <DialogTitle>Exportar Dados Financeiros</DialogTitle>
+          <DialogDescription>Exporte seus dados financeiros em formato CSV ou PDF.</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="transactions" onValueChange={(value) => setExportType(value)}>
           <TabsList className="grid grid-cols-5 mb-4">
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="accounts">Accounts</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-            <TabsTrigger value="monthly_summary">Summary</TabsTrigger>
+            <TabsTrigger value="transactions">Transações</TabsTrigger>
+            <TabsTrigger value="accounts">Contas</TabsTrigger>
+            <TabsTrigger value="categories">Categorias</TabsTrigger>
+            <TabsTrigger value="goals">Metas</TabsTrigger>
+            <TabsTrigger value="monthly_summary">Resumo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="transactions" className="space-y-4">
             <div className="space-y-2">
-              <Label>Date Range</Label>
+              <Label>Período</Label>
               <RadioGroup defaultValue="all" onValueChange={setDateRange} className="flex flex-col space-y-1">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="date-all" />
-                  <Label htmlFor="date-all">All Time</Label>
+                  <Label htmlFor="date-all">Todo o Período</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="custom" id="date-custom" />
-                  <Label htmlFor="date-custom">Custom Range</Label>
+                  <Label htmlFor="date-custom">Período Personalizado</Label>
                 </div>
               </RadioGroup>
 
               {dateRange === "custom" && (
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div className="space-y-1">
-                    <Label htmlFor="date-from">From</Label>
+                    <Label htmlFor="date-from">De</Label>
                     <Input id="date-from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="date-to">To</Label>
+                    <Label htmlFor="date-to">Até</Label>
                     <Input id="date-to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
                   </div>
                 </div>
@@ -218,28 +226,28 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             </div>
 
             <div className="space-y-2">
-              <Label>Transaction Type</Label>
+              <Label>Tipo de Transação</Label>
               <Select defaultValue="all" onValueChange={setTransactionType}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select transaction type" />
+                  <SelectValue placeholder="Selecione o tipo de transação" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="INCOME">Income</SelectItem>
-                  <SelectItem value="EXPENSE">Expense</SelectItem>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="INCOME">Receitas</SelectItem>
+                  <SelectItem value="EXPENSE">Despesas</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>Categoria</Label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
+                    <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="all">Todas as Categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -250,13 +258,13 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
               </div>
 
               <div className="space-y-2">
-                <Label>Account</Label>
+                <Label>Conta</Label>
                 <Select value={selectedAccount} onValueChange={setSelectedAccount}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Accounts" />
+                    <SelectValue placeholder="Todas as Contas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Accounts</SelectItem>
+                    <SelectItem value="all">Todas as Contas</SelectItem>
                     {accounts.map((account) => (
                       <SelectItem key={account.id} value={account.id}>
                         {account.name}
@@ -269,35 +277,35 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
 
             <div className="flex items-center space-x-2">
               <Checkbox id="include-notes" checked={includeNotes} onCheckedChange={setIncludeNotes} />
-              <Label htmlFor="include-notes">Include Notes</Label>
+              <Label htmlFor="include-notes">Incluir Observações</Label>
             </div>
           </TabsContent>
 
           <TabsContent value="accounts">
             <p className="text-sm text-muted-foreground mb-4">
-              Export all your financial accounts with their current balances.
+              Exporte todas as suas contas financeiras com seus saldos atuais.
             </p>
           </TabsContent>
 
           <TabsContent value="categories">
-            <p className="text-sm text-muted-foreground mb-4">Export all your transaction categories.</p>
+            <p className="text-sm text-muted-foreground mb-4">Exporte todas as suas categorias de transações.</p>
           </TabsContent>
 
           <TabsContent value="goals">
             <p className="text-sm text-muted-foreground mb-4">
-              Export all your financial goals with their current progress.
+              Exporte todas as suas metas financeiras com seu progresso atual.
             </p>
           </TabsContent>
 
           <TabsContent value="monthly_summary">
             <p className="text-sm text-muted-foreground mb-4">
-              Export a monthly summary of your income, expenses, and savings.
+              Exporte um resumo mensal das suas receitas, despesas e economias.
             </p>
           </TabsContent>
         </Tabs>
 
         <div className="space-y-2">
-          <Label>File Format</Label>
+          <Label>Formato do Arquivo</Label>
           <RadioGroup defaultValue="csv" onValueChange={setFileFormat} className="flex space-x-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="csv" id="format-csv" />
@@ -312,10 +320,10 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Cancelar
           </Button>
           <Button onClick={handleExport} disabled={isLoading}>
-            {isLoading ? "Exporting..." : "Export"}
+            {isLoading ? "Exportando..." : "Exportar"}
           </Button>
         </DialogFooter>
       </DialogContent>

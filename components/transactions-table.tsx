@@ -78,10 +78,10 @@ export function TransactionsTable() {
       setTransactions(data)
       setFilteredTransactions(data)
     } catch (error) {
-      console.error("Error fetching transactions:", error)
+      console.error("Erro ao carregar transações:", error)
       toast({
-        title: "Error",
-        description: "Failed to load transactions",
+        title: "Erro",
+        description: "Falha ao carregar transações",
         variant: "destructive",
       })
     } finally {
@@ -99,21 +99,26 @@ export function TransactionsTable() {
       const result = await deleteTransaction(id)
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Transaction deleted successfully",
+          title: "Sucesso",
+          description: "Transação excluída com sucesso",
         })
         fetchTransactions()
       } else {
-        throw new Error(result.error || "Failed to delete transaction")
+        throw new Error(result.error || "Falha ao excluir transação")
       }
     } catch (error) {
-      console.error("Error deleting transaction:", error)
+      console.error("Erro ao excluir transação:", error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete transaction",
+        title: "Erro",
+        description: error.message || "Falha ao excluir transação",
         variant: "destructive",
       })
     }
+  }
+
+  // Traduzir tipos de transação
+  const translateType = (type: string) => {
+    return type === "INCOME" ? "Receita" : "Despesa"
   }
 
   return (
@@ -122,7 +127,7 @@ export function TransactionsTable() {
         <div className="flex w-full sm:w-auto items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search transactions..."
+            placeholder="Buscar transações..."
             className="w-full sm:w-[300px]"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -131,17 +136,17 @@ export function TransactionsTable() {
         <div className="flex w-full sm:w-auto items-center gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Transactions</SelectItem>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
+              <SelectItem value="all">Todas as Transações</SelectItem>
+              <SelectItem value="income">Receitas</SelectItem>
+              <SelectItem value="expense">Despesas</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add
+            Adicionar
           </Button>
         </div>
       </div>
@@ -152,10 +157,10 @@ export function TransactionsTable() {
         </div>
       ) : filteredTransactions.length === 0 ? (
         <div className="rounded-md border p-8 flex flex-col items-center justify-center">
-          <p className="text-muted-foreground mb-4">No transactions found</p>
+          <p className="text-muted-foreground mb-4">Nenhuma transação encontrada</p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Transaction
+            Adicionar Transação
           </Button>
         </div>
       ) : (
@@ -163,13 +168,13 @@ export function TransactionsTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Date</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Account</TableHead>
+                <TableHead className="w-[100px]">Data</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Categoria</TableHead>
+                <TableHead>Conta</TableHead>
                 <TableHead className="text-right">
                   <div className="flex items-center justify-end">
-                    Amount
+                    Valor
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </div>
                 </TableHead>
@@ -189,10 +194,10 @@ export function TransactionsTable() {
                         borderColor: transaction.category?.color || undefined,
                       }}
                     >
-                      {transaction.category?.name || "Uncategorized"}
+                      {transaction.category?.name || "Sem categoria"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{transaction.account?.name || "Unknown"}</TableCell>
+                  <TableCell>{transaction.account?.name || "Desconhecida"}</TableCell>
                   <TableCell className="text-right">
                     <span className={transaction.type === "INCOME" ? "text-green-600" : "text-red-600"}>
                       {transaction.type === "INCOME" ? "+" : "-"}
@@ -203,38 +208,38 @@ export function TransactionsTable() {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">Abrir menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleEdit(transaction)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          Editar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
                               <Trash className="mr-2 h-4 w-4" />
-                              Delete
+                              Excluir
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete this transaction. This action cannot be undone.
+                                Esta ação excluirá permanentemente esta transação. Esta ação não pode ser desfeita.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(transaction.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete
+                                Excluir
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>

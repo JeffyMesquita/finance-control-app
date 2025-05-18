@@ -29,7 +29,7 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
         })
         setGoals(sortedGoals.slice(0, 3)) // Get top 3 goals
       } catch (error) {
-        console.error("Error fetching goals:", error)
+        console.error("Erro ao carregar metas:", error)
       } finally {
         setIsLoading(false)
       }
@@ -42,8 +42,8 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>Financial Goals</CardTitle>
-          <CardDescription>Track your progress towards your financial goals</CardDescription>
+          <CardTitle>Metas Financeiras</CardTitle>
+          <CardDescription>Acompanhe o progresso das suas metas financeiras</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -65,15 +65,15 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Financial Goals</CardTitle>
-        <CardDescription>Track your progress towards your financial goals</CardDescription>
+        <CardTitle>Metas Financeiras</CardTitle>
+        <CardDescription>Acompanhe o progresso das suas metas financeiras</CardDescription>
       </CardHeader>
       <CardContent>
         {goals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-center">
-            <p className="mb-4 text-sm text-muted-foreground">You haven't set any financial goals yet.</p>
+            <p className="mb-4 text-sm text-muted-foreground">Você ainda não definiu nenhuma meta financeira.</p>
             <Link href="/dashboard/goals">
-              <Button size="sm">Create a Goal</Button>
+              <Button size="sm">Criar uma Meta</Button>
             </Link>
           </div>
         ) : (
@@ -92,8 +92,8 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
                   </div>
                   <Progress value={formattedProgress} className="h-2" />
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{formattedProgress}% complete</span>
-                    <span>{goal.is_completed ? "Completed" : "In progress"}</span>
+                    <span>{formattedProgress}% concluído</span>
+                    <span>{goal.is_completed ? "Concluído" : "Em andamento"}</span>
                   </div>
                 </div>
               )
@@ -105,7 +105,7 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
         <CardFooter>
           <Link href="/dashboard/goals" className="w-full">
             <Button variant="outline" className="w-full">
-              View All Goals
+              Ver Todas as Metas
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

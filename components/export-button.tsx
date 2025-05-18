@@ -30,7 +30,7 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
       setCategories(categoriesData)
       setAccounts(accountsData)
     } catch (error) {
-      console.error("Error fetching data for export:", error)
+      console.error("Erro ao carregar dados para exportação:", error)
     } finally {
       setIsLoading(false)
     }
@@ -40,7 +40,7 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
     <>
       <Button variant={variant} onClick={() => setIsDialogOpen(true)}>
         <Download className="mr-2 h-4 w-4" />
-        Export
+        Exportar
       </Button>
       <ExportDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} categories={categories} accounts={accounts} />
     </>

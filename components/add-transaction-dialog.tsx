@@ -60,10 +60,10 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
         setFormData((prev) => ({ ...prev, account_id: accountsData[0].id }))
       }
     } catch (error) {
-      console.error("Error fetching data:", error)
+      console.error("Erro ao carregar dados:", error)
       toast({
-        title: "Error",
-        description: "Failed to load categories and accounts",
+        title: "Erro",
+        description: "Falha ao carregar categorias e contas",
         variant: "destructive",
       })
     }
@@ -94,8 +94,8 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
 
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Transaction added successfully",
+          title: "Sucesso",
+          description: "Transação adicionada com sucesso",
         })
         onOpenChange(false)
         if (onSuccess) onSuccess()
@@ -113,13 +113,13 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
           recurring_interval: "",
         })
       } else {
-        throw new Error(result.error || "Failed to add transaction")
+        throw new Error(result.error || "Falha ao adicionar transação")
       }
     } catch (error) {
-      console.error("Error adding transaction:", error)
+      console.error("Erro ao adicionar transação:", error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to add transaction",
+        title: "Erro",
+        description: error.message || "Falha ao adicionar transação",
         variant: "destructive",
       })
     } finally {
@@ -130,30 +130,35 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
   // Filter categories based on transaction type
   const filteredCategories = categories.filter((category) => category.type === formData.type)
 
+  // Traduzir tipos de transação
+  const translateType = (type: string) => {
+    return type === "INCOME" ? "Receita" : "Despesa"
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add Transaction</DialogTitle>
-            <DialogDescription>Add a new transaction to your financial records.</DialogDescription>
+            <DialogTitle>Adicionar Transação</DialogTitle>
+            <DialogDescription>Adicione uma nova transação aos seus registros financeiros.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
+                <Label htmlFor="type">Tipo</Label>
                 <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)} required>
                   <SelectTrigger id="type">
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INCOME">Income</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">Receita</SelectItem>
+                    <SelectItem value="EXPENSE">Despesa</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="amount">Amount</Label>
+                <Label htmlFor="amount">Valor</Label>
                 <Input
                   id="amount"
                   name="amount"
@@ -167,7 +172,7 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Descrição</Label>
               <Input
                 id="description"
                 name="description"
@@ -178,13 +183,13 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Categoria</Label>
                 <Select
                   value={formData.category_id}
                   onValueChange={(value) => handleSelectChange("category_id", value)}
                 >
                   <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredCategories.map((category) => (
@@ -196,19 +201,19 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">Data</Label>
                 <Input id="date" name="date" type="date" value={formData.date} onChange={handleChange} required />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="account">Account</Label>
+              <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
                 onValueChange={(value) => handleSelectChange("account_id", value)}
                 required
               >
                 <SelectTrigger id="account">
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder="Selecione a conta" />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((account) => (
@@ -220,16 +225,16 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">Observações (Opcional)</Label>
               <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Transaction"}
+              {isSubmitting ? "Adicionando..." : "Adicionar Transação"}
             </Button>
           </DialogFooter>
         </form>
