@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { UserIcon, Settings, LogOut } from "lucide-react"
 
 interface UserNavProps {
   user: User
@@ -28,7 +29,7 @@ export function UserNav({ user }: UserNavProps) {
       router.push("/login")
       router.refresh()
     } catch (error) {
-      console.error("Error signing out:", error)
+      console.error("Erro ao fazer logout:", error)
     }
   }
 
@@ -40,8 +41,8 @@ export function UserNav({ user }: UserNavProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
             <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={userName} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
@@ -55,10 +56,19 @@ export function UserNav({ user }: UserNavProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => router.push("/dashboard/profile")}>Perfil</DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => router.push("/dashboard/settings")}>Configurações</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push("/dashboard/perfil")}>
+          <UserIcon className="mr-2 h-4 w-4" />
+          Meu Perfil
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push("/dashboard/configuracoes")}>
+          <Settings className="mr-2 h-4 w-4" />
+          Configurações
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={handleSignOut}>Sair</DropdownMenuItem>
+        <DropdownMenuItem onSelect={handleSignOut}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Sair
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

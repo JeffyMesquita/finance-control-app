@@ -3,43 +3,48 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, ArrowUpDown, BarChart3, Settings, Goal, CreditCard, Download } from "lucide-react"
+import { LayoutDashboard, ArrowUpDown, BarChart3, Goal, CreditCard, Download, User, Sliders } from "lucide-react"
 
 const navItems = [
   {
-    title: "Overview",
+    title: "Visão Geral",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Transactions",
+    title: "Transações",
     href: "/dashboard/transactions",
     icon: ArrowUpDown,
   },
   {
-    title: "Categories",
+    title: "Categorias",
     href: "/dashboard/categories",
     icon: CreditCard,
   },
   {
-    title: "Reports",
+    title: "Relatórios",
     href: "/dashboard/reports",
     icon: BarChart3,
   },
   {
-    title: "Goals",
+    title: "Metas",
     href: "/dashboard/goals",
     icon: Goal,
   },
   {
-    title: "Exports",
+    title: "Exportar",
     href: "/dashboard/exports",
     icon: Download,
   },
   {
-    title: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
+    title: "Meu Perfil",
+    href: "/dashboard/perfil",
+    icon: User,
+  },
+  {
+    title: "Configurações",
+    href: "/dashboard/configuracoes",
+    icon: Sliders,
   },
 ]
 
