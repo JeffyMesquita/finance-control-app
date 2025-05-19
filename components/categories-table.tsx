@@ -70,10 +70,10 @@ export function CategoriesTable() {
       setCategories(data)
       setFilteredCategories(data)
     } catch (error) {
-      console.error("Error fetching categories:", error)
+      console.error("Erro ao carregar categorias:", error)
       toast({
-        title: "Error",
-        description: "Failed to load categories",
+        title: "Erro",
+        description: "Falha ao carregar categorias",
         variant: "destructive",
       })
     } finally {
@@ -96,21 +96,26 @@ export function CategoriesTable() {
       const result = await deleteCategory(id)
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Category deleted successfully",
+          title: "Sucesso",
+          description: "Categoria excluída com sucesso",
         })
         fetchCategories()
       } else {
-        throw new Error(result.error || "Failed to delete category")
+        throw new Error(result.error || "Falha ao excluir categoria")
       }
     } catch (error) {
-      console.error("Error deleting category:", error)
+      console.error("Erro ao excluir categoria:", error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete category",
+        title: "Erro",
+        description: error.message || "Falha ao excluir categoria",
         variant: "destructive",
       })
     }
+  }
+
+  // Traduzir tipos de categoria
+  const translateType = (type) => {
+    return type === "INCOME" ? "Receita" : "Despesa"
   }
 
   return (
@@ -119,7 +124,7 @@ export function CategoriesTable() {
         <div className="flex w-full sm:w-auto items-center gap-2">
           <Search className="h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search categories..."
+            placeholder="Buscar categorias..."
             className="w-full sm:w-[300px]"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -128,17 +133,17 @@ export function CategoriesTable() {
         <div className="flex w-full sm:w-auto items-center gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
+              <SelectItem value="income">Receitas</SelectItem>
+              <SelectItem value="expense">Despesas</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" />
-            Add
+            Adicionar
           </Button>
         </div>
       </div>
@@ -149,10 +154,10 @@ export function CategoriesTable() {
         </div>
       ) : filteredCategories.length === 0 ? (
         <div className="rounded-md border p-8 flex flex-col items-center justify-center">
-          <p className="text-muted-foreground mb-4">No categories found</p>
+          <p className="text-muted-foreground mb-4">Nenhuma categoria encontrada</p>
           <Button onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Category
+            Adicionar Categoria
           </Button>
         </div>
       ) : (
@@ -160,9 +165,9 @@ export function CategoriesTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Color</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Cor</TableHead>
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -171,50 +176,52 @@ export function CategoriesTable() {
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell>
-                    <Badge variant={category.type === "INCOME" ? "success" : "destructive"}>{category.type}</Badge>
+                    <Badge variant={category.type === "INCOME" ? "success" : "destructive"}>
+                      {translateType(category.type)}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="h-4 w-4 rounded-full" style={{ backgroundColor: category.color || "#64748b" }} />
-                      {category.color || "Default"}
+                      {category.color || "Padrão"}
                     </div>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
+                          <span className="sr-only">Abrir menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleEdit(category)}>
                           <Pencil className="mr-2 h-4 w-4" />
-                          Edit
+                          Editar
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-red-600">
                               <Trash className="mr-2 h-4 w-4" />
-                              Delete
+                              Excluir
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete this category. This action cannot be undone.
+                                Esta ação excluirá permanentemente esta categoria. Esta ação não pode ser desfeita.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() => handleDelete(category.id)}
                                 className="bg-red-600 hover:bg-red-700"
                               >
-                                Delete
+                                Excluir
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>

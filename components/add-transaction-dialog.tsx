@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { CurrencyInput } from "@/components/ui/currency-input"
 import { useToast } from "@/hooks/use-toast"
 import { createTransaction } from "@/app/actions/transactions"
 import { getCategories } from "@/app/actions/categories"
@@ -76,6 +78,14 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSwitchChange = (name: string, checked: boolean) => {
+    setFormData((prev) => ({ ...prev, [name]: checked }))
+  }
+
+  const handleCurrencyChange = (value: number | null) => {
+    setFormData((prev) => ({ ...prev, amount: value?.toString() || "" }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,14 +169,11 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount">Valor</Label>
-                <Input
+                <CurrencyInput
                   id="amount"
                   name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={handleChange}
+                  value={formData.amount ? Number.parseFloat(formData.amount) : 0}
+                  onValueChange={handleCurrencyChange}
                   required
                 />
               </div>
@@ -224,6 +231,36 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="is_recurring">Recorrente</Label>
+              <Switch
+                id="is_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={(checked) => handleSwitchChange("is_recurring", checked)}
+              />
+            </div>
+
+            {formData.is_recurring && (
+              <div className="space-y-2">
+                <Label htmlFor="recurring_interval">Intervalo Recorrente</Label>
+                <Select
+                  value={formData.recurring_interval}
+                  onValueChange={(value) => handleSelectChange("recurring_interval", value)}
+                >
+                  <SelectTrigger id="recurring_interval">
+                    <SelectValue placeholder="Selecione o intervalo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY">Diário</SelectItem>
+                    <SelectItem value="WEEKLY">Semanal</SelectItem>
+                    <SelectItem value="MONTHLY">Mensal</SelectItem>
+                    <SelectItem value="YEARLY">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="notes">Observações (Opcional)</Label>
               <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} />

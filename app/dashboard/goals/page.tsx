@@ -39,10 +39,10 @@ export default function GoalsPage() {
       const data = await getGoals()
       setGoals(data)
     } catch (error) {
-      console.error("Error fetching goals:", error)
+      console.error("Erro ao carregar metas:", error)
       toast({
-        title: "Error",
-        description: "Failed to load goals",
+        title: "Erro",
+        description: "Falha ao carregar metas",
         variant: "destructive",
       })
     } finally {
@@ -73,18 +73,18 @@ export default function GoalsPage() {
       const result = await deleteGoal(goalToDelete.id)
       if (result.success) {
         toast({
-          title: "Success",
-          description: "Goal deleted successfully",
+          title: "Sucesso",
+          description: "Meta excluída com sucesso",
         })
         fetchGoals()
       } else {
-        throw new Error(result.error || "Failed to delete goal")
+        throw new Error(result.error || "Falha ao excluir meta")
       }
     } catch (error) {
-      console.error("Error deleting goal:", error)
+      console.error("Erro ao excluir meta:", error)
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete goal",
+        title: "Erro",
+        description: error.message || "Falha ao excluir meta",
         variant: "destructive",
       })
     } finally {
@@ -101,10 +101,10 @@ export default function GoalsPage() {
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Financial Goals</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Metas Financeiras</h1>
         <Button onClick={handleCreateGoal}>
           <Plus className="mr-2 h-4 w-4" />
-          New Goal
+          Nova Meta
         </Button>
       </div>
 
@@ -116,13 +116,13 @@ export default function GoalsPage() {
         </div>
       ) : goals.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-          <h3 className="mb-2 text-lg font-semibold">No goals yet</h3>
+          <h3 className="mb-2 text-lg font-semibold">Nenhuma meta ainda</h3>
           <p className="mb-6 text-sm text-muted-foreground">
-            Create your first financial goal to start tracking your progress.
+            Crie sua primeira meta financeira para começar a acompanhar seu progresso.
           </p>
           <Button onClick={handleCreateGoal}>
             <Plus className="mr-2 h-4 w-4" />
-            Create Goal
+            Criar Meta
           </Button>
         </div>
       ) : (
@@ -151,15 +151,15 @@ export default function GoalsPage() {
       <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the goal "{goalToDelete?.name}". This action cannot be undone.
+              Esta ação excluirá permanentemente a meta "{goalToDelete?.name}". Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteGoal} className="bg-red-600 hover:bg-red-700">
-              Delete
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

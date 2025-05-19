@@ -1,6 +1,5 @@
 "use client"
 
-import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -31,40 +30,34 @@ export function CategoryDialog({ open, onOpenChange, category, onSuccess }: Cate
     name: "",
     type: "EXPENSE",
     color: "#64748b",
-    icon: "",
   })
 
   useEffect(() => {
-    if (open) {
-      if (category) {
-        setFormData({
-          name: category.name,
-          type: category.type,
-          color: category.color || "#64748b",
-          icon: category.icon || "",
-        })
-      } else {
-        // Reset form for new category
-        setFormData({
-          name: "",
-          type: "EXPENSE",
-          color: "#64748b",
-          icon: "",
-        })
-      }
+    if (open && category) {
+      setFormData({
+        name: category.name || "",
+        type: category.type || "EXPENSE",
+        color: category.color || "#64748b",
+      })
+    } else if (open) {
+      setFormData({
+        name: "",
+        type: "EXPENSE",
+        color: "#64748b",
+      })
     }
   }, [open, category])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
 
@@ -72,28 +65,26 @@ export function CategoryDialog({ open, onOpenChange, category, onSuccess }: Cate
       let result
 
       if (category) {
-        // Update existing category
         result = await updateCategory(category.id, formData)
       } else {
-        // Create new category
         result = await createCategory(formData)
       }
 
       if (result.success) {
         toast({
-          title: "Success",
-          description: `Category ${category ? "updated" : "created"} successfully`,
+          title: "Sucesso",
+          description: category ? "Categoria atualizada com sucesso" : "Categoria criada com sucesso",
         })
         onOpenChange(false)
         if (onSuccess) onSuccess()
       } else {
-        throw new Error(result.error || `Failed to ${category ? "update" : "create"} category`)
+        throw new Error(result.error || "Falha ao salvar categoria")
       }
     } catch (error) {
-      console.error(`Error ${category ? "updating" : "creating"} category:`, error)
+      console.error("Erro ao salvar categoria:", error)
       toast({
-        title: "Error",
-        description: error.message || `Failed to ${category ? "update" : "create"} category`,
+        title: "Erro",
+        description: error.message || "Falha ao salvar categoria",
         variant: "destructive",
       })
     } finally {
@@ -106,49 +97,51 @@ export function CategoryDialog({ open, onOpenChange, category, onSuccess }: Cate
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{category ? "Edit" : "Add"} Category</DialogTitle>
+            <DialogTitle>{category ? "Editar Categoria" : "Adicionar Categoria"}</DialogTitle>
             <DialogDescription>
-              {category ? "Update category details." : "Create a new category for your transactions."}
+              {category
+                ? "Atualize os detalhes da categoria existente."
+                : "Crie uma nova categoria para organizar suas transações."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Nome</Label>
               <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="type">Type</Label>
+              <Label htmlFor="type">Tipo</Label>
               <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)} required>
                 <SelectTrigger id="type">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="INCOME">Income</SelectItem>
-                  <SelectItem value="EXPENSE">Expense</SelectItem>
+                  <SelectItem value="INCOME">Receita</SelectItem>
+                  <SelectItem value="EXPENSE">Despesa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="color">Color</Label>
-              <div className="flex gap-2">
+              <Label htmlFor="color">Cor</Label>
+              <div className="flex items-center gap-2">
                 <Input
                   id="color"
                   name="color"
                   type="color"
                   value={formData.color}
                   onChange={handleChange}
-                  className="w-12 h-10 p-1"
+                  className="w-12 h-8 p-1"
                 />
-                <Input value={formData.color} onChange={handleChange} name="color" className="flex-1" />
+                <Input name="color" value={formData.color} onChange={handleChange} className="flex-1" />
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (category ? "Updating..." : "Creating...") : category ? "Update" : "Create"}
+              {isSubmitting ? (category ? "Atualizando..." : "Adicionando...") : category ? "Atualizar" : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>
