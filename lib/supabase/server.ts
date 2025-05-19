@@ -4,3 +4,4 @@ import type { Database } from "@/lib/supabase/database.types"
 
 export const createServerClient = () => createServerComponentClient<Database>({ cookies })
 export const createActionClient = () => createServerActionClient<Database>({ cookies })
+export const createClient = createServerClient // Adicionando a exportação necessária

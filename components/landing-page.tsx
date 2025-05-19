@@ -72,7 +72,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-hidden">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-6 h-16 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm">
         <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -94,7 +94,7 @@ export function LandingPage() {
       <main className="flex-1 pt-16">
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-background to-muted/30">
-          <div className="container px-4 md:px-6 relative z-10">
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
             <motion.div
               className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center"
               initial="hidden"
@@ -125,14 +125,42 @@ export function LandingPage() {
                   </Link>
                 </div>
               </motion.div>
-              <motion.div variants={itemFade} className="relative">
-                <div className="relative mx-auto w-full max-w-[500px] aspect-[4/3] bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center p-6">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                        <DollarSign className="h-8 w-8 text-primary" />
+              <motion.div variants={itemFade} className="relative mx-auto w-full max-w-[500px]">
+                {/* Imagens sobrepostas em formato triangular */}
+                <div className="relative h-[350px] w-full">
+                  {/* Imagem 1 (frente) */}
+                  <div className="absolute top-0 left-0 w-[280px] h-[200px] bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl overflow-hidden shadow-xl z-30 transform -rotate-6">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
+                          <BarChart3 className="h-6 w-6 text-primary" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Dashboard de Finanças</p>
                       </div>
-                      <p className="text-muted-foreground">Visualização do Dashboard</p>
+                    </div>
+                  </div>
+
+                  {/* Imagem 2 (meio) */}
+                  <div className="absolute top-[60px] left-[40px] w-[280px] h-[200px] bg-gradient-to-br from-blue-500/20 to-blue-500/5 rounded-2xl overflow-hidden shadow-xl z-20 transform rotate-3">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-500/10 flex items-center justify-center">
+                          <PieChart className="h-6 w-6 text-blue-500" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Análise de Gastos</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Imagem 3 (fundo) */}
+                  <div className="absolute top-[120px] left-[80px] w-[280px] h-[200px] bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-2xl overflow-hidden shadow-xl z-10 transform rotate-12">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-green-500/10 flex items-center justify-center">
+                          <TrendingUp className="h-6 w-6 text-green-500" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">Metas Financeiras</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -148,7 +176,7 @@ export function LandingPage() {
 
         {/* Features Section */}
         <AnimatedSection className="w-full py-20 bg-muted" id="recursos">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <div className="space-y-2 max-w-[800px]">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -222,9 +250,9 @@ export function LandingPage() {
           </div>
         </AnimatedSection>
 
-        {/* How it Works Section */}
+        {/* How it Works Section - Timeline melhorada */}
         <AnimatedSection className="w-full py-20">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <div className="space-y-2 max-w-[800px]">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -237,10 +265,14 @@ export function LandingPage() {
             </div>
 
             <div className="relative">
-              {/* Linha conectora */}
+              {/* Linha vertical central (apenas desktop) */}
               <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2 hidden md:block" />
 
-              <div className="space-y-12 relative">
+              {/* Linha vertical esquerda (apenas mobile) */}
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border md:hidden" />
+
+              <div className="space-y-16 relative">
+                {/* Item 1 */}
                 <motion.div
                   className="flex flex-col md:flex-row gap-8 items-center"
                   variants={fadeInUp}
@@ -248,7 +280,11 @@ export function LandingPage() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <div className="md:w-1/2 flex justify-end order-1 md:order-1">
+                  {/* Conteúdo desktop (direita) */}
+                  <div className="md:w-1/2 flex justify-end order-1 md:order-1 relative">
+                    {/* Linha horizontal (desktop) */}
+                    <div className="absolute right-0 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 hidden md:block" />
+
                     <div className="bg-card p-6 rounded-lg shadow-sm max-w-md">
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <CreditCard className="h-6 w-6 text-primary" />
@@ -260,13 +296,19 @@ export function LandingPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Círculo numerado */}
                   <div className="md:w-1/2 order-2 md:order-2 relative">
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto md:mx-0 md:absolute md:left-0 md:-translate-x-1/2 z-10">
+                    {/* Linha horizontal (mobile) */}
+                    <div className="absolute left-4 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 md:hidden" />
+
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center ml-8 md:mx-0 md:absolute md:left-0 md:-translate-x-1/2 z-10">
                       1
                     </div>
                   </div>
                 </motion.div>
 
+                {/* Item 2 */}
                 <motion.div
                   className="flex flex-col md:flex-row gap-8 items-center"
                   variants={fadeInUp}
@@ -274,7 +316,11 @@ export function LandingPage() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <div className="md:w-1/2 order-1 md:order-2">
+                  {/* Conteúdo desktop (esquerda) */}
+                  <div className="md:w-1/2 order-1 md:order-2 relative">
+                    {/* Linha horizontal (desktop) */}
+                    <div className="absolute left-0 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 hidden md:block" />
+
                     <div className="bg-card p-6 rounded-lg shadow-sm max-w-md ml-auto">
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <TrendingUp className="h-6 w-6 text-primary" />
@@ -286,13 +332,19 @@ export function LandingPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Círculo numerado */}
                   <div className="md:w-1/2 order-2 md:order-1 relative">
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto md:mx-0 md:absolute md:right-0 md:translate-x-1/2 z-10">
+                    {/* Linha horizontal (mobile) */}
+                    <div className="absolute left-4 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 md:hidden" />
+
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center ml-8 md:mx-0 md:absolute md:right-0 md:translate-x-1/2 z-10">
                       2
                     </div>
                   </div>
                 </motion.div>
 
+                {/* Item 3 */}
                 <motion.div
                   className="flex flex-col md:flex-row gap-8 items-center"
                   variants={fadeInUp}
@@ -300,7 +352,11 @@ export function LandingPage() {
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.3 }}
                 >
-                  <div className="md:w-1/2 flex justify-end order-1 md:order-1">
+                  {/* Conteúdo desktop (direita) */}
+                  <div className="md:w-1/2 flex justify-end order-1 md:order-1 relative">
+                    {/* Linha horizontal (desktop) */}
+                    <div className="absolute right-0 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 hidden md:block" />
+
                     <div className="bg-card p-6 rounded-lg shadow-sm max-w-md">
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <Target className="h-6 w-6 text-primary" />
@@ -312,8 +368,13 @@ export function LandingPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Círculo numerado */}
                   <div className="md:w-1/2 order-2 md:order-2 relative">
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto md:mx-0 md:absolute md:left-0 md:-translate-x-1/2 z-10">
+                    {/* Linha horizontal (mobile) */}
+                    <div className="absolute left-4 top-1/2 h-0.5 w-8 bg-border -translate-y-1/2 md:hidden" />
+
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center ml-8 md:mx-0 md:absolute md:left-0 md:-translate-x-1/2 z-10">
                       3
                     </div>
                   </div>
@@ -325,7 +386,7 @@ export function LandingPage() {
 
         {/* CTA Section */}
         <AnimatedSection className="w-full py-20 bg-primary text-primary-foreground">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col lg:flex-row gap-8 items-center">
               <div className="lg:w-2/3 space-y-4">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -350,7 +411,7 @@ export function LandingPage() {
 
         {/* Testimonials Section */}
         <AnimatedSection className="w-full py-20">
-          <div className="container px-4 md:px-6">
+          <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <div className="space-y-2 max-w-[800px]">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -423,7 +484,7 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="w-full border-t py-6 md:py-8">
-        <div className="container px-4 md:px-6">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-4">
               <Link href="/" className="flex items-center gap-2 font-semibold">

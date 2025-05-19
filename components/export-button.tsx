@@ -1,48 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
 import { ExportDialog } from "@/components/export-dialog"
-import { getCategories } from "@/app/actions/categories"
-import { getAccounts } from "@/app/actions/accounts"
+import { Download } from "lucide-react"
 
 interface ExportButtonProps {
   variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
 }
 
-export function ExportButton({ variant = "outline" }: ExportButtonProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [categories, setCategories] = useState([])
-  const [accounts, setAccounts] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    if (isDialogOpen) {
-      fetchData()
-    }
-  }, [isDialogOpen])
-
-  async function fetchData() {
-    try {
-      setIsLoading(true)
-      const [categoriesData, accountsData] = await Promise.all([getCategories(), getAccounts()])
-      setCategories(categoriesData)
-      setAccounts(accountsData)
-    } catch (error) {
-      console.error("Erro ao carregar dados para exportação:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+export function ExportButton({ variant = "default" }: ExportButtonProps) {
+  const [open, setOpen] = useState(false)
 
   return (
     <>
-      <Button variant={variant} onClick={() => setIsDialogOpen(true)}>
+      <Button variant={variant} onClick={() => setOpen(true)} className="w-full">
         <Download className="mr-2 h-4 w-4" />
         Exportar
       </Button>
-      <ExportDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} categories={categories} accounts={accounts} />
+      <ExportDialog open={open} onOpenChange={setOpen} />
     </>
   )
 }

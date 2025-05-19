@@ -1,65 +1,39 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { ArrowRight, PlusCircle } from "lucide-react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { AddTransactionDialog } from "@/components/add-transaction-dialog"
+import { ArrowRight, Plus } from "lucide-react"
 
-export function WelcomeCard() {
-  const router = useRouter()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [userName, setUserName] = useState("")
+interface WelcomeCardProps {
+  userName: string
+}
 
-  // Obter a hora do dia para personalizar a saudação
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return "Bom dia"
-    if (hour < 18) return "Boa tarde"
-    return "Boa noite"
-  }
+export function WelcomeCard({ userName }: WelcomeCardProps) {
+  const firstName = userName?.split(" ")[0] || "Usuário"
 
   return (
-    <motion.div
-      className="col-span-full"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20">
-        <CardHeader>
-          <CardTitle className="text-2xl">
-            {getGreeting()}
-            {userName ? `, ${userName}` : ""}!
-          </CardTitle>
-          <CardDescription>
-            Bem-vindo ao seu painel financeiro. Comece a acompanhar suas finanças agora mesmo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Registre suas transações, defina metas e acompanhe seu progresso financeiro em um só lugar.
-          </p>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={() => router.push("/dashboard/transactions")}>
-            Ver Transações
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Nova Transação
-          </Button>
-        </CardFooter>
-      </Card>
-
-      <AddTransactionDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        onSuccess={() => router.push("/dashboard/transactions")}
-      />
-    </motion.div>
+    <Card className="bg-card shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-2xl">Bem-vindo(a), {firstName}!</CardTitle>
+        <CardDescription>
+          Acompanhe suas finanças, gerencie despesas e alcance seus objetivos financeiros.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Link href="/dashboard/transactions">
+            <Button variant="outline" className="w-full sm:w-auto">
+              Ver transações
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href="/dashboard/transactions?new=true">
+            <Button className="w-full sm:w-auto">
+              Nova Transação
+              <Plus className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

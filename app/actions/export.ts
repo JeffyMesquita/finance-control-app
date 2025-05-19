@@ -2,6 +2,7 @@
 
 import { createActionClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { exportToCSV, exportToPDF } from "@/lib/export-utils"
 
 // Export transactions
 export async function getTransactionsForExport(
@@ -196,4 +197,132 @@ export async function getMonthlySummaryForExport(year?: number) {
   })
 
   return monthlyData
+}
+
+// Função de exportação de dados
+export async function exportData(
+  type: string,
+  format: "csv" | "pdf",
+  filters: {
+    dateFrom?: string
+    dateTo?: string
+    transactionType?: string
+    categoryId?: string
+    accountId?: string
+    year?: number
+  },
+) {
+  let data: any[] = []
+  let filename = ""
+  let headers: string[] = []
+
+  // Obter dados com base no tipo
+  switch (type) {
+    case "transactions":
+      data = await getTransactionsForExport(
+        filters.dateFrom,
+        filters.dateTo,
+        filters.transactionType,
+        filters.categoryId,
+        filters.accountId,
+      )
+      filename = `transacoes_${new Date().toISOString().split("T")[0]}`
+      headers = ["ID", "Descrição", "Valor", "Data", "Tipo", "Categoria", "Conta", "Notas"]
+
+      // Formatar dados para exportação
+      data = data.map((item) => ({
+        id: item.id,
+        description: item.description,
+        amount: (item.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        date: new Date(item.date).toLocaleDateString("pt-BR"),
+        type: item.type === "INCOME" ? "Receita" : "Despesa",
+        category: item.category?.name || "",
+        account: item.account?.name || "",
+        notes: item.notes || "",
+      }))
+      break
+
+    case "accounts":
+      data = await getAccountsForExport()
+      filename = `contas_${new Date().toISOString().split("T")[0]}`
+      headers = ["ID", "Nome", "Saldo", "Moeda", "Tipo"]
+
+      // Formatar dados para exportação
+      data = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        balance: (item.balance / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        currency: item.currency,
+        type: item.type,
+      }))
+      break
+
+    case "categories":
+      data = await getCategoriesForExport()
+      filename = `categorias_${new Date().toISOString().split("T")[0]}`
+      headers = ["ID", "Nome", "Tipo", "Cor", "Ícone"]
+
+      // Formatar dados para exportação
+      data = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        type: item.type === "INCOME" ? "Receita" : "Despesa",
+        color: item.color,
+        icon: item.icon,
+      }))
+      break
+
+    case "goals":
+      data = await getGoalsForExport()
+      filename = `metas_${new Date().toISOString().split("T")[0]}`
+      headers = [
+        "ID",
+        "Nome",
+        "Valor Alvo",
+        "Valor Atual",
+        "Data Inicial",
+        "Data Alvo",
+        "Categoria",
+        "Conta",
+        "Concluída",
+      ]
+
+      // Formatar dados para exportação
+      data = data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        targetAmount: (item.target_amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        currentAmount: (item.current_amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        startDate: new Date(item.start_date).toLocaleDateString("pt-BR"),
+        targetDate: new Date(item.target_date).toLocaleDateString("pt-BR"),
+        category: item.category?.name || "",
+        account: item.account?.name || "",
+        isCompleted: item.is_completed ? "Sim" : "Não",
+      }))
+      break
+
+    case "monthly":
+      data = await getMonthlySummaryForExport(filters.year)
+      filename = `resumo_mensal_${filters.year || new Date().getFullYear()}`
+      headers = ["Mês", "Receitas", "Despesas", "Economia"]
+
+      // Formatar dados para exportação
+      data = data.map((item) => ({
+        month: item.month,
+        income: (item.income / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        expenses: (item.expenses / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+        savings: (item.savings / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+      }))
+      break
+
+    default:
+      throw new Error("Tipo de exportação inválido")
+  }
+
+  // Exportar dados no formato solicitado
+  if (format === "csv") {
+    return exportToCSV(data, headers, filename)
+  } else {
+    return exportToPDF(data, headers, filename, type)
+  }
 }

@@ -4,113 +4,102 @@ import { ArrowLeft } from "lucide-react"
 
 export default function TermosDeServicoPage() {
   return (
-    <div className="container max-w-4xl py-12">
-      <div className="mb-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-6">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Voltar para a página inicial
           </Button>
         </Link>
       </div>
 
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold mb-4">Termos de Serviço</h1>
-          <p className="text-muted-foreground">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
-        </div>
+      <div className="prose dark:prose-invert max-w-none">
+        <h1>Termos de Serviço</h1>
+        <p>Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">1. Aceitação dos Termos</h2>
-          <p>
-            Ao acessar ou usar o FinanceTrack, você concorda em cumprir e estar vinculado a estes Termos de Serviço. Se
-            você não concordar com qualquer parte destes termos, não poderá acessar o serviço.
-          </p>
-        </div>
+        <h2>1. Aceitação dos Termos</h2>
+        <p>
+          Ao acessar ou usar o FinanceTrack, você concorda em cumprir e estar vinculado a estes Termos de Serviço. Se
+          você não concordar com algum aspecto destes termos, não poderá usar nossos serviços.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">2. Descrição do Serviço</h2>
-          <p>
-            O FinanceTrack é uma plataforma de gerenciamento financeiro pessoal que permite aos usuários rastrear
-            despesas, receitas, criar orçamentos e visualizar relatórios financeiros.
-          </p>
-        </div>
+        <h2>2. Descrição do Serviço</h2>
+        <p>
+          O FinanceTrack é uma plataforma de gerenciamento financeiro pessoal que permite aos usuários rastrear
+          despesas, monitorar receitas, definir metas financeiras e gerar relatórios.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">3. Contas de Usuário</h2>
-          <p>
-            Para usar determinados recursos do FinanceTrack, você precisa criar uma conta. Você é responsável por manter
-            a confidencialidade de sua senha e por todas as atividades que ocorrem em sua conta.
-          </p>
-        </div>
+        <h2>3. Contas de Usuário</h2>
+        <p>
+          Para usar o FinanceTrack, você precisa criar uma conta. Você é responsável por manter a confidencialidade de
+          sua senha e por todas as atividades que ocorrem em sua conta. Você concorda em notificar-nos imediatamente
+          sobre qualquer uso não autorizado de sua conta.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">4. Uso do Serviço</h2>
-          <p>
-            Você concorda em usar o FinanceTrack apenas para fins legais e de acordo com estes Termos. Você não deve:
-          </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Usar o serviço de qualquer maneira que possa danificar, desabilitar ou sobrecarregar o FinanceTrack</li>
-            <li>Tentar acessar áreas não autorizadas do serviço</li>
-            <li>Usar o serviço para qualquer finalidade ilegal ou não autorizada</li>
-            <li>Violar quaisquer leis em sua jurisdição ao usar o serviço</li>
-          </ul>
-        </div>
+        <h2>4. Privacidade</h2>
+        <p>
+          Nossa Política de Privacidade descreve como coletamos, usamos e compartilhamos suas informações pessoais. Ao
+          usar o FinanceTrack, você concorda com a coleta e uso de informações de acordo com nossa Política de
+          Privacidade.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">5. Privacidade</h2>
-          <p>
-            Sua privacidade é importante para nós. Consulte nossa{" "}
-            <Link href="/politica-de-privacidade" className="text-primary hover:underline">
-              Política de Privacidade
-            </Link>{" "}
-            para entender como coletamos, usamos e protegemos seus dados pessoais.
-          </p>
-        </div>
+        <h2>5. Conteúdo do Usuário</h2>
+        <p>
+          Você mantém todos os direitos sobre os dados que você envia ao FinanceTrack. Ao enviar conteúdo, você nos
+          concede uma licença mundial, não exclusiva e isenta de royalties para usar, armazenar e processar esse
+          conteúdo para fornecer nossos serviços.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">6. Modificações do Serviço</h2>
-          <p>
-            Reservamo-nos o direito de modificar ou descontinuar, temporária ou permanentemente, o serviço (ou qualquer
-            parte dele) com ou sem aviso prévio. Não seremos responsáveis perante você ou terceiros por qualquer
-            modificação, suspensão ou descontinuação do serviço.
-          </p>
-        </div>
+        <h2>6. Limitações de Uso</h2>
+        <p>
+          Você concorda em não usar o FinanceTrack para qualquer finalidade ilegal ou proibida por estes termos. Você
+          não pode usar o serviço de maneira que possa danificar, desativar, sobrecarregar ou prejudicar o serviço.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">7. Limitação de Responsabilidade</h2>
-          <p>
-            Em nenhuma circunstância o FinanceTrack, seus diretores, funcionários ou agentes serão responsáveis por
-            quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos, incluindo, sem limitação,
-            perda de lucros, dados, uso, boa vontade ou outras perdas intangíveis, resultantes de seu acesso ou uso ou
-            incapacidade de acessar ou usar o serviço.
-          </p>
-        </div>
+        <h2>7. Modificações do Serviço</h2>
+        <p>
+          Reservamo-nos o direito de modificar ou descontinuar, temporária ou permanentemente, o serviço (ou qualquer
+          parte dele) com ou sem aviso prévio. Não seremos responsáveis perante você ou terceiros por qualquer
+          modificação, suspensão ou descontinuação do serviço.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">8. Lei Aplicável</h2>
-          <p>
-            Estes Termos serão regidos e interpretados de acordo com as leis do Brasil, sem considerar suas disposições
-            de conflito de leis.
-          </p>
-        </div>
+        <h2>8. Rescisão</h2>
+        <p>
+          Podemos encerrar ou suspender sua conta e acesso ao FinanceTrack imediatamente, sem aviso prévio ou
+          responsabilidade, por qualquer motivo, incluindo, sem limitação, se você violar estes Termos de Serviço.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">9. Alterações nos Termos</h2>
-          <p>
-            Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer
-            momento. Se uma revisão for material, tentaremos fornecer um aviso com pelo menos 30 dias de antecedência
-            antes que quaisquer novos termos entrem em vigor.
-          </p>
-        </div>
+        <h2>9. Isenção de Garantias</h2>
+        <p>
+          O FinanceTrack é fornecido "como está" e "conforme disponível" sem garantias de qualquer tipo, expressas ou
+          implícitas.
+        </p>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">10. Contato</h2>
-          <p>
-            Se você tiver alguma dúvida sobre estes Termos, entre em contato conosco pelo e-mail:
-            contato@financetrack.com.br
-          </p>
-        </div>
+        <h2>10. Limitação de Responsabilidade</h2>
+        <p>
+          Em nenhum caso o FinanceTrack, seus diretores, funcionários ou agentes serão responsáveis por quaisquer danos
+          indiretos, incidentais, especiais, consequenciais ou punitivos decorrentes do uso do serviço.
+        </p>
+
+        <h2>11. Alterações nos Termos</h2>
+        <p>
+          Reservamo-nos o direito de modificar estes termos a qualquer momento. Se fizermos alterações materiais,
+          notificaremos você por meio de um aviso em nosso site ou por e-mail. O uso continuado do serviço após tais
+          alterações constitui sua aceitação dos novos termos.
+        </p>
+
+        <h2>12. Lei Aplicável</h2>
+        <p>
+          Estes Termos de Serviço serão regidos e interpretados de acordo com as leis do Brasil, sem considerar suas
+          disposições sobre conflitos de leis.
+        </p>
+
+        <h2>13. Contato</h2>
+        <p>
+          Se você tiver alguma dúvida sobre estes Termos de Serviço, entre em contato conosco pelo e-mail:
+          contato@financetrack.com.br
+        </p>
       </div>
     </div>
   )
