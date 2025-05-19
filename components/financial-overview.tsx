@@ -1,8 +1,14 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ResponsiveContainer,
   BarChart,
@@ -14,51 +20,63 @@ import {
   Legend,
   LineChart,
   Line,
-} from "recharts"
-import { getMonthlyData } from "@/app/actions/dashboard"
+} from "recharts";
+import { getMonthlyData } from "@/app/actions/dashboard";
+import { cn } from "@/lib/utils";
 
 interface FinancialOverviewProps {
-  className?: string
+  className?: string;
 }
 
+type MonthlyData = {
+  name: string;
+  income: number;
+  expenses: number;
+  savings: number;
+};
+
 export function FinancialOverview({ className }: FinancialOverviewProps) {
-  const [data, setData] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [data, setData] = useState<MonthlyData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const monthlyData = await getMonthlyData()
-        setData(monthlyData)
+        const monthlyData = await getMonthlyData();
+        setData(monthlyData);
       } catch (error) {
-        console.error("Erro ao carregar dados mensais:", error)
+        console.error("Erro ao carregar dados mensais:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   if (isLoading) {
     return (
       <Card className={className}>
         <CardHeader>
           <CardTitle>Visão Geral Financeira</CardTitle>
-          <CardDescription>Visualize seu desempenho financeiro ao longo do tempo</CardDescription>
+          <CardDescription>
+            Visualize seu desempenho financeiro ao longo do tempo
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full animate-pulse rounded bg-muted"></div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   return (
-    <Card className={className}>
+    <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
       <CardHeader>
         <CardTitle>Visão Geral Financeira</CardTitle>
-        <CardDescription>Visualize seu desempenho financeiro ao longo do tempo</CardDescription>
+        <CardDescription>
+          Visualize seu desempenho financeiro ao longo do tempo
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="monthly">
@@ -88,9 +106,24 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="income" stroke="#22c55e" name="Receitas" />
-                <Line type="monotone" dataKey="expenses" stroke="#ef4444" name="Despesas" />
-                <Line type="monotone" dataKey="savings" stroke="#3b82f6" name="Economia" />
+                <Line
+                  type="monotone"
+                  dataKey="income"
+                  stroke="#22c55e"
+                  name="Receitas"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="#ef4444"
+                  name="Despesas"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="savings"
+                  stroke="#3b82f6"
+                  name="Economia"
+                />
               </LineChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -111,5 +144,5 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
         </Tabs>
       </CardContent>
     </Card>
-  )
+  );
 }
