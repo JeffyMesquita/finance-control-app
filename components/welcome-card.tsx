@@ -1,15 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, PlusCircle } from "lucide-react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { AddTransactionDialog } from "./add-transaction-dialog";
 
 export function WelcomeCard() {
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -68,37 +79,49 @@ export function WelcomeCard() {
   }
 
   return (
-    <Card className="col-span-full lg:col-span-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-none shadow-md">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold tracking-tight">
-              {getGreeting()}, {userName}!
-            </h2>
-            <p className="text-muted-foreground">
-              Bem-vindo ao seu painel financeiro. Acompanhe suas finanças,
-              estabeleça metas e tome decisões financeiras inteligentes.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
-            <Button
-              onClick={handleAddTransaction}
-              className="whitespace-nowrap"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Adicionar Transação
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push("/dashboard/goals")}
-              className="whitespace-nowrap"
-            >
-              Criar Meta
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <motion.div
+      className="col-span-full"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-2xl">
+            {getGreeting()}
+            {userName ? `, ${userName}` : ""}!
+          </CardTitle>
+          <CardDescription>
+            Bem-vindo ao seu painel financeiro. Comece a acompanhar suas
+            finanças agora mesmo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Registre suas transações, defina metas e acompanhe seu progresso
+            financeiro em um só lugar.
+          </p>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard/transactions")}
+          >
+            Ver Transações
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Nova Transação
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <AddTransactionDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSuccess={() => router.push("/dashboard/transactions")}
+      />
+    </motion.div>
   );
 }
