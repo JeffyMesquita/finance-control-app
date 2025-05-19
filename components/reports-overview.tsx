@@ -37,7 +37,7 @@ export function ReportsOverview() {
         setMonthlyData(monthlyResult)
         setExpenseData(expenseResult)
       } catch (error) {
-        console.error("Erro ao carregar dados dos relatórios:", error)
+        console.error("Error fetching report data:", error)
       } finally {
         setIsLoading(false)
       }
@@ -49,17 +49,17 @@ export function ReportsOverview() {
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="lg:col-span-2 bg-card shadow-sm">
+        <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Receitas vs Despesas</CardTitle>
-            <CardDescription>Comparação mensal de receitas e despesas</CardDescription>
+            <CardTitle>Income vs Expenses</CardTitle>
+            <CardDescription>Monthly comparison of income and expenses</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] w-full animate-pulse bg-muted rounded" />
         </Card>
-        <Card className="bg-card shadow-sm">
+        <Card>
           <CardHeader>
-            <CardTitle>Distribuição de Despesas</CardTitle>
-            <CardDescription>Distribuição por categoria</CardDescription>
+            <CardTitle>Expense Breakdown</CardTitle>
+            <CardDescription>Distribution by category</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] w-full animate-pulse bg-muted rounded" />
         </Card>
@@ -69,10 +69,10 @@ export function ReportsOverview() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <Card className="lg:col-span-2 bg-card shadow-sm">
+      <Card className="lg:col-span-2">
         <CardHeader>
-          <CardTitle>Receitas vs Despesas</CardTitle>
-          <CardDescription>Comparação mensal de receitas e despesas</CardDescription>
+          <CardTitle>Income vs Expenses</CardTitle>
+          <CardDescription>Monthly comparison of income and expenses</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -82,22 +82,22 @@ export function ReportsOverview() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="income" fill="#22c55e" name="Receitas" />
-              <Bar dataKey="expenses" fill="#ef4444" name="Despesas" />
-              <Bar dataKey="savings" fill="#3b82f6" name="Economia" />
+              <Bar dataKey="income" fill="#22c55e" name="Income" />
+              <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
+              <Bar dataKey="savings" fill="#3b82f6" name="Savings" />
             </RechartsBarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="bg-card shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle>Distribuição de Despesas</CardTitle>
-          <CardDescription>Distribuição por categoria</CardDescription>
+          <CardTitle>Expense Breakdown</CardTitle>
+          <CardDescription>Distribution by category</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           {expenseData.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">Nenhum dado de despesa disponível</p>
+              <p className="text-sm text-muted-foreground">No expense data available</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -122,10 +122,10 @@ export function ReportsOverview() {
           )}
         </CardContent>
       </Card>
-      <Card className="lg:col-span-3 bg-card shadow-sm">
+      <Card className="lg:col-span-3">
         <CardHeader>
-          <CardTitle>Tendência de Economia</CardTitle>
-          <CardDescription>Sua economia ao longo do tempo</CardDescription>
+          <CardTitle>Savings Trend</CardTitle>
+          <CardDescription>Your savings over time</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -135,50 +135,50 @@ export function ReportsOverview() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="savings" stroke="#3b82f6" name="Economia" />
+              <Line type="monotone" dataKey="savings" stroke="#3b82f6" name="Savings" />
             </RechartsLineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
-      <Card className="lg:col-span-3 bg-card shadow-sm">
+      <Card className="lg:col-span-3">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Relatórios Disponíveis</CardTitle>
-            <CardDescription>Baixe ou visualize relatórios detalhados</CardDescription>
+            <CardTitle>Available Reports</CardTitle>
+            <CardDescription>Download or view detailed reports</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="monthly">
             <TabsList className="mb-4">
-              <TabsTrigger value="monthly">Mensal</TabsTrigger>
-              <TabsTrigger value="quarterly">Trimestral</TabsTrigger>
-              <TabsTrigger value="yearly">Anual</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
+              <TabsTrigger value="yearly">Yearly</TabsTrigger>
             </TabsList>
             <TabsContent value="monthly" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <ReportCard
-                  title="Resumo do Mês Atual"
-                  description="Resumo financeiro completo para o mês atual"
+                  title="Current Month Summary"
+                  description="Complete financial summary for the current month"
                   icon={FileText}
                 />
                 <ReportCard
-                  title="Despesas do Mês Atual"
-                  description="Detalhamento de despesas por categoria"
+                  title="Current Month Expenses"
+                  description="Detailed expense breakdown by category"
                   icon={PieChart}
                 />
-                <ReportCard title="Receitas do Mês Atual" description="Fontes de receita e análise" icon={BarChart3} />
+                <ReportCard title="Current Month Income" description="Income sources and analysis" icon={BarChart3} />
               </div>
             </TabsContent>
             <TabsContent value="quarterly" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <ReportCard
-                  title="Resumo do Trimestre Atual"
-                  description="Resumo financeiro completo para o trimestre atual"
+                  title="Current Quarter Summary"
+                  description="Complete financial summary for the current quarter"
                   icon={FileText}
                 />
                 <ReportCard
-                  title="Tendências do Trimestre"
-                  description="Tendências e padrões financeiros"
+                  title="Current Quarter Trends"
+                  description="Financial trends and patterns"
                   icon={LineChart}
                 />
               </div>
@@ -186,8 +186,8 @@ export function ReportsOverview() {
             <TabsContent value="yearly" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <ReportCard
-                  title="Relatório Anual"
-                  description="Resumo financeiro completo para o ano atual"
+                  title="Current Year Report"
+                  description="Complete financial summary for the current year"
                   icon={FileText}
                 />
               </div>
@@ -207,7 +207,7 @@ interface ReportCardProps {
 
 function ReportCard({ title, description, icon: Icon }: ReportCardProps) {
   return (
-    <Card className="bg-card shadow-sm">
+    <Card>
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="space-y-1">
           <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -219,7 +219,7 @@ function ReportCard({ title, description, icon: Icon }: ReportCardProps) {
         <div className="flex justify-end">
           <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
-            Baixar
+            Download
           </Button>
         </div>
       </CardContent>

@@ -70,7 +70,7 @@ export function generatePDF(
   doc.setFontSize(18)
   doc.text(title, 14, 22)
   doc.setFontSize(11)
-  doc.text(`Gerado em: ${formatDate(new Date().toISOString())}`, 14, 30)
+  doc.text(`Generated on: ${formatDate(new Date().toISOString())}`, 14, 30)
 
   // Prepare table data
   const tableData = data.map((item) => {
@@ -115,22 +115,4 @@ export function generatePDF(
 
   // Save PDF
   doc.save(filename)
-}
-
-// Função para exportar dados para CSV
-export function exportToCSV(data: any[], headers: string[], fields: string[], filename: string) {
-  const csvContent = convertToCSV(data, headers, fields)
-  downloadCSV(csvContent, filename)
-}
-
-// Função para exportar dados para PDF
-export function exportToPDF(
-  data: any[],
-  headers: string[],
-  fields: string[],
-  title: string,
-  filename: string,
-  orientation: "portrait" | "landscape" = "portrait",
-) {
-  generatePDF(data, headers, fields, title, filename, orientation)
 }

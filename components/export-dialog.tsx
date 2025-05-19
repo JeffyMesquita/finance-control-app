@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,68 +10,168 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
-import { exportData } from "@/app/actions/export"
 import { useToast } from "@/hooks/use-toast"
-import { CalendarIcon } from "lucide-react"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  getTransactionsForExport,
+  getAccountsForExport,
+  getCategoriesForExport,
+  getGoalsForExport,
+  getMonthlySummaryForExport,
+} from "@/app/actions/export"
+import { convertToCSV, downloadCSV, generatePDF } from "@/lib/export-utils"
 
 interface ExportDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  categories: { id: string; name: string }[]
-  accounts: { id: string; name: string }[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  categories: any[]
+  accounts: any[]
 }
 
-export function ExportDialog({ isOpen, onClose, categories, accounts }: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, categories, accounts }: ExportDialogProps) {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [exportType, setExportType] = useState("transactions")
-  const [exportFormat, setExportFormat] = useState<"csv" | "pdf">("csv")
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined)
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined)
-  const [transactionType, setTransactionType] = useState<string | undefined>(undefined)
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined)
-  const [accountId, setAccountId] = useState<string | undefined>(undefined)
-  const [year, setYear] = useState<number>(new Date().getFullYear())
-  const [useFilters, setUseFilters] = useState(false)
-
-  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
+  const [fileFormat, setFileFormat] = useState("csv")
+  const [dateRange, setDateRange] = useState("all")
+  const [dateFrom, setDateFrom] = useState(() => {
+    const date = new Date()
+    date.setMonth(date.getMonth() - 1)
+    return date.toISOString().split("T")[0]
+  })
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split("T")[0])
+  const [transactionType, setTransactionType] = useState("all")
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedAccount, setSelectedAccount] = useState("")
+  const [includeNotes, setIncludeNotes] = useState(true)
 
   const handleExport = async () => {
+    setIsLoading(true)
+
     try {
-      setIsLoading(true)
+      let data = []
+      let headers = []
+      let fields = []
+      let title = ""
+      let filename = ""
 
-      const filters = useFilters
-        ? {
-            dateFrom: dateFrom ? format(dateFrom, "yyyy-MM-dd") : undefined,
-            dateTo: dateTo ? format(dateTo, "yyyy-MM-dd") : undefined,
-            transactionType,
-            categoryId,
-            accountId,
-            year,
-          }
-        : {}
+      // Get data based on export type
+      switch (exportType) {
+        case "transactions":
+          data = await getTransactionsForExport(
+            dateRange !== "all" ? dateFrom : undefined,
+            dateRange !== "all" ? dateTo : undefined,
+            transactionType !== "all" ? transactionType : undefined,
+            selectedCategory || undefined,
+            selectedAccount || undefined,
+          )
 
-      await exportData(exportType, exportFormat, filters)
+          headers = [
+            "Data",
+            "Descrição",
+            "Categoria",
+            "Conta",
+            "Tipo",
+            "Valor",
+            ...(includeNotes ? ["Observações"] : []),
+          ]
+
+          fields = [
+            "date",
+            "description",
+            "category.name",
+            "account.name",
+            "type",
+            "amount",
+            ...(includeNotes ? ["notes"] : []),
+          ]
+
+          title = "Exportação de Transações"
+          filename = `transacoes_${new Date().toISOString().split("T")[0]}`
+          break
+
+        case "accounts":
+          data = await getAccountsForExport()
+          headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"]
+          fields = ["name", "type", "balance", "currency"]
+          title = "Exportação de Contas"
+          filename = `contas_${new Date().toISOString().split("T")[0]}`
+          break
+
+        case "categories":
+          data = await getCategoriesForExport()
+          headers = ["Nome da Categoria", "Tipo", "Cor"]
+          fields = ["name", "type", "color"]
+          title = "Exportação de Categorias"
+          filename = `categorias_${new Date().toISOString().split("T")[0]}`
+          break
+
+        case "goals":
+          data = await getGoalsForExport()
+          headers = [
+            "Nome da Meta",
+            "Valor Alvo",
+            "Valor Atual",
+            "Progresso",
+            "Data de Início",
+            "Data Alvo",
+            "Conta",
+            "Status",
+          ]
+          fields = [
+            "name",
+            "target_amount",
+            "current_amount",
+            // Calculate progress percentage
+            (item) => `${Math.round((item.current_amount / item.target_amount) * 100)}%`,
+            "start_date",
+            "target_date",
+            "account.name",
+            (item) => (item.is_completed ? "Concluído" : "Em Andamento"),
+          ]
+          title = "Exportação de Metas Financeiras"
+          filename = `metas_${new Date().toISOString().split("T")[0]}`
+          break
+
+        case "monthly_summary":
+          data = await getMonthlySummaryForExport()
+          headers = ["Mês", "Receitas", "Despesas", "Economia"]
+          fields = ["month", "income", "expenses", "savings"]
+          title = "Resumo Mensal"
+          filename = `resumo_mensal_${new Date().toISOString().split("T")[0]}`
+          break
+      }
+
+      // Generate export file
+      if (fileFormat === "csv") {
+        const csvContent = convertToCSV(data, headers, fields)
+        downloadCSV(csvContent, `${filename}.csv`)
+      } else {
+        generatePDF(
+          data,
+          headers,
+          fields,
+          title,
+          `${filename}.pdf`,
+          exportType === "transactions" ? "landscape" : "portrait",
+        )
+      }
 
       toast({
-        title: "Exportação concluída",
-        description: `Seus dados foram exportados com sucesso no formato ${exportFormat.toUpperCase()}.`,
+        title: "Exportação Concluída",
+        description: `Seus dados foram exportados com sucesso no formato ${fileFormat.toUpperCase()}.`,
       })
-      onClose()
+
+      onOpenChange(false)
     } catch (error) {
       console.error("Erro ao exportar dados:", error)
       toast({
-        title: "Erro na exportação",
+        title: "Falha na Exportação",
         description: "Ocorreu um erro ao exportar seus dados. Por favor, tente novamente.",
         variant: "destructive",
       })
@@ -80,179 +181,145 @@ export function ExportDialog({ isOpen, onClose, categories, accounts }: ExportDi
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Exportar Dados</DialogTitle>
-          <DialogDescription>Escolha o tipo de dados e o formato para exportação.</DialogDescription>
+          <DialogTitle>Exportar Dados Financeiros</DialogTitle>
+          <DialogDescription>Exporte seus dados financeiros em formato CSV ou PDF.</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="export-type">Tipo de Dados</Label>
-            <Select value={exportType} onValueChange={setExportType}>
-              <SelectTrigger id="export-type">
-                <SelectValue placeholder="Selecione o tipo de dados" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="transactions">Transações</SelectItem>
-                <SelectItem value="accounts">Contas</SelectItem>
-                <SelectItem value="categories">Categorias</SelectItem>
-                <SelectItem value="goals">Metas Financeiras</SelectItem>
-                <SelectItem value="monthly">Resumo Mensal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <Tabs defaultValue="transactions" onValueChange={(value) => setExportType(value)}>
+          <TabsList className="grid grid-cols-5 mb-4">
+            <TabsTrigger value="transactions">Transações</TabsTrigger>
+            <TabsTrigger value="accounts">Contas</TabsTrigger>
+            <TabsTrigger value="categories">Categorias</TabsTrigger>
+            <TabsTrigger value="goals">Metas</TabsTrigger>
+            <TabsTrigger value="monthly_summary">Resumo</TabsTrigger>
+          </TabsList>
 
-          <div className="grid gap-2">
-            <Label htmlFor="export-format">Formato</Label>
-            <RadioGroup
-              id="export-format"
-              value={exportFormat}
-              onValueChange={(value) => setExportFormat(value as "csv" | "pdf")}
-              className="flex"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="csv" id="csv" />
-                <Label htmlFor="csv">CSV</Label>
-              </div>
-              <div className="flex items-center space-x-2 ml-4">
-                <RadioGroupItem value="pdf" id="pdf" />
-                <Label htmlFor="pdf">PDF</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox id="use-filters" checked={useFilters} onCheckedChange={(checked) => setUseFilters(!!checked)} />
-            <Label htmlFor="use-filters">Usar filtros</Label>
-          </div>
-
-          {useFilters && (
-            <div className="grid gap-4 mt-2">
-              {exportType === "monthly" ? (
-                <div className="grid gap-2">
-                  <Label htmlFor="year">Ano</Label>
-                  <Select value={year.toString()} onValueChange={(value) => setYear(Number.parseInt(value))}>
-                    <SelectTrigger id="year">
-                      <SelectValue placeholder="Selecione o ano" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map((y) => (
-                        <SelectItem key={y} value={y.toString()}>
-                          {y}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          <TabsContent value="transactions" className="space-y-4">
+            <div className="space-y-2">
+              <Label>Período</Label>
+              <RadioGroup defaultValue="all" onValueChange={setDateRange} className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="all" id="date-all" />
+                  <Label htmlFor="date-all">Todo o Período</Label>
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="date-from">Data Inicial</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="date-from"
-                            variant={"outline"}
-                            className={cn("justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateFrom ? format(dateFrom, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={dateFrom}
-                            onSelect={setDateFrom}
-                            initialFocus
-                            locale={ptBR}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="custom" id="date-custom" />
+                  <Label htmlFor="date-custom">Período Personalizado</Label>
+                </div>
+              </RadioGroup>
 
-                    <div className="grid gap-2">
-                      <Label htmlFor="date-to">Data Final</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            id="date-to"
-                            variant={"outline"}
-                            className={cn("justify-start text-left font-normal", !dateTo && "text-muted-foreground")}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateTo ? format(dateTo, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus locale={ptBR} />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+              {dateRange === "custom" && (
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="date-from">De</Label>
+                    <Input id="date-from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
                   </div>
-
-                  {exportType === "transactions" && (
-                    <>
-                      <div className="grid gap-2">
-                        <Label htmlFor="transaction-type">Tipo de Transação</Label>
-                        <Select value={transactionType || ""} onValueChange={setTransactionType}>
-                          <SelectTrigger id="transaction-type">
-                            <SelectValue placeholder="Todos os tipos" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todos os tipos</SelectItem>
-                            <SelectItem value="INCOME">Receitas</SelectItem>
-                            <SelectItem value="EXPENSE">Despesas</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid gap-2">
-                        <Label htmlFor="category">Categoria</Label>
-                        <Select value={categoryId || ""} onValueChange={setCategoryId}>
-                          <SelectTrigger id="category">
-                            <SelectValue placeholder="Todas as categorias" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todas as categorias</SelectItem>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="grid gap-2">
-                        <Label htmlFor="account">Conta</Label>
-                        <Select value={accountId || ""} onValueChange={setAccountId}>
-                          <SelectTrigger id="account">
-                            <SelectValue placeholder="Todas as contas" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Todas as contas</SelectItem>
-                            {accounts.map((account) => (
-                              <SelectItem key={account.id} value={account.id}>
-                                {account.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
-                  )}
-                </>
+                  <div className="space-y-1">
+                    <Label htmlFor="date-to">Até</Label>
+                    <Input id="date-to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                  </div>
+                </div>
               )}
             </div>
-          )}
+
+            <div className="space-y-2">
+              <Label>Tipo de Transação</Label>
+              <Select defaultValue="all" onValueChange={setTransactionType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de transação" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
+                  <SelectItem value="INCOME">Receitas</SelectItem>
+                  <SelectItem value="EXPENSE">Despesas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Categoria</Label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as Categorias" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Categorias</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Conta</Label>
+                <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas as Contas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Contas</SelectItem>
+                    {accounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox id="include-notes" checked={includeNotes} onCheckedChange={setIncludeNotes} />
+              <Label htmlFor="include-notes">Incluir Observações</Label>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="accounts">
+            <p className="text-sm text-muted-foreground mb-4">
+              Exporte todas as suas contas financeiras com seus saldos atuais.
+            </p>
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <p className="text-sm text-muted-foreground mb-4">Exporte todas as suas categorias de transações.</p>
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <p className="text-sm text-muted-foreground mb-4">
+              Exporte todas as suas metas financeiras com seu progresso atual.
+            </p>
+          </TabsContent>
+
+          <TabsContent value="monthly_summary">
+            <p className="text-sm text-muted-foreground mb-4">
+              Exporte um resumo mensal das suas receitas, despesas e economias.
+            </p>
+          </TabsContent>
+        </Tabs>
+
+        <div className="space-y-2">
+          <Label>Formato do Arquivo</Label>
+          <RadioGroup defaultValue="csv" onValueChange={setFileFormat} className="flex space-x-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="csv" id="format-csv" />
+              <Label htmlFor="format-csv">CSV</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="pdf" id="format-pdf" />
+              <Label htmlFor="format-pdf">PDF</Label>
+            </div>
+          </RadioGroup>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
           <Button onClick={handleExport} disabled={isLoading}>

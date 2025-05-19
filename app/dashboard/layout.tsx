@@ -1,47 +1,44 @@
 import type React from "react"
-import type { Metadata } from "next"
 import { redirect } from "next/navigation"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { DashboardNav } from "@/components/dashboard-nav"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { UserNav } from "@/components/user-nav"
-import { MobileNav } from "@/components/mobile-nav"
-import { createClient } from "@/lib/supabase/server"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { DollarSign } from "lucide-react"
+import Link from "next/link"
 
-export const metadata: Metadata = {
-  title: "Dashboard - FinanceTrack",
-  description: "Gerencie suas finanças pessoais com facilidade.",
-}
-
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
-
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const supabase = createServerComponentClient({ cookies })
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
-  if (!user) {
+  if (!session) {
     redirect("/login")
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-        <div className="flex items-center gap-2 md:hidden">
-          <MobileNav />
-        </div>
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold md:text-xl">FinanceTrack</h1>
-        </div>
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
+          <DollarSign className="h-6 w-6" />
+          <span>FinanceTrack</span>
+        </Link>
+        <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />
-          <UserNav user={user} />
+          <UserNav user={session.user} />
         </div>
       </header>
       <div className="flex flex-1">
-        <aside className="hidden w-[240px] flex-col border-r bg-muted/40 md:flex">
+        <aside className="hidden w-[200px] flex-col border-r md:flex">
           <DashboardNav />
         </aside>
-        <main className="flex-1 overflow-x-hidden">{children}</main>
+        <main className="flex flex-1 flex-col">{children}</main>
       </div>
     </div>
   )
