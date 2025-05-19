@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { CurrencyInput } from "@/components/ui/currency-input"
 import { useToast } from "@/hooks/use-toast"
 import { updateTransaction } from "@/app/actions/transactions"
 import { getCategories } from "@/app/actions/categories"
@@ -40,31 +41,31 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
     account_id: "",
     date: "",
     notes: "",
-    is_recurring: false,
-    recurring_interval: "",
   })
 
   useEffect(() => {
-    if (open && transaction) {
-      // Format date for input
-      const date = new Date(transaction.date)
-      const formattedDate = date.toISOString().split("T")[0]
-
-      setFormData({
-        type: transaction.type,
-        amount: transaction.amount.toString(),
-        description: transaction.description,
-        category_id: transaction.category_id || "",
-        account_id: transaction.account_id,
-        date: formattedDate,
-        notes: transaction.notes || "",
-        is_recurring: transaction.is_recurring,
-        recurring_interval: transaction.recurring_interval || "",
-      })
-
+    if (open) {
       fetchData()
     }
-  }, [open, transaction])
+  }, [open])
+
+  useEffect(() => {
+    if (transaction && open) {
+      // Converter a data para o formato local
+      const date = new Date(transaction.date)
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split("T")[0]
+
+      setFormData({
+        type: transaction.type || "EXPENSE",
+        amount: transaction.amount?.toString() || "",
+        description: transaction.description || "",
+        category_id: transaction.category_id || "",
+        account_id: transaction.account_id || "",
+        date: localDate,
+        notes: transaction.notes || "",
+      })
+    }
+  }, [transaction, open])
 
   async function fetchData() {
     try {
@@ -90,16 +91,39 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleCurrencyChange = (value: number | null) => {
+    setFormData((prev) => ({ ...prev, amount: value?.toString() || "" }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
 
     try {
-      // Format the data
+      // Validações
+      if (!formData.amount || Number(formData.amount) <= 0) {
+        throw new Error("O valor da transação deve ser maior que zero")
+      }
+
+      if (!formData.description.trim()) {
+        throw new Error("A descrição é obrigatória")
+      }
+
+      if (!formData.account_id) {
+        throw new Error("Selecione uma conta")
+      }
+
+      // Corrigir o fuso horário da data
+      const localDate = new Date(formData.date)
+      localDate.setHours(0, 0, 0, 0)
+
+      // Ajustar para UTC-3 (Brasil)
+      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000)
+
       const updatedTransaction = {
         ...formData,
-        amount: Number.parseFloat(formData.amount),
-        date: new Date(formData.date).toISOString(),
+        amount: Number(formData.amount),
+        date: utcDate.toISOString(),
       }
 
       const result = await updateTransaction(transaction.id, updatedTransaction)
@@ -129,18 +153,13 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
   // Filter categories based on transaction type
   const filteredCategories = categories.filter((category) => category.type === formData.type)
 
-  // Traduzir tipos de transação
-  const translateType = (type: string) => {
-    return type === "INCOME" ? "Receita" : "Despesa"
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Editar Transação</DialogTitle>
-            <DialogDescription>Atualize os detalhes da transação.</DialogDescription>
+            <DialogDescription>Atualize os detalhes da transação selecionada.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -158,14 +177,11 @@ export function EditTransactionDialog({ open, onOpenChange, transaction, onSucce
               </div>
               <div className="space-y-2">
                 <Label htmlFor="amount">Valor</Label>
-                <Input
+                <CurrencyInput
                   id="amount"
                   name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={handleChange}
+                  value={formData.amount ? Number(formData.amount) : 0}
+                  onValueChange={handleCurrencyChange}
                   required
                 />
               </div>

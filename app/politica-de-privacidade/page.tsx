@@ -2,9 +2,9 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-export default function PoliticaDePrivacidade() {
+export default function PoliticaDePrivacidadePage() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container max-w-4xl py-12">
       <div className="mb-8">
         <Link href="/">
           <Button variant="ghost" size="sm" className="gap-2">
@@ -14,98 +14,124 @@ export default function PoliticaDePrivacidade() {
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6">Política de Privacidade</h1>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-4">Política de Privacidade</h1>
+          <p className="text-muted-foreground">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
+        </div>
 
-      <div className="prose dark:prose-invert max-w-none">
-        <p className="text-lg mb-4">Última atualização: {new Date().toLocaleDateString("pt-BR")}</p>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">1. Introdução</h2>
+          <p>
+            Esta Política de Privacidade descreve como o FinanceTrack coleta, usa e compartilha suas informações
+            pessoais quando você usa nosso serviço. Valorizamos sua privacidade e nos comprometemos a proteger suas
+            informações pessoais.
+          </p>
+        </div>
 
-        <p className="mb-6">
-          Esta Política de Privacidade descreve como o FinanceTrack coleta, usa e compartilha suas informações pessoais
-          quando você usa nosso serviço. Ao usar o FinanceTrack, você concorda com a coleta e uso de informações de
-          acordo com esta política.
-        </p>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">2. Informações que Coletamos</h2>
+          <p>Coletamos diferentes tipos de informações para fornecer e melhorar nosso serviço:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>
+              <strong>Informações da Conta:</strong> Quando você se registra, coletamos seu nome, endereço de e-mail e
+              senha.
+            </li>
+            <li>
+              <strong>Informações Financeiras:</strong> Para fornecer nossos serviços, coletamos dados sobre suas
+              transações, categorias, contas financeiras e metas. Estas informações são armazenadas de forma segura e
+              usadas apenas para fornecer os recursos do FinanceTrack.
+            </li>
+            <li>
+              <strong>Informações de Uso:</strong> Coletamos dados sobre como você interage com nosso serviço, incluindo
+              páginas visitadas, tempo gasto no site e ações realizadas.
+            </li>
+            <li>
+              <strong>Informações do Dispositivo:</strong> Podemos coletar informações sobre o dispositivo que você usa
+              para acessar o FinanceTrack, incluindo modelo, sistema operacional e navegador.
+            </li>
+          </ul>
+        </div>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">1. Informações que Coletamos</h2>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">3. Como Usamos Suas Informações</h2>
+          <p>Usamos as informações coletadas para:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Fornecer, manter e melhorar nossos serviços</li>
+            <li>Processar e gerenciar suas transações financeiras dentro da plataforma</li>
+            <li>Enviar notificações relacionadas à sua conta ou transações</li>
+            <li>Personalizar sua experiência e fornecer conteúdo relevante</li>
+            <li>Analisar como nossos serviços são usados para melhorá-los</li>
+            <li>Detectar, prevenir e resolver problemas técnicos e de segurança</li>
+          </ul>
+        </div>
 
-        <h3 className="text-xl font-medium mt-6 mb-3">1.1 Informações Pessoais</h3>
-        <p>Quando você se registra no FinanceTrack, podemos coletar as seguintes informações:</p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Nome</li>
-          <li>Endereço de e-mail</li>
-          <li>Informações de perfil (como foto de perfil, data de nascimento)</li>
-          <li>Informações de contato</li>
-        </ul>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">4. Compartilhamento de Informações</h2>
+          <p>
+            Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto nas seguintes
+            circunstâncias:
+          </p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Com seu consentimento explícito</li>
+            <li>Para cumprir obrigações legais</li>
+            <li>Para proteger nossos direitos, privacidade, segurança ou propriedade</li>
+            <li>
+              Com prestadores de serviços que nos ajudam a operar o FinanceTrack (sempre com garantias adequadas de
+              proteção de dados)
+            </li>
+          </ul>
+        </div>
 
-        <h3 className="text-xl font-medium mt-6 mb-3">1.2 Dados Financeiros</h3>
-        <p>Para fornecer nossos serviços, coletamos informações financeiras que você opta por inserir, como:</p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Transações financeiras</li>
-          <li>Categorias de despesas</li>
-          <li>Metas financeiras</li>
-          <li>Saldos de contas</li>
-        </ul>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">5. Segurança de Dados</h2>
+          <p>
+            Implementamos medidas de segurança técnicas e organizacionais para proteger suas informações pessoais contra
+            acesso não autorizado, alteração, divulgação ou destruição. Suas informações financeiras são criptografadas
+            e armazenadas em servidores seguros.
+          </p>
+        </div>
 
-        <h3 className="text-xl font-medium mt-6 mb-3">1.3 Informações de Uso</h3>
-        <p>Coletamos informações sobre como você interage com nosso serviço, incluindo:</p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Endereço IP</li>
-          <li>Tipo de navegador</li>
-          <li>Páginas visitadas</li>
-          <li>Tempo gasto no serviço</li>
-          <li>Ações realizadas no aplicativo</li>
-        </ul>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">6. Seus Direitos</h2>
+          <p>Você tem os seguintes direitos em relação às suas informações pessoais:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li>Acessar e receber uma cópia das suas informações pessoais</li>
+            <li>Retificar informações imprecisas</li>
+            <li>Solicitar a exclusão de suas informações pessoais</li>
+            <li>Restringir ou opor-se ao processamento de suas informações</li>
+            <li>Solicitar a portabilidade de seus dados</li>
+          </ul>
+          <p>
+            Para exercer qualquer um desses direitos, entre em contato conosco através do e-mail:
+            privacidade@financetrack.com.br
+          </p>
+        </div>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">2. Como Usamos Suas Informações</h2>
-        <p>Usamos as informações coletadas para:</p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Fornecer, manter e melhorar nossos serviços</li>
-          <li>Processar e gerenciar suas transações financeiras</li>
-          <li>Enviar notificações relacionadas à sua conta ou atividades</li>
-          <li>Responder às suas solicitações e fornecer suporte ao cliente</li>
-          <li>Personalizar sua experiência e fornecer recomendações</li>
-          <li>Monitorar o uso de nossos serviços para melhorias e segurança</li>
-        </ul>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">7. Retenção de Dados</h2>
+          <p>
+            Mantemos suas informações pessoais apenas pelo tempo necessário para os fins estabelecidos nesta Política de
+            Privacidade, a menos que um período de retenção mais longo seja exigido por lei.
+          </p>
+        </div>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">3. Compartilhamento de Informações</h2>
-        <p>
-          Não vendemos suas informações pessoais a terceiros. Podemos compartilhar suas informações nas seguintes
-          circunstâncias:
-        </p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Com provedores de serviços que nos ajudam a operar nosso serviço</li>
-          <li>Para cumprir obrigações legais</li>
-          <li>Para proteger nossos direitos, privacidade, segurança ou propriedade</li>
-          <li>Em conexão com uma fusão, venda de ativos ou aquisição</li>
-        </ul>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">8. Alterações nesta Política</h2>
+          <p>
+            Podemos atualizar nossa Política de Privacidade periodicamente. Notificaremos você sobre quaisquer
+            alterações publicando a nova Política de Privacidade nesta página e, se as alterações forem significativas,
+            enviaremos uma notificação por e-mail.
+          </p>
+        </div>
 
-        <h2 className="text-2xl font-semibold mt-8 mb-4">4. Segurança de Dados</h2>
-        <p>
-          Implementamos medidas de segurança para proteger suas informações pessoais contra acesso não autorizado,
-          alteração, divulgação ou destruição. No entanto, nenhum método de transmissão pela Internet ou método de
-          armazenamento eletrônico é 100% seguro.
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-8 mb-4">5. Seus Direitos</h2>
-        <p>Você tem os seguintes direitos em relação às suas informações pessoais:</p>
-        <ul className="list-disc pl-6 my-4">
-          <li>Acessar e receber uma cópia das suas informações pessoais</li>
-          <li>Retificar informações imprecisas</li>
-          <li>Solicitar a exclusão de suas informações pessoais</li>
-          <li>Restringir ou se opor ao processamento de suas informações</li>
-          <li>Solicitar a portabilidade de seus dados</li>
-        </ul>
-
-        <h2 className="text-2xl font-semibold mt-8 mb-4">6. Alterações nesta Política</h2>
-        <p>
-          Podemos atualizar nossa Política de Privacidade periodicamente. Notificaremos você sobre quaisquer alterações
-          publicando a nova Política de Privacidade nesta página e atualizando a data de "última atualização".
-        </p>
-
-        <h2 className="text-2xl font-semibold mt-8 mb-4">7. Contato</h2>
-        <p>
-          Se você tiver alguma dúvida sobre esta Política de Privacidade, entre em contato conosco através do e-mail:
-          privacidade@financetrack.com.br
-        </p>
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">9. Contato</h2>
+          <p>
+            Se você tiver alguma dúvida sobre esta Política de Privacidade, entre em contato conosco pelo e-mail:
+            privacidade@financetrack.com.br
+          </p>
+        </div>
       </div>
     </div>
   )

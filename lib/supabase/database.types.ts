@@ -236,7 +236,7 @@ export interface Database {
           date: string
           type: "INCOME" | "EXPENSE"
           is_recurring: boolean
-          recurring_interval: string | null
+          recurring_interval: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null
           notes: string | null
           receipt_url: string | null
           category_id: string | null
@@ -244,6 +244,8 @@ export interface Database {
           user_id: string
           created_at: string | null
           updated_at: string | null
+          installment_number: number | null
+          total_installments: number | null
         }
         Insert: {
           id?: string
@@ -252,7 +254,7 @@ export interface Database {
           date: string
           type: "INCOME" | "EXPENSE"
           is_recurring?: boolean
-          recurring_interval?: string | null
+          recurring_interval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null
           notes?: string | null
           receipt_url?: string | null
           category_id?: string | null
@@ -260,6 +262,8 @@ export interface Database {
           user_id: string
           created_at?: string | null
           updated_at?: string | null
+          installment_number?: number | null
+          total_installments?: number | null
         }
         Update: {
           id?: string
@@ -268,7 +272,7 @@ export interface Database {
           date?: string
           type?: "INCOME" | "EXPENSE"
           is_recurring?: boolean
-          recurring_interval?: string | null
+          recurring_interval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null
           notes?: string | null
           receipt_url?: string | null
           category_id?: string | null
@@ -276,6 +280,8 @@ export interface Database {
           user_id?: string
           created_at?: string | null
           updated_at?: string | null
+          installment_number?: number | null
+          total_installments?: number | null
         }
       }
     }

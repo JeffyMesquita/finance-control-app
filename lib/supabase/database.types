@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
@@ -15,33 +9,33 @@ export interface Database {
           email: string | null
           name: string | null
           image: string | null
-          created_at: string | null
-          updated_at: string | null
+          createdAt: string | null
+          updatedAt: string | null
         }
         Insert: {
           id: string
           email?: string | null
           name?: string | null
           image?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
           email?: string | null
           name?: string | null
           image?: string | null
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
       accounts: {
         Row: {
           id: string
-          user_id: string
+          userId: string
           type: string
           provider: string
-          provider_account_id: string
+          providerAccountId: string
           refresh_token: string | null
           access_token: string | null
           expires_at: number | null
@@ -52,10 +46,10 @@ export interface Database {
         }
         Insert: {
           id?: string
-          user_id: string
+          userId: string
           type: string
           provider: string
-          provider_account_id: string
+          providerAccountId: string
           refresh_token?: string | null
           access_token?: string | null
           expires_at?: number | null
@@ -66,10 +60,10 @@ export interface Database {
         }
         Update: {
           id?: string
-          user_id?: string
+          userId?: string
           type?: string
           provider?: string
-          provider_account_id?: string
+          providerAccountId?: string
           refresh_token?: string | null
           access_token?: string | null
           expires_at?: number | null
@@ -86,9 +80,9 @@ export interface Database {
           type: "BANK" | "CREDIT_CARD" | "CASH" | "INVESTMENT" | "OTHER"
           balance: number
           currency: string
-          user_id: string
-          created_at: string | null
-          updated_at: string | null
+          userId: string
+          createdAt: string | null
+          updatedAt: string | null
         }
         Insert: {
           id?: string
@@ -96,9 +90,9 @@ export interface Database {
           type: "BANK" | "CREDIT_CARD" | "CASH" | "INVESTMENT" | "OTHER"
           balance?: number
           currency?: string
-          user_id: string
-          created_at?: string | null
-          updated_at?: string | null
+          userId: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -106,9 +100,9 @@ export interface Database {
           type?: "BANK" | "CREDIT_CARD" | "CASH" | "INVESTMENT" | "OTHER"
           balance?: number
           currency?: string
-          user_id?: string
-          created_at?: string | null
-          updated_at?: string | null
+          userId?: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
       categories: {
@@ -118,9 +112,9 @@ export interface Database {
           type: "INCOME" | "EXPENSE"
           icon: string | null
           color: string | null
-          user_id: string
-          created_at: string | null
-          updated_at: string | null
+          userId: string
+          createdAt: string | null
+          updatedAt: string | null
         }
         Insert: {
           id?: string
@@ -128,9 +122,9 @@ export interface Database {
           type: "INCOME" | "EXPENSE"
           icon?: string | null
           color?: string | null
-          user_id: string
-          created_at?: string | null
-          updated_at?: string | null
+          userId: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -138,9 +132,9 @@ export interface Database {
           type?: "INCOME" | "EXPENSE"
           icon?: string | null
           color?: string | null
-          user_id?: string
-          created_at?: string | null
-          updated_at?: string | null
+          userId?: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
       transactions: {
@@ -150,15 +144,15 @@ export interface Database {
           description: string
           date: string
           type: "INCOME" | "EXPENSE"
-          is_recurring: boolean
-          recurring_interval: string | null
+          isRecurring: boolean
+          recurringInterval: string | null
           notes: string | null
-          receipt_url: string | null
-          category_id: string | null
-          account_id: string
-          user_id: string
-          created_at: string | null
-          updated_at: string | null
+          receiptUrl: string | null
+          categoryId: string | null
+          accountId: string
+          userId: string
+          createdAt: string | null
+          updatedAt: string | null
         }
         Insert: {
           id?: string
@@ -166,15 +160,15 @@ export interface Database {
           description: string
           date: string
           type: "INCOME" | "EXPENSE"
-          is_recurring?: boolean
-          recurring_interval?: string | null
+          isRecurring?: boolean
+          recurringInterval?: string | null
           notes?: string | null
-          receipt_url?: string | null
-          category_id?: string | null
-          account_id: string
-          user_id: string
-          created_at?: string | null
-          updated_at?: string | null
+          receiptUrl?: string | null
+          categoryId?: string | null
+          accountId: string
+          userId: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -182,15 +176,15 @@ export interface Database {
           description?: string
           date?: string
           type?: "INCOME" | "EXPENSE"
-          is_recurring?: boolean
-          recurring_interval?: string | null
+          isRecurring?: boolean
+          recurringInterval?: string | null
           notes?: string | null
-          receipt_url?: string | null
-          category_id?: string | null
-          account_id?: string
-          user_id?: string
-          created_at?: string | null
-          updated_at?: string | null
+          receiptUrl?: string | null
+          categoryId?: string | null
+          accountId?: string
+          userId?: string
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
       financial_goals: {
@@ -206,7 +200,7 @@ export interface Database {
           is_completed: boolean
           user_id: string
           created_at: string | null
-          updated_at: string | null
+          updatedAt: string | null
         }
         Insert: {
           id?: string
@@ -219,8 +213,8 @@ export interface Database {
           account_id: string
           is_completed?: boolean
           user_id: string
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -233,8 +227,8 @@ export interface Database {
           account_id?: string
           is_completed?: boolean
           user_id?: string
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
       user_profiles: {
@@ -268,7 +262,7 @@ export interface Database {
           bio?: string | null
           profession?: string | null
           created_at?: string | null
-          updated_at?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -284,7 +278,7 @@ export interface Database {
           bio?: string | null
           profession?: string | null
           created_at?: string | null
-          updated_at?: string | null
+          updatedAt?: string | null
         }
       }
       user_settings: {
@@ -299,7 +293,7 @@ export interface Database {
           due_date_alerts: boolean
           language: string
           created_at: string | null
-          updated_at: string | null
+          updatedAt: string | null
         }
         Insert: {
           id: string
@@ -311,8 +305,8 @@ export interface Database {
           budget_alerts?: boolean
           due_date_alerts?: boolean
           language?: string
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
         Update: {
           id?: string
@@ -324,8 +318,8 @@ export interface Database {
           budget_alerts?: boolean
           due_date_alerts?: boolean
           language?: string
-          created_at?: string | null
-          updated_at?: string | null
+          createdAt?: string | null
+          updatedAt?: string | null
         }
       }
     }
@@ -336,7 +330,8 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      AccountType: "BANK" | "CREDIT_CARD" | "CASH" | "INVESTMENT" | "OTHER"
+      TransactionType: "INCOME" | "EXPENSE"
     }
   }
 }

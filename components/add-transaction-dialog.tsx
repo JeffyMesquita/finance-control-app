@@ -15,7 +15,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { CurrencyInput } from "@/components/ui/currency-input"
 import { useToast } from "@/hooks/use-toast"
 import { createTransaction } from "@/app/actions/transactions"
@@ -42,12 +41,24 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
     date: new Date().toISOString().split("T")[0],
     notes: "",
     is_recurring: false,
-    recurring_interval: "",
+    installments: "1",
   })
 
   useEffect(() => {
     if (open) {
       fetchData()
+      // Reset form when dialog opens
+      setFormData({
+        type: "EXPENSE",
+        amount: "",
+        description: "",
+        category_id: "",
+        account_id: "",
+        date: new Date().toISOString().split("T")[0],
+        notes: "",
+        is_recurring: false,
+        installments: "1",
+      })
     }
   }, [open])
 
@@ -58,7 +69,7 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
       setAccounts(accountsData)
 
       // Set default account if available
-      if (accountsData.length > 0 && !formData.account_id) {
+      if (accountsData.length > 0) {
         setFormData((prev) => ({ ...prev, account_id: accountsData[0].id }))
       }
     } catch (error) {
@@ -93,38 +104,89 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
     setIsSubmitting(true)
 
     try {
-      // Format the data
-      const transaction = {
-        ...formData,
-        amount: Number.parseFloat(formData.amount),
-        date: new Date(formData.date).toISOString(),
+      // Validações
+      if (!formData.amount || Number(formData.amount) <= 0) {
+        throw new Error("O valor da transação deve ser maior que zero")
       }
 
-      const result = await createTransaction(transaction)
+      if (!formData.description.trim()) {
+        throw new Error("A descrição é obrigatória")
+      }
 
-      if (result.success) {
+      if (!formData.account_id) {
+        throw new Error("Selecione uma conta")
+      }
+
+      // Corrigir o fuso horário da data
+      const localDate = new Date(formData.date)
+      localDate.setHours(0, 0, 0, 0)
+
+      // Ajustar para UTC-3 (Brasil)
+      const utcDate = new Date(localDate.getTime() - localDate.getTimezoneOffset() * 60000)
+
+      // Criar transação base
+      const baseTransaction = {
+        ...formData,
+        amount: Number(formData.amount),
+        date: utcDate.toISOString(),
+      }
+
+      // Se for parcelado, criar múltiplas transações
+      if (formData.type === "EXPENSE" && Number(formData.installments) > 1) {
+        const installments = Number(formData.installments)
+        const installmentAmount = Math.floor(Number(formData.amount) / installments)
+        const remainder = Number(formData.amount) % installments
+
+        const installmentPromises = []
+
+        for (let i = 0; i < installments; i++) {
+          // Calcular a data da parcela (mesmo dia em meses subsequentes)
+          const installmentDate = new Date(utcDate)
+          installmentDate.setMonth(installmentDate.getMonth() + i)
+
+          // Ajustar o valor da última parcela para incluir o resto da divisão
+          const amount = i === installments - 1 ? installmentAmount + remainder : installmentAmount
+
+          const installmentTransaction = {
+            ...baseTransaction,
+            amount,
+            description: `${baseTransaction.description} (${i + 1}/${installments})`,
+            date: installmentDate.toISOString(),
+            is_recurring: false,
+            installment_number: i + 1,
+            total_installments: installments,
+          }
+
+          installmentPromises.push(createTransaction(installmentTransaction))
+        }
+
+        const results = await Promise.all(installmentPromises)
+        const hasError = results.some((result) => !result.success)
+
+        if (hasError) {
+          throw new Error("Ocorreu um erro ao criar algumas parcelas")
+        }
+
+        toast({
+          title: "Sucesso",
+          description: `Transação parcelada em ${installments}x criada com sucesso`,
+        })
+      } else {
+        // Transação única (não parcelada)
+        const result = await createTransaction(baseTransaction)
+
+        if (!result.success) {
+          throw new Error(result.error || "Falha ao adicionar transação")
+        }
+
         toast({
           title: "Sucesso",
           description: "Transação adicionada com sucesso",
         })
-        onOpenChange(false)
-        if (onSuccess) onSuccess()
-
-        // Reset form
-        setFormData({
-          type: "EXPENSE",
-          amount: "",
-          description: "",
-          category_id: "",
-          account_id: accounts.length > 0 ? accounts[0].id : "",
-          date: new Date().toISOString().split("T")[0],
-          notes: "",
-          is_recurring: false,
-          recurring_interval: "",
-        })
-      } else {
-        throw new Error(result.error || "Falha ao adicionar transação")
       }
+
+      onOpenChange(false)
+      if (onSuccess) onSuccess()
     } catch (error) {
       console.error("Erro ao adicionar transação:", error)
       toast({
@@ -139,11 +201,6 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
 
   // Filter categories based on transaction type
   const filteredCategories = categories.filter((category) => category.type === formData.type)
-
-  // Traduzir tipos de transação
-  const translateType = (type: string) => {
-    return type === "INCOME" ? "Receita" : "Despesa"
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -172,7 +229,7 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
                 <CurrencyInput
                   id="amount"
                   name="amount"
-                  value={formData.amount ? Number.parseFloat(formData.amount) : 0}
+                  value={formData.amount ? Number(formData.amount) : 0}
                   onValueChange={handleCurrencyChange}
                   required
                 />
@@ -232,30 +289,31 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
               </Select>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="is_recurring">Recorrente</Label>
-              <Switch
-                id="is_recurring"
-                checked={formData.is_recurring}
-                onCheckedChange={(checked) => handleSwitchChange("is_recurring", checked)}
-              />
-            </div>
-
-            {formData.is_recurring && (
+            {formData.type === "EXPENSE" && (
               <div className="space-y-2">
-                <Label htmlFor="recurring_interval">Intervalo Recorrente</Label>
+                <Label htmlFor="installments">Parcelas</Label>
                 <Select
-                  value={formData.recurring_interval}
-                  onValueChange={(value) => handleSelectChange("recurring_interval", value)}
+                  value={formData.installments}
+                  onValueChange={(value) => handleSelectChange("installments", value)}
                 >
-                  <SelectTrigger id="recurring_interval">
-                    <SelectValue placeholder="Selecione o intervalo" />
+                  <SelectTrigger id="installments">
+                    <SelectValue placeholder="Selecione o número de parcelas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DAILY">Diário</SelectItem>
-                    <SelectItem value="WEEKLY">Semanal</SelectItem>
-                    <SelectItem value="MONTHLY">Mensal</SelectItem>
-                    <SelectItem value="YEARLY">Anual</SelectItem>
+                    <SelectItem value="1">1x (à vista)</SelectItem>
+                    <SelectItem value="2">2x</SelectItem>
+                    <SelectItem value="3">3x</SelectItem>
+                    <SelectItem value="4">4x</SelectItem>
+                    <SelectItem value="5">5x</SelectItem>
+                    <SelectItem value="6">6x</SelectItem>
+                    <SelectItem value="7">7x</SelectItem>
+                    <SelectItem value="8">8x</SelectItem>
+                    <SelectItem value="9">9x</SelectItem>
+                    <SelectItem value="10">10x</SelectItem>
+                    <SelectItem value="11">11x</SelectItem>
+                    <SelectItem value="12">12x</SelectItem>
+                    <SelectItem value="18">18x</SelectItem>
+                    <SelectItem value="24">24x</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

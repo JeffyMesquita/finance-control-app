@@ -2,38 +2,97 @@
 
 import type React from "react"
 
-import { useState, useEffect, forwardRef } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
-import { formatInputCurrency, currencyToNumber } from "@/lib/utils"
 
-interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> {
-  value: string | number
-  onChange: (value: number) => void
+interface CurrencyInputProps {
+  id?: string
+  name?: string
+  value: number
+  onValueChange: (value: number | null) => void
+  placeholder?: string
+  required?: boolean
+  disabled?: boolean
+  className?: string
 }
 
-const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(({ value, onChange, ...props }, ref) => {
+export function CurrencyInput({
+  id,
+  name,
+  value,
+  onValueChange,
+  placeholder = "R$ 0,00",
+  required = false,
+  disabled = false,
+  className = "",
+}: CurrencyInputProps) {
   const [displayValue, setDisplayValue] = useState("")
 
+  // Formatar o valor inicial
   useEffect(() => {
-    // Quando o valor externo muda, atualiza o valor de exibição
-    if (value !== undefined) {
-      const numValue = typeof value === "string" ? Number.parseFloat(value) : value
-      setDisplayValue(formatInputCurrency(String(numValue * 100)))
+    if (value !== undefined && value !== null) {
+      const formatted = formatCurrency(value)
+      setDisplayValue(formatted)
+    } else {
+      setDisplayValue("")
     }
   }, [value])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatInputCurrency(e.target.value)
-    setDisplayValue(formatted)
-
-    // Converte o valor formatado para número em centavos e chama o onChange
-    const numericValue = currencyToNumber(formatted)
-    onChange(numericValue)
+  // Formatar o valor como moeda
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value)
   }
 
-  return <Input ref={ref} type="text" value={displayValue} onChange={handleChange} {...props} />
-})
+  // Converter string formatada para número
+  const parseCurrency = (value: string): number | null => {
+    // Remover todos os caracteres não numéricos, exceto o ponto decimal
+    const numericValue = value.replace(/[^0-9]/g, "")
 
-CurrencyInput.displayName = "CurrencyInput"
+    if (!numericValue) return null
 
-export { CurrencyInput }
+    // Converter para centavos e depois para reais
+    return Number.parseInt(numericValue, 10) / 100
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value
+
+    // Remover formatação para processamento
+    const numericValue = parseCurrency(inputValue)
+
+    // Atualizar o valor no estado pai
+    onValueChange(numericValue)
+
+    // Atualizar o valor exibido
+    if (numericValue !== null) {
+      setDisplayValue(formatCurrency(numericValue))
+    } else {
+      setDisplayValue("")
+    }
+  }
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Selecionar todo o texto ao focar
+    e.target.select()
+  }
+
+  return (
+    <Input
+      id={id}
+      name={name}
+      value={displayValue}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      placeholder={placeholder}
+      required={required}
+      disabled={disabled}
+      className={className}
+      inputMode="numeric"
+    />
+  )
+}
