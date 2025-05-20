@@ -3,6 +3,17 @@
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+interface Category {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+interface Transaction {
+  amount: number;
+  category: Category;
+}
+
 export async function getDashboardData() {
   const supabase = createActionClient();
 
@@ -191,14 +202,16 @@ export async function getExpenseBreakdown() {
   // Group by category
   const categoryMap = new Map();
 
-  data.forEach((transaction) => {
+  const typedData = data as unknown as Transaction[];
+
+  typedData.forEach((transaction: Transaction) => {
     if (!transaction.category) return;
 
-    const categoryId = transaction.category[0].id;
+    const categoryId = transaction.category.id;
     if (!categoryMap.has(categoryId)) {
       categoryMap.set(categoryId, {
-        name: transaction.category[0].name,
-        color: transaction.category[0].color || "#64748b",
+        name: transaction.category.name,
+        color: transaction.category.color || "#64748b",
         value: 0,
       });
     }
