@@ -136,7 +136,6 @@ export function TransactionsTable() {
     try {
       setIsLoading(true);
       const data = await getTransactions();
-      console.log(data, "data");
       setTransactions(data);
       setFilteredTransactions(data);
     } catch (error) {
