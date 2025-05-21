@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import type { User } from "@supabase/auth-helpers-nextjs"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useRouter } from "next/navigation"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import type { User } from "@supabase/auth-helpers-nextjs";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,31 +12,38 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { UserIcon, Settings, LogOut } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { UserIcon, Settings, LogOut, Sun, Moon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 interface UserNavProps {
-  user: User
+  user: User;
 }
 
 export function UserNav({ user }: UserNavProps) {
-  const router = useRouter()
-  const supabase = createClientComponentClient()
+  const { setTheme, theme } = useTheme();
+
+  const handleThemeChange = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut()
-      router.push("/login")
-      router.refresh()
+      await supabase.auth.signOut();
+      router.push("/login");
+      router.refresh();
     } catch (error) {
-      console.error("Erro ao fazer logout:", error)
+      console.error("Erro ao fazer logout:", error);
     }
-  }
+  };
 
-  const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "U"
-  const userName = user.user_metadata?.full_name || user.email || "Usuário"
-  const userEmail = user.email || ""
-  const avatarUrl = user.user_metadata?.avatar_url || ""
+  const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "U";
+  const userName = user.user_metadata?.full_name || user.email || "Usuário";
+  const userEmail = user.email || "";
+  const avatarUrl = user.user_metadata?.avatar_url || "";
 
   return (
     <DropdownMenu>
@@ -52,7 +59,9 @@ export function UserNav({ user }: UserNavProps) {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{userName}</p>
-            <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {userEmail}
+            </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -60,10 +69,23 @@ export function UserNav({ user }: UserNavProps) {
           <UserIcon className="mr-2 h-4 w-4" />
           Meu Perfil
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => router.push("/dashboard/configuracoes")}>
+        <DropdownMenuItem
+          onSelect={() => router.push("/dashboard/configuracoes")}
+        >
           <Settings className="mr-2 h-4 w-4" />
           Configurações
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem onClick={handleThemeChange}>
+          {theme === "light" ? (
+            <Sun className="mr-2 h-4 w-4" />
+          ) : (
+            <Moon className="mr-2 h-4 w-4" />
+          )}
+          Mudar tema
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
@@ -71,5 +93,5 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

@@ -13,46 +13,6 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { getRecentTransactions } from "@/app/actions/transactions";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 
-// type Transaction
-// {
-//     "id": "a72e98c4-0ff5-41ca-aeff-d27141e6a4f8",
-//     "amount": 2097,
-//     "description": "Alimentação",
-//     "date": "2025-05-18T00:00:00+00:00",
-//     "type": "EXPENSE",
-//     "is_recurring": false,
-//     "notes": "Mussarela",
-//     "receipt_url": null,
-//     "category_id": "74f44da5-64aa-4c25-86e2-e8f14cae36da",
-//     "account_id": "940f1578-e5f4-4c6f-8c45-7735f46a0ca1",
-//     "user_id": "5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4",
-//     "created_at": "2025-05-18T19:30:18.810962+00:00",
-//     "updated_at": "2025-05-19T11:29:41.639483+00:00",
-//     "installment_number": null,
-//     "total_installments": null,
-//     "recurring_interval": null,
-//     "category": {
-//         "id": "74f44da5-64aa-4c25-86e2-e8f14cae36da",
-//         "icon": "Utensils",
-//         "name": "Alimentação",
-//         "type": "EXPENSE",
-//         "color": "#f97316",
-//         "user_id": "5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4",
-//         "created_at": "2025-05-18T13:07:41.626884+00:00",
-//         "updated_at": "2025-05-19T00:38:59.398123+00:00"
-//     },
-//     "account": {
-//         "id": "940f1578-e5f4-4c6f-8c45-7735f46a0ca1",
-//         "name": "Main Bank Account",
-//         "type": "BANK",
-//         "balance": 643822,
-//         "user_id": "5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4",
-//         "currency": "USD",
-//         "created_at": "2025-05-18T13:07:41.626884+00:00",
-//         "updated_at": "2025-05-19T17:01:32.545583+00:00"
-//     }
-// }
-
 type Category = {
   id: string;
   icon: string;

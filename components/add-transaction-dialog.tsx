@@ -155,19 +155,15 @@ export function AddTransactionDialog({
       }
 
       // Corrigir o fuso horário da data
-      const localDate = new Date(formData.date);
-      localDate.setHours(0, 0, 0, 0);
-
-      // Ajustar para UTC-3 (Brasil)
-      const utcDate = new Date(
-        localDate.getTime() - localDate.getTimezoneOffset() * 60000
-      );
+      const [year, month, day] = formData.date.split("-").map(Number);
+      // Cria a data como meia-noite no horário de Brasília (UTC-3)
+      const brasiliaDate = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
 
       // Criar transação base
       const baseTransaction = {
         ...formData,
         amount: Number(formData.amount) * 100,
-        date: utcDate.toISOString(),
+        date: brasiliaDate.toISOString(),
       };
 
       // Se for parcelado, criar múltiplas transações
@@ -185,7 +181,7 @@ export function AddTransactionDialog({
 
         for (let i = 0; i < installments; i++) {
           // Calcular a data da parcela (mesmo dia em meses subsequentes)
-          const installmentDate = new Date(utcDate);
+          const installmentDate = new Date(brasiliaDate);
           installmentDate.setMonth(installmentDate.getMonth() + i);
 
           // Ajustar o valor da última parcela para incluir o resto da divisão
@@ -193,9 +189,6 @@ export function AddTransactionDialog({
             i === installments - 1
               ? installmentAmount + remainder
               : installmentAmount;
-
-          console.log(baseTransaction, "baseTransaction");
-          console.log(amount, "amount");
 
           const installmentTransaction = {
             ...baseTransaction,
