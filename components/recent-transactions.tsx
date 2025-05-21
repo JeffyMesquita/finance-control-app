@@ -163,8 +163,8 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
                   variant="outline"
                   className={
                     transaction.type === "INCOME"
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-red-600 dark:text-red-400"
+                      ? "text-green-600 dark:text-green-400 dark:bg-green-900/50 bg-green-100"
+                      : "text-red-600 dark:text-red-400 dark:bg-red-900/50 bg-red-100"
                   }
                 >
                   {transaction.type === "INCOME" ? "+" : "-"}
