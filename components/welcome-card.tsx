@@ -70,7 +70,7 @@ export function WelcomeCard() {
 
   if (isLoading) {
     return (
-      <Card className="col-span-full lg:col-span-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-none shadow-md">
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-none shadow-md w-full">
         <CardContent className="p-6">
           <div className="h-24 animate-pulse bg-muted rounded"></div>
         </CardContent>
@@ -80,12 +80,12 @@ export function WelcomeCard() {
 
   return (
     <motion.div
-      className="col-span-full"
+      className="w-full max-w-full"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20">
+      <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-primary/20 w-full">
         <CardHeader>
           <CardTitle className="text-2xl">
             {getGreeting()}
@@ -102,15 +102,19 @@ export function WelcomeCard() {
             financeiro em um só lugar.
           </p>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex flex-col gap-4 justify-between md:flex-row">
           <Button
             variant="outline"
-            onClick={() => router.push("/dashboard/transactions")}
+            onClick={handleAddTransaction}
+            className="w-full md:w-auto"
           >
             Ver Transações
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-          <Button onClick={() => setIsDialogOpen(true)}>
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="w-full md:w-auto"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Transação
           </Button>

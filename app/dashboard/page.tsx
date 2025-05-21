@@ -1,26 +1,21 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import { DashboardCards } from "@/components/dashboard-cards"
-import { RecentTransactions } from "@/components/recent-transactions"
-import { FinancialOverview } from "@/components/financial-overview"
-import { GoalsSummary } from "@/components/goals-summary"
-import { WelcomeCard } from "@/components/welcome-card"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import { DashboardCards } from "@/components/dashboard-cards";
+import { RecentTransactions } from "@/components/recent-transactions";
+import { FinancialOverview } from "@/components/financial-overview";
+import { GoalsSummary } from "@/components/goals-summary";
+import { WelcomeCard } from "@/components/welcome-card";
 
 export default async function DashboardPage() {
-  const supabase = createServerComponentClient({ cookies })
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const supabase = createServerComponentClient({ cookies });
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-8">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <WelcomeCard />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">
+      <WelcomeCard />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-full">
         <DashboardCards />
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
         <FinancialOverview className="lg:col-span-4" />
         <div className="flex flex-col gap-4 lg:col-span-3">
           <GoalsSummary />
@@ -28,5 +23,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
