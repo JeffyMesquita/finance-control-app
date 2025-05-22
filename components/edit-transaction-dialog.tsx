@@ -223,6 +223,7 @@ export function EditTransactionDialog({
                   value={formData.type}
                   onValueChange={(value) => handleSelectChange("type", value)}
                   required
+                  defaultValue={formData.type}
                 >
                   <SelectTrigger id="type">
                     <SelectValue placeholder="Selecione o tipo" />
@@ -262,6 +263,8 @@ export function EditTransactionDialog({
                   onValueChange={(value) =>
                     handleSelectChange("category_id", value)
                   }
+                  required
+                  defaultValue={formData.category_id}
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Selecione a categoria" />
@@ -295,6 +298,7 @@ export function EditTransactionDialog({
                   handleSelectChange("account_id", value)
                 }
                 required
+                defaultValue={formData.account_id}
               >
                 <SelectTrigger id="account">
                   <SelectValue placeholder="Selecione a conta" />

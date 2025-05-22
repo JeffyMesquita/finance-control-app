@@ -317,6 +317,8 @@ export function AddTransactionDialog({
                   onValueChange={(value) =>
                     handleSelectChange("category_id", value)
                   }
+                  required
+                  defaultValue={categories[0]?.id || ""}
                 >
                   <SelectTrigger id="category">
                     <SelectValue placeholder="Selecione a categoria" />
