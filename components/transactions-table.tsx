@@ -51,6 +51,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { getTransactions, deleteTransaction } from "@/app/actions/transactions";
+import { getCategories } from "@/app/actions/categories";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -102,10 +103,30 @@ export function TransactionsTable() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedMonth, setSelectedMonth] = useState("all");
+  const [categories, setCategories] = useState<Category[]>([]);
   const isMobile = useIsMobile();
+
+  const months = [
+    { value: "all", label: "Todos os Meses" },
+    { value: "0", label: "Janeiro" },
+    { value: "1", label: "Fevereiro" },
+    { value: "2", label: "Março" },
+    { value: "3", label: "Abril" },
+    { value: "4", label: "Maio" },
+    { value: "5", label: "Junho" },
+    { value: "6", label: "Julho" },
+    { value: "7", label: "Agosto" },
+    { value: "8", label: "Setembro" },
+    { value: "9", label: "Outubro" },
+    { value: "10", label: "Novembro" },
+    { value: "11", label: "Dezembro" },
+  ];
 
   useEffect(() => {
     fetchTransactions();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -116,6 +137,19 @@ export function TransactionsTable() {
     // Apply type filter
     if (filter !== "all") {
       filtered = filtered.filter((t) => t.type.toLowerCase() === filter);
+    }
+
+    // Apply category filter
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((t) => t.category?.id === selectedCategory);
+    }
+
+    // Apply month filter
+    if (selectedMonth !== "all") {
+      filtered = filtered.filter((t) => {
+        const transactionDate = new Date(t.date);
+        return transactionDate.getMonth() === parseInt(selectedMonth);
+      });
     }
 
     // Apply search filter
@@ -130,7 +164,7 @@ export function TransactionsTable() {
     }
 
     setFilteredTransactions(filtered);
-  }, [transactions, filter, search]);
+  }, [transactions, filter, search, selectedCategory, selectedMonth]);
 
   async function fetchTransactions() {
     try {
@@ -147,6 +181,20 @@ export function TransactionsTable() {
       });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function fetchCategories() {
+    try {
+      const data = await getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar categorias",
+        variant: "destructive",
+      });
     }
   }
 
@@ -203,6 +251,31 @@ export function TransactionsTable() {
               <SelectItem value="all">Todas as Transações</SelectItem>
               <SelectItem value="income">Receitas</SelectItem>
               <SelectItem value="expense">Despesas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filtrar por categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Categorias</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filtrar por mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month) => (
+                <SelectItem key={month.value} value={month.value}>
+                  {month.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button onClick={() => setIsAddDialogOpen(true)}>
