@@ -310,7 +310,7 @@ export function TransactionsTable() {
           {Math.min(currentPage * pageSize, totalTransactions)} de{" "}
           {totalTransactions} transações
         </div>
-        <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 w-full">
+        <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 max-sm:w-full">
           <Button
             variant="outline"
             size="sm"
@@ -578,7 +578,7 @@ export function TransactionsTable() {
               {Math.min(currentPage * pageSize, totalTransactions)} de{" "}
               {totalTransactions} transações
             </div>
-            <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 w-full">
+            <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 max-sm:w-full">
               <Button
                 variant="outline"
                 size="sm"
