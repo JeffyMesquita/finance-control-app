@@ -31,7 +31,7 @@ export default async function DashboardLayout({
           href="/dashboard"
           className="flex items-center gap-2 font-semibold"
         >
-          <Logo />
+          <Logo className="sm:h-12 sm:w-auto" />
         </Link>
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />

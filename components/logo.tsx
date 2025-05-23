@@ -14,8 +14,8 @@ type LogoProps = React.ImgHTMLAttributes<HTMLImageElement> & {
 };
 
 export function Logo({
-  light,
-  dark,
+  light = false,
+  dark = false,
   className,
   width,
   height,
@@ -28,8 +28,8 @@ export function Logo({
     : dark
     ? "/logo-dark.png"
     : resolvedTheme === "dark"
-    ? "/logo-dark.png"
-    : "/logo-light.png";
+    ? "/logo-light.png"
+    : "/logo-dark.png";
 
   return (
     <Image
