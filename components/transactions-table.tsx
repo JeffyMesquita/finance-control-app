@@ -35,6 +35,8 @@ import {
   Pencil,
   ArrowUp,
   ArrowDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddTransactionDialog } from "@/components/add-transaction-dialog";
@@ -61,7 +63,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { useIsMobile } from "@/components/ui/use-mobile";
+import TransactionsSkeleton from "@/components/TransactionsSkeleton";
 
 type Category = {
   id: string;
@@ -106,7 +108,9 @@ export function TransactionsTable() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
   const [categories, setCategories] = useState<Category[]>([]);
-  const isMobile = useIsMobile();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const pageSize = 10;
 
   const months = [
     { value: "all", label: "Todos os Meses" },
@@ -127,7 +131,7 @@ export function TransactionsTable() {
   useEffect(() => {
     fetchTransactions();
     fetchCategories();
-  }, []);
+  }, [currentPage, selectedMonth]);
 
   useEffect(() => {
     if (!transactions.length) return;
@@ -146,9 +150,13 @@ export function TransactionsTable() {
 
     // Apply month filter
     if (selectedMonth !== "all") {
+      const currentYear = new Date().getFullYear();
       filtered = filtered.filter((t) => {
         const transactionDate = new Date(t.date);
-        return transactionDate.getMonth() === parseInt(selectedMonth);
+        return (
+          transactionDate.getMonth() === parseInt(selectedMonth) &&
+          transactionDate.getFullYear() === currentYear
+        );
       });
     }
 
@@ -169,9 +177,14 @@ export function TransactionsTable() {
   async function fetchTransactions() {
     try {
       setIsLoading(true);
-      const data = await getTransactions();
-      setTransactions(data);
-      setFilteredTransactions(data);
+      const result = await getTransactions(
+        currentPage,
+        pageSize,
+        selectedMonth
+      );
+      setTransactions(result.data);
+      setFilteredTransactions(result.data);
+      setTotalTransactions(result.total);
     } catch (error) {
       console.error("Erro ao carregar transações:", error);
       toast({
@@ -232,17 +245,19 @@ export function TransactionsTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
-        <div className="flex w-full sm:w-auto items-center gap-2">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar transações..."
-            className="w-full sm:w-[300px]"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 justify-between">
+        <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
+          <div className="flex items-center gap-2 w-full">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar transações..."
+              className="w-full sm:w-[300px]"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
-        <div className="flex w-full sm:w-auto items-center gap-2">
+        <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filtrar por tipo" />
@@ -278,17 +293,48 @@ export function TransactionsTable() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Adicionar
           </Button>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="rounded-md border">
-          <div className="h-[400px] w-full animate-pulse bg-muted"></div>
+      {/* Top Pagination Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between px-2 gap-2 sm:gap-0">
+        <div className="flex-1 text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+          Mostrando {(currentPage - 1) * pageSize + 1} a{" "}
+          {Math.min(currentPage * pageSize, totalTransactions)} de{" "}
+          {totalTransactions} transações
         </div>
+        <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 w-full">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-xs sm:text-sm font-medium">
+            Página {currentPage} de {Math.ceil(totalTransactions / pageSize)}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={currentPage * pageSize >= totalTransactions}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <TransactionsSkeleton />
       ) : filteredTransactions.length === 0 ? (
         <div className="rounded-md border p-8 flex flex-col items-center justify-center">
           <p className="text-muted-foreground mb-4">
@@ -299,136 +345,25 @@ export function TransactionsTable() {
             Adicionar Transação
           </Button>
         </div>
-      ) : isMobile ? (
-        <div className="flex flex-col gap-4">
-          {filteredTransactions.map((transaction) => (
-            <Card
-              key={transaction.id}
-              className="bg-stone-100 dark:bg-stone-900 shadow-sm rounded-sm"
-            >
-              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                <div>
-                  <CardTitle className="text-base">
-                    {transaction.description}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {formatDate(transaction.date)}
-                  </CardDescription>
-                </div>
-                <Badge
-                  variant="outline"
-                  style={{
-                    color: transaction.category?.color || undefined,
-                    borderColor: transaction.category?.color || undefined,
-                  }}
-                >
-                  {transaction.category?.name || "Sem categoria"}
-                </Badge>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-2 p-4 pt-0">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Conta:</span>
-                  <span className="text-xs">
-                    {transaction.account?.name || "Desconhecida"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Tipo:</span>
-                  <span className="flex items-center gap-1">
-                    {transaction.type === "INCOME" ? (
-                      <>
-                        <ArrowUp className="w-4 h-4 text-green-600" />
-                        <span className="text-green-600 font-medium">
-                          Receita
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <ArrowDown className="w-4 h-4 text-red-600" />
-                        <span className="text-red-600 font-medium">
-                          Despesa
-                        </span>
-                      </>
-                    )}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Valor:</span>
-                  <span
-                    className={
-                      transaction.type === "INCOME"
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }
-                  >
-                    {transaction.type === "INCOME" ? "+" : "-"}
-                    {formatCurrency(transaction.amount)}
-                  </span>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(transaction)}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" /> Editar
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive">
-                        <Trash className="h-4 w-4 mr-1" /> Excluir
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta ação excluirá permanentemente esta transação.
-                          Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDelete(transaction.id)}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[100px]">Data</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Conta</TableHead>
-                <TableHead className="text-right">
-                  <div className="flex items-center justify-end">
-                    Valor
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead className="w-[80px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <>
+          {/* Mobile: hidden on md+ | Desktop: hidden below md */}
+          <div className="md:hidden">
+            <div className="flex flex-col gap-4">
               {filteredTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">
-                    {formatDate(transaction.date)}
-                  </TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
+                <Card
+                  key={transaction.id}
+                  className="bg-stone-100 dark:bg-stone-900 shadow-sm rounded-sm"
+                >
+                  <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                    <div>
+                      <CardTitle className="text-base">
+                        {transaction.description}
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        {formatDate(transaction.date)}
+                      </CardDescription>
+                    </div>
                     <Badge
                       variant="outline"
                       style={{
@@ -438,76 +373,235 @@ export function TransactionsTable() {
                     >
                       {transaction.category?.name || "Sem categoria"}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {transaction.account?.name || "Desconhecida"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span
-                      className={
-                        transaction.type === "INCOME"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }
-                    >
-                      {transaction.type === "INCOME" ? "+" : "-"}
-                      {formatCurrency(transaction.amount)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Abrir menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => handleEdit(transaction)}
-                        >
-                          <Pencil className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}
-                              className="text-red-600"
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-2 p-4 pt-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Conta:
+                      </span>
+                      <span className="text-xs">
+                        {transaction.account?.name || "Desconhecida"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Tipo:
+                      </span>
+                      <span className="flex items-center gap-1">
+                        {transaction.type === "INCOME" ? (
+                          <>
+                            <ArrowUp className="w-4 h-4 text-green-600" />
+                            <span className="text-green-600 font-medium">
+                              Receita
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <ArrowDown className="w-4 h-4 text-red-600" />
+                            <span className="text-red-600 font-medium">
+                              Despesa
+                            </span>
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Valor:
+                      </span>
+                      <span
+                        className={
+                          transaction.type === "INCOME"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {transaction.type === "INCOME" ? "+" : "-"}
+                        {formatCurrency(transaction.amount)}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEdit(transaction)}
+                      >
+                        <Pencil className="h-4 w-4 mr-1" /> Editar
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="destructive">
+                            <Trash className="h-4 w-4 mr-1" /> Excluir
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta ação excluirá permanentemente esta transação.
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(transaction.id)}
+                              className="bg-red-600 hover:bg-red-700"
                             >
-                              <Trash className="mr-2 h-4 w-4" />
                               Excluir
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação excluirá permanentemente esta
-                                transação. Esta ação não pode ser desfeita.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(transaction.id)}
-                                className="bg-red-600 hover:bg-red-700"
-                              >
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
-        </div>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Conta</TableHead>
+                    <TableHead className="text-right">
+                      <div className="flex items-center justify-end">
+                        Valor
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </TableHead>
+                    <TableHead className="w-[80px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">
+                        {formatDate(transaction.date)}
+                      </TableCell>
+                      <TableCell>{transaction.description}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            color: transaction.category?.color || undefined,
+                            borderColor:
+                              transaction.category?.color || undefined,
+                          }}
+                        >
+                          {transaction.category?.name || "Sem categoria"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {transaction.account?.name || "Desconhecida"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
+                          className={
+                            transaction.type === "INCOME"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }
+                        >
+                          {transaction.type === "INCOME" ? "+" : "-"}
+                          {formatCurrency(transaction.amount)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Abrir menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => handleEdit(transaction)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="mr-2 h-4 w-4" />
+                                  Excluir
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Tem certeza?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta ação excluirá permanentemente esta
+                                    transação. Esta ação não pode ser desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDelete(transaction.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Excluir
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Bottom Pagination Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between px-2 gap-2 sm:gap-0 max-sm:pb-12">
+            <div className="flex-1 text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+              Mostrando {(currentPage - 1) * pageSize + 1} a{" "}
+              {Math.min(currentPage * pageSize, totalTransactions)} de{" "}
+              {totalTransactions} transações
+            </div>
+            <div className="flex items-center justify-between space-x-2 sm:space-x-6 lg:space-x-8 w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs sm:text-sm font-medium">
+                Página {currentPage} de{" "}
+                {Math.ceil(totalTransactions / pageSize)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage * pageSize >= totalTransactions}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </>
       )}
 
       <AddTransactionDialog

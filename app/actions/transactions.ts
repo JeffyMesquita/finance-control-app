@@ -5,7 +5,7 @@ import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
-export async function getTransactions() {
+export async function getTransactions(page = 1, pageSize = 10, month?: string) {
   const supabase = createActionClient();
 
   const {
@@ -15,7 +15,25 @@ export async function getTransactions() {
     redirect("/login");
   }
 
-  const { data, error } = await supabase
+  // Calculate offset
+  const offset = (page - 1) * pageSize;
+
+  let query = supabase
+    .from("transactions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  // Apply month filter if provided
+  if (month && month !== "all") {
+    const currentYear = new Date().getFullYear();
+    const startDate = new Date(currentYear, parseInt(month), 1).toISOString();
+    const endDate = new Date(currentYear, parseInt(month) + 1, 0).toISOString();
+    query = query.gte("date", startDate).lte("date", endDate);
+  }
+
+  const { count } = await query;
+
+  let dataQuery = supabase
     .from("transactions")
     .select(
       `
@@ -27,12 +45,22 @@ export async function getTransactions() {
     .eq("user_id", user.id)
     .order("date", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching transactions:", error);
-    return [];
+  // Apply month filter if provided
+  if (month && month !== "all") {
+    const currentYear = new Date().getFullYear();
+    const startDate = new Date(currentYear, parseInt(month), 1).toISOString();
+    const endDate = new Date(currentYear, parseInt(month) + 1, 0).toISOString();
+    dataQuery = dataQuery.gte("date", startDate).lte("date", endDate);
   }
 
-  return data;
+  const { data, error } = await dataQuery.range(offset, offset + pageSize - 1);
+
+  if (error) {
+    console.error("Error fetching transactions:", error);
+    return { data: [], total: 0 };
+  }
+
+  return { data, total: count || 0 };
 }
 
 export async function getRecentTransactions(limit = 5) {
