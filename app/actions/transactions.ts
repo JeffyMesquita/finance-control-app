@@ -1,75 +1,81 @@
-"use server"
+"use server";
 
-import { revalidatePath } from "next/cache"
-import { createActionClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types"
+import { revalidatePath } from "next/cache";
+import { createActionClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
 export async function getTransactions() {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
     .from("transactions")
-    .select(`
+    .select(
+      `
       *,
       category:categories(*),
       account:financial_accounts(*)
-    `)
+    `
+    )
     .eq("user_id", user.id)
-    .order("date", { ascending: false })
+    .order("date", { ascending: false });
 
   if (error) {
-    console.error("Error fetching transactions:", error)
-    return []
+    console.error("Error fetching transactions:", error);
+    return [];
   }
 
-  return data
+  return data;
 }
 
 export async function getRecentTransactions(limit = 5) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
     .from("transactions")
-    .select(`
+    .select(
+      `
       *,
       category:categories(*),
       account:financial_accounts(*)
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .order("date", { ascending: false })
-    .limit(limit)
+    .limit(limit);
 
   if (error) {
-    console.error("Error fetching recent transactions:", error)
-    return []
+    console.error("Error fetching recent transactions:", error);
+    return [];
   }
 
-  return data
+  return data;
 }
 
-export async function createTransaction(transaction: Omit<InsertTables<"transactions">, "user_id">) {
-  const supabase = createActionClient()
+export async function createTransaction(
+  transaction: Omit<InsertTables<"transactions">, "user_id">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
@@ -78,30 +84,33 @@ export async function createTransaction(transaction: Omit<InsertTables<"transact
       ...transaction,
       user_id: user.id,
     })
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error creating transaction:", error)
-    return { success: false, error: error.message }
+    console.error("Error creating transaction:", error);
+    return { success: false, error: error.message };
   }
 
   // Update account balance
-  await updateAccountBalance(transaction.account_id)
+  await updateAccountBalance(transaction.account_id);
 
-  revalidatePath("/dashboard")
-  revalidatePath("/dashboard/transactions")
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
-export async function updateTransaction(id: string, transaction: UpdateTables<"transactions">) {
-  const supabase = createActionClient()
+export async function updateTransaction(
+  id: string,
+  transaction: UpdateTables<"transactions">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   // Get the original transaction to check if account changed
@@ -110,43 +119,47 @@ export async function updateTransaction(id: string, transaction: UpdateTables<"t
     .select("account_id")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   const { data, error } = await supabase
     .from("transactions")
     .update(transaction)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error updating transaction:", error)
-    return { success: false, error: error.message }
+    console.error("Error updating transaction:", error);
+    return { success: false, error: error.message };
   }
 
   // Update account balances if the account changed
-  if (originalTransaction && transaction.account_id && originalTransaction.account_id !== transaction.account_id) {
-    await updateAccountBalance(originalTransaction.account_id)
-    await updateAccountBalance(transaction.account_id)
+  if (
+    originalTransaction &&
+    transaction.account_id &&
+    originalTransaction.account_id !== transaction.account_id
+  ) {
+    await updateAccountBalance(originalTransaction.account_id);
+    await updateAccountBalance(transaction.account_id);
   } else {
     // Update the current account balance
-    await updateAccountBalance(originalTransaction?.account_id || "")
+    await updateAccountBalance(originalTransaction?.account_id || "");
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/dashboard/transactions")
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
 export async function deleteTransaction(id: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   // Get the account_id before deleting
@@ -155,59 +168,70 @@ export async function deleteTransaction(id: string) {
     .select("account_id")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
-  const { error } = await supabase.from("transactions").delete().eq("id", id).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting transaction:", error)
-    return { success: false, error: error.message }
+    console.error("Error deleting transaction:", error);
+    return { success: false, error: error.message };
   }
 
   // Update account balance
   if (transaction) {
-    await updateAccountBalance(transaction.account_id)
+    await updateAccountBalance(transaction.account_id);
   }
 
-  revalidatePath("/dashboard")
-  revalidatePath("/dashboard/transactions")
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
 
-  return { success: true }
+  return { success: true };
 }
 
 // Helper function to update account balance based on transactions
 async function updateAccountBalance(accountId: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
-  if (!user || !accountId) return
+  } = await supabase.auth.getUser();
+  if (!user || !accountId) return;
 
-  // Calculate the balance from all transactions
+  // Get current date in UTC
+  const now = new Date();
+  const currentDate = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 3, 0, 0)
+  ).toISOString();
+
+  // Calculate the balance from all transactions up to current date
   const { data: transactions, error: transactionsError } = await supabase
     .from("transactions")
     .select("amount, type")
     .eq("account_id", accountId)
     .eq("user_id", user.id)
+    .lte("date", currentDate);
 
   if (transactionsError) {
-    console.error("Error calculating balance:", transactionsError)
-    return
+    console.error("Error calculating balance:", transactionsError);
+    return;
   }
 
   const balance = transactions.reduce((total, t) => {
-    return total + (t.type === "INCOME" ? t.amount : -t.amount)
-  }, 0)
+    return total + (t.type === "INCOME" ? t.amount : -t.amount);
+  }, 0);
 
   // Update the account balance
   const { error: updateError } = await supabase
     .from("financial_accounts")
     .update({ balance })
     .eq("id", accountId)
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
 
   if (updateError) {
-    console.error("Error updating account balance:", updateError)
+    console.error("Error updating account balance:", updateError);
   }
 }
