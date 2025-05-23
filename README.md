@@ -145,3 +145,144 @@ MIT License. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 Agradeço especialmente ao [Supabase](https://supabase.io/) e [Next.js](https://nextjs.org/) por suas ferramentas incríveis que tornaram este projeto possível.
 Agradeço também ao [TailwindCSS](https://tailwindcss.com/) pela facilidade de estilização e ao [Prisma](https://www.prisma.io/) pela simplicidade na manipulação de dados.
+
+## 🚀 Otimizações de SEO e Performance
+
+O projeto implementa várias otimizações para melhorar a indexação e performance:
+
+### SEO
+
+- **Metadata Dinâmico**: Configuração completa de metadados para cada página
+- **Schema.org**: Dados estruturados para melhor compreensão pelos motores de busca
+- **Breadcrumbs**: Navegação estruturada com markup semântico
+- **URLs Canônicas**: Prevenção de conteúdo duplicado
+- **Sitemap**: Geração automática de sitemap.xml
+- **Robots.txt**: Configuração de regras de indexação
+
+### Performance
+
+- **Web Vitals**: Monitoramento de métricas de performance
+- **Font Display**: Otimização de carregamento de fontes
+- **Viewport**: Configurações otimizadas para dispositivos móveis
+- **OpenGraph**: Suporte a compartilhamento em redes sociais
+- **Twitter Cards**: Integração com Twitter
+
+### Componentes Implementados
+
+- `SchemaOrg`: Componente para dados estruturados
+- `Breadcrumbs`: Navegação semântica
+- `CanonicalUrl`: Gerenciamento de URLs canônicas
+- `PerformanceMonitor`: Monitoramento de métricas
+
+### Configuração
+
+Para ativar todas as otimizações, configure as seguintes variáveis de ambiente:
+
+```bash
+NEXT_PUBLIC_BASE_URL=https://seu-dominio.com
+NEXT_PUBLIC_GA_ID=seu-id-do-google-analytics # opcional
+```
+
+### Implementação Completa
+
+Para finalizar a implementação das otimizações, siga estes passos:
+
+1. **Configuração de Domínio**
+
+   - Substitua todas as ocorrências de `https://your-domain.com` pelo seu domínio real
+   - Arquivos a serem atualizados:
+     - `app/layout.tsx`
+     - `lib/schema-data.ts`
+     - `app/sitemap.ts`
+     - `app/robots.ts`
+
+2. **Imagens de OpenGraph**
+
+   - Crie uma imagem para compartilhamento em redes sociais
+   - Dimensões recomendadas: 1200x630 pixels
+   - Salve em: `/public/og-image.jpg`
+   - Formato: JPG ou PNG com boa compressão
+
+3. **Google Search Console**
+
+   - Acesse [Google Search Console](https://search.google.com/search-console)
+   - Adicione seu site
+   - Copie o código de verificação
+   - Adicione em `app/layout.tsx`:
+
+   ```typescript
+   verification: {
+     google: 'seu-codigo-de-verificacao',
+   }
+   ```
+
+4. **Twitter Cards**
+
+   - Adicione seu handle do Twitter em `app/layout.tsx`:
+
+   ```typescript
+   twitter: {
+     card: 'summary_large_image',
+     creator: '@seu-handle',
+   }
+   ```
+
+5. **Ícones e Manifesto**
+
+   - Crie os seguintes arquivos na pasta `/public`:
+
+   a. **Favicon** (`/public/favicon.ico`)
+
+   - Dimensões: 16x16, 32x32, 48x48 pixels
+   - Formato: ICO
+   - Ferramentas recomendadas: [Favicon Generator](https://realfavicongenerator.net/)
+
+   b. **Apple Touch Icon** (`/public/apple-touch-icon.png`)
+
+   - Dimensões: 180x180 pixels
+   - Formato: PNG
+   - Sem transparência
+   - Sem cantos arredondados (iOS arredonda automaticamente)
+
+   c. **Web Manifest** (`/public/site.webmanifest`)
+
+   ```json
+   {
+     "name": "Financial Management System",
+     "short_name": "Finance Control",
+     "icons": [
+       {
+         "src": "/android-chrome-192x192.png",
+         "sizes": "192x192",
+         "type": "image/png"
+       },
+       {
+         "src": "/android-chrome-512x512.png",
+         "sizes": "512x512",
+         "type": "image/png"
+       }
+     ],
+     "theme_color": "#ffffff",
+     "background_color": "#ffffff",
+     "display": "standalone"
+   }
+   ```
+
+   d. **Ícones Adicionais**
+
+   - `/public/android-chrome-192x192.png` (192x192 pixels)
+   - `/public/android-chrome-512x512.png` (512x512 pixels)
+   - `/public/favicon-16x16.png` (16x16 pixels)
+   - `/public/favicon-32x32.png` (32x32 pixels)
+
+   > 💡 **Dica**: Use o [RealFaviconGenerator](https://realfavicongenerator.net/) para gerar todos os ícones necessários a partir de uma única imagem.
+
+### Verificação
+
+Após implementar todas as otimizações, verifique se:
+
+1. O site está indexando corretamente no Google Search Console
+2. As imagens de OpenGraph aparecem corretamente ao compartilhar links
+3. Os ícones aparecem em diferentes dispositivos e navegadores
+4. O manifesto está funcionando para instalação PWA
+5. As métricas de performance estão sendo coletadas

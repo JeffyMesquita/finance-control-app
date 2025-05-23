@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { DollarSign } from "lucide-react";
 import Link from "next/link";
 import { MobileNav } from "@/components/mobile-nav";
+import { Logo } from "@/components/logo";
 
 export default async function DashboardLayout({
   children,
@@ -30,8 +31,7 @@ export default async function DashboardLayout({
           href="/dashboard"
           className="flex items-center gap-2 font-semibold"
         >
-          <DollarSign className="h-6 w-6" />
-          <span>FinanceTrack</span>
+          <Logo />
         </Link>
         <div className="ml-auto flex items-center gap-4">
           <ThemeToggle />

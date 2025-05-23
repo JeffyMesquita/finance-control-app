@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import Link from "next/link";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   ChevronRight,
   BarChart3,
@@ -14,12 +14,21 @@ import {
   CreditCard,
   TrendingUp,
   Target,
-} from "lucide-react"
-import { motion, useAnimation } from "framer-motion"
-import { useInView } from "react-intersection-observer"
+} from "lucide-react";
+import { motion, useAnimation } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import { Logo } from "./logo";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaEnvelope,
+  FaInstagram,
+  FaPhone,
+} from "react-icons/fa";
+import { Footer } from "@/components/footer";
 
 export function LandingPage() {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
 
   // Animações para seções
   const fadeInUp = {
@@ -29,7 +38,7 @@ export function LandingPage() {
       y: 0,
       transition: { duration: 0.6, ease: "easeOut" },
     },
-  }
+  };
 
   const staggerContainer = {
     hidden: { opacity: 0 },
@@ -39,7 +48,7 @@ export function LandingPage() {
         staggerChildren: 0.2,
       },
     },
-  }
+  };
 
   const itemFade = {
     hidden: { opacity: 0, y: 20 },
@@ -48,27 +57,39 @@ export function LandingPage() {
       y: 0,
       transition: { duration: 0.5 },
     },
-  }
+  };
 
   // Hook para animação baseada em scroll
-  function AnimatedSection({ children, className }) {
-    const controls = useAnimation()
+  function AnimatedSection({
+    children,
+    className,
+  }: {
+    children: React.ReactNode;
+    className: string;
+  }) {
+    const controls = useAnimation();
     const [ref, inView] = useInView({
       threshold: 0.2,
       triggerOnce: true,
-    })
+    });
 
     useEffect(() => {
       if (inView) {
-        controls.start("visible")
+        controls.start("visible");
       }
-    }, [controls, inView])
+    }, [controls, inView]);
 
     return (
-      <motion.div ref={ref} initial="hidden" animate={controls} variants={fadeInUp} className={className}>
+      <motion.div
+        ref={ref}
+        initial="hidden"
+        animate={controls}
+        variants={fadeInUp}
+        className={className}
+      >
         {children}
       </motion.div>
-    )
+    );
   }
 
   return (
@@ -76,8 +97,7 @@ export function LandingPage() {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-4 lg:px-6 h-16 flex items-center justify-between border-b bg-background/80 backdrop-blur-sm">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <DollarSign className="h-6 w-6 text-primary" />
-          <span>FinanceTrack</span>
+          <Logo dark className="h-12 w-auto" />
         </Link>
         <div className="flex items-center gap-4">
           <Link href="/login">
@@ -101,14 +121,17 @@ export function LandingPage() {
               animate="visible"
               variants={staggerContainer}
             >
-              <motion.div className="flex flex-col justify-center space-y-4" variants={itemFade}>
+              <motion.div
+                className="flex flex-col justify-center space-y-4"
+                variants={itemFade}
+              >
                 <div className="space-y-2">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
                     Assuma o Controle das Suas Finanças
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Acompanhe despesas, monitore receitas e visualize sua saúde financeira com nosso sistema completo de
-                    gestão financeira.
+                    Acompanhe despesas, monitore receitas e visualize sua saúde
+                    financeira com nosso sistema completo de gestão financeira.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -125,7 +148,10 @@ export function LandingPage() {
                   </Link>
                 </div>
               </motion.div>
-              <motion.div variants={itemFade} className="relative mx-auto w-full max-w-[500px]">
+              <motion.div
+                variants={itemFade}
+                className="relative mx-auto w-full max-w-[500px]"
+              >
                 {/* Imagens sobrepostas em formato triangular */}
                 <div className="relative h-[350px] w-full">
                   {/* Imagem 1 (frente) */}
@@ -135,7 +161,9 @@ export function LandingPage() {
                         <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-primary/10 flex items-center justify-center">
                           <BarChart3 className="h-6 w-6 text-primary" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Dashboard de Finanças</p>
+                        <p className="text-sm text-muted-foreground">
+                          Dashboard de Finanças
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -147,7 +175,9 @@ export function LandingPage() {
                         <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-blue-500/10 flex items-center justify-center">
                           <PieChart className="h-6 w-6 text-blue-500" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Análise de Gastos</p>
+                        <p className="text-sm text-muted-foreground">
+                          Análise de Gastos
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -159,7 +189,9 @@ export function LandingPage() {
                         <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-green-500/10 flex items-center justify-center">
                           <TrendingUp className="h-6 w-6 text-green-500" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Metas Financeiras</p>
+                        <p className="text-sm text-muted-foreground">
+                          Metas Financeiras
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -175,7 +207,7 @@ export function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <AnimatedSection className="w-full py-20 bg-muted" id="recursos">
+        <AnimatedSection className="w-full py-20 bg-muted">
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
               <div className="space-y-2 max-w-[800px]">
@@ -183,7 +215,8 @@ export function LandingPage() {
                   Recursos Poderosos para Suas Finanças
                 </h2>
                 <p className="text-muted-foreground md:text-xl">
-                  Tudo o que você precisa para gerenciar seu dinheiro de forma inteligente
+                  Tudo o que você precisa para gerenciar seu dinheiro de forma
+                  inteligente
                 </p>
               </div>
             </div>
@@ -217,7 +250,8 @@ export function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold">Análise de Orçamento</h3>
                 <p className="text-center text-muted-foreground">
-                  Visualize padrões de gastos e identifique oportunidades de economia.
+                  Visualize padrões de gastos e identifique oportunidades de
+                  economia.
                 </p>
               </motion.div>
 
@@ -230,7 +264,8 @@ export function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold">Relatórios Detalhados</h3>
                 <p className="text-center text-muted-foreground">
-                  Gere relatórios detalhados para acompanhar seu progresso financeiro.
+                  Gere relatórios detalhados para acompanhar seu progresso
+                  financeiro.
                 </p>
               </motion.div>
 
@@ -243,7 +278,8 @@ export function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold">Armazenamento Seguro</h3>
                 <p className="text-center text-muted-foreground">
-                  Mantenha seus dados financeiros seguros com nossa plataforma protegida.
+                  Mantenha seus dados financeiros seguros com nossa plataforma
+                  protegida.
                 </p>
               </motion.div>
             </motion.div>
@@ -259,7 +295,8 @@ export function LandingPage() {
                   Como o FinanceTrack Funciona
                 </h2>
                 <p className="text-muted-foreground md:text-xl">
-                  Nossa plataforma foi projetada para simplificar o gerenciamento financeiro pessoal
+                  Nossa plataforma foi projetada para simplificar o
+                  gerenciamento financeiro pessoal
                 </p>
               </div>
             </div>
@@ -289,9 +326,12 @@ export function LandingPage() {
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <CreditCard className="h-6 w-6 text-primary" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">1. Registre Transações</h3>
+                      <h3 className="text-xl font-bold mb-2">
+                        1. Registre Transações
+                      </h3>
                       <p className="text-muted-foreground">
-                        Adicione receitas e despesas facilmente com categorização automática. Acompanhe suas compras
+                        Adicione receitas e despesas facilmente com
+                        categorização automática. Acompanhe suas compras
                         parceladas e despesas recorrentes.
                       </p>
                     </div>
@@ -325,10 +365,13 @@ export function LandingPage() {
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <TrendingUp className="h-6 w-6 text-primary" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">2. Visualize Relatórios</h3>
+                      <h3 className="text-xl font-bold mb-2">
+                        2. Visualize Relatórios
+                      </h3>
                       <p className="text-muted-foreground">
-                        Obtenha insights visuais sobre seus hábitos financeiros e tendências com gráficos interativos e
-                        relatórios personalizáveis.
+                        Obtenha insights visuais sobre seus hábitos financeiros
+                        e tendências com gráficos interativos e relatórios
+                        personalizáveis.
                       </p>
                     </div>
                   </div>
@@ -361,10 +404,13 @@ export function LandingPage() {
                       <div className="rounded-full bg-primary/10 p-3 w-fit mb-4">
                         <Target className="h-6 w-6 text-primary" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">3. Defina Metas</h3>
+                      <h3 className="text-xl font-bold mb-2">
+                        3. Defina Metas
+                      </h3>
                       <p className="text-muted-foreground">
-                        Estabeleça objetivos financeiros e acompanhe seu progresso ao longo do tempo. Receba
-                        notificações quando atingir marcos importantes.
+                        Estabeleça objetivos financeiros e acompanhe seu
+                        progresso ao longo do tempo. Receba notificações quando
+                        atingir marcos importantes.
                       </p>
                     </div>
                   </div>
@@ -393,13 +439,17 @@ export function LandingPage() {
                   Pronto para transformar suas finanças?
                 </h2>
                 <p className="text-primary-foreground/80 md:text-xl max-w-[600px]">
-                  Junte-se a milhares de pessoas que já estão economizando mais e gerenciando melhor seu dinheiro com o
-                  FinanceTrack.
+                  Junte-se a milhares de pessoas que já estão economizando mais
+                  e gerenciando melhor seu dinheiro com o FinanceTrack.
                 </p>
               </div>
               <div className="lg:w-1/3 flex justify-center lg:justify-end">
                 <Link href="/login">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                  >
                     Comece Gratuitamente
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -430,51 +480,69 @@ export function LandingPage() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.3 }}
             >
-              <motion.div variants={itemFade} className="bg-card p-6 rounded-lg shadow-sm">
+              <motion.div
+                variants={itemFade}
+                className="bg-card p-6 rounded-lg shadow-sm"
+              >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="font-semibold text-primary">MC</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Maria Costa</h4>
-                    <p className="text-sm text-muted-foreground">Usuária desde 2022</p>
+                    <p className="text-sm text-muted-foreground">
+                      Usuária desde 2022
+                    </p>
                   </div>
                 </div>
                 <p className="italic text-muted-foreground">
-                  "O FinanceTrack mudou completamente a forma como eu gerencio minhas finanças. Agora consigo ver
-                  exatamente para onde vai meu dinheiro e planejar melhor meu futuro."
+                  "O FinanceTrack mudou completamente a forma como eu gerencio
+                  minhas finanças. Agora consigo ver exatamente para onde vai
+                  meu dinheiro e planejar melhor meu futuro."
                 </p>
               </motion.div>
 
-              <motion.div variants={itemFade} className="bg-card p-6 rounded-lg shadow-sm">
+              <motion.div
+                variants={itemFade}
+                className="bg-card p-6 rounded-lg shadow-sm"
+              >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="font-semibold text-primary">RS</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Rafael Silva</h4>
-                    <p className="text-sm text-muted-foreground">Usuário desde 2023</p>
+                    <p className="text-sm text-muted-foreground">
+                      Usuário desde 2023
+                    </p>
                   </div>
                 </div>
                 <p className="italic text-muted-foreground">
-                  "A função de parcelamento e acompanhamento de despesas recorrentes é incrível! Finalmente consigo ter
-                  uma visão clara das minhas contas mensais."
+                  "A função de parcelamento e acompanhamento de despesas
+                  recorrentes é incrível! Finalmente consigo ter uma visão clara
+                  das minhas contas mensais."
                 </p>
               </motion.div>
 
-              <motion.div variants={itemFade} className="bg-card p-6 rounded-lg shadow-sm">
+              <motion.div
+                variants={itemFade}
+                className="bg-card p-6 rounded-lg shadow-sm"
+              >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="font-semibold text-primary">JO</span>
                   </div>
                   <div>
                     <h4 className="font-semibold">Juliana Oliveira</h4>
-                    <p className="text-sm text-muted-foreground">Usuária desde 2021</p>
+                    <p className="text-sm text-muted-foreground">
+                      Usuária desde 2021
+                    </p>
                   </div>
                 </div>
                 <p className="italic text-muted-foreground">
-                  "Os relatórios e gráficos me ajudaram a identificar padrões de gastos que eu nem percebia. Consegui
-                  economizar mais de 20% da minha renda mensal!"
+                  "Os relatórios e gráficos me ajudaram a identificar padrões de
+                  gastos que eu nem percebia. Consegui economizar mais de 20% da
+                  minha renda mensal!"
                 </p>
               </motion.div>
             </motion.div>
@@ -483,111 +551,7 @@ export function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t py-6 md:py-8">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div className="space-y-4">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                <DollarSign className="h-6 w-6 text-primary" />
-                <span>FinanceTrack</span>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                Sua solução completa para gerenciamento financeiro pessoal.
-              </p>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold">Recursos</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Dashboard
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Transações
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Relatórios
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Metas
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold">Empresa</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Sobre Nós
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Carreiras
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="text-muted-foreground hover:text-foreground">
-                    Contato
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/termos-de-servico" className="text-muted-foreground hover:text-foreground">
-                    Termos de Serviço
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/politica-de-privacidade" className="text-muted-foreground hover:text-foreground">
-                    Política de Privacidade
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-muted-foreground">© {currentYear} FinanceTrack. Todos os direitos reservados.</p>
-            <div className="flex items-center gap-4">
-              <a
-                href="https://github.com/JeffyMesquita"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                Desenvolvido por Jeferson Mesquita
-              </a>
-              <a
-                href="https://www.linkedin.com/in/jeferson-mesquita-763bb6b8/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
-                LinkedIn
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
-  )
+  );
 }
