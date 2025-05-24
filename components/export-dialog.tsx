@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,56 +9,69 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 import {
   getTransactionsForExport,
   getAccountsForExport,
   getCategoriesForExport,
   getGoalsForExport,
   getMonthlySummaryForExport,
-} from "@/app/actions/export"
-import { convertToCSV, downloadCSV, generatePDF } from "@/lib/export-utils"
+} from "@/app/actions/export";
+import { convertToCSV, downloadCSV, generatePDF } from "@/lib/export-utils";
 
 interface ExportDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  categories: any[]
-  accounts: any[]
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  categories: any[];
+  accounts: any[];
 }
 
-export function ExportDialog({ open, onOpenChange, categories, accounts }: ExportDialogProps) {
-  const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [exportType, setExportType] = useState("transactions")
-  const [fileFormat, setFileFormat] = useState("csv")
-  const [dateRange, setDateRange] = useState("all")
+export function ExportDialog({
+  open,
+  onOpenChange,
+  categories,
+  accounts,
+}: ExportDialogProps) {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [exportType, setExportType] = useState("transactions");
+  const [fileFormat, setFileFormat] = useState("csv");
+  const [dateRange, setDateRange] = useState("all");
   const [dateFrom, setDateFrom] = useState(() => {
-    const date = new Date()
-    date.setMonth(date.getMonth() - 1)
-    return date.toISOString().split("T")[0]
-  })
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split("T")[0])
-  const [transactionType, setTransactionType] = useState("all")
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedAccount, setSelectedAccount] = useState("")
-  const [includeNotes, setIncludeNotes] = useState(true)
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().split("T")[0];
+  });
+  const [dateTo, setDateTo] = useState(
+    () => new Date().toISOString().split("T")[0]
+  );
+  const [transactionType, setTransactionType] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState("");
+  const [includeNotes, setIncludeNotes] = useState(true);
 
   const handleExport = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      let data = []
-      let headers = []
-      let fields = []
-      let title = ""
-      let filename = ""
+      let data = [];
+      let headers = [];
+      let fields = [];
+      let title = "";
+      let filename = "";
 
       // Get data based on export type
       switch (exportType) {
@@ -68,8 +81,8 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             dateRange !== "all" ? dateTo : undefined,
             transactionType !== "all" ? transactionType : undefined,
             selectedCategory || undefined,
-            selectedAccount || undefined,
-          )
+            selectedAccount || undefined
+          );
 
           headers = [
             "Data",
@@ -79,7 +92,7 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             "Tipo",
             "Valor",
             ...(includeNotes ? ["Observações"] : []),
-          ]
+          ];
 
           fields = [
             "date",
@@ -89,30 +102,30 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             "type",
             "amount",
             ...(includeNotes ? ["notes"] : []),
-          ]
+          ];
 
-          title = "Exportação de Transações"
-          filename = `transacoes_${new Date().toISOString().split("T")[0]}`
-          break
+          title = "Exportação de Transações";
+          filename = `transacoes_${new Date().toISOString().split("T")[0]}`;
+          break;
 
         case "accounts":
-          data = await getAccountsForExport()
-          headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"]
-          fields = ["name", "type", "balance", "currency"]
-          title = "Exportação de Contas"
-          filename = `contas_${new Date().toISOString().split("T")[0]}`
-          break
+          data = await getAccountsForExport();
+          headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"];
+          fields = ["name", "type", "balance", "currency"];
+          title = "Exportação de Contas";
+          filename = `contas_${new Date().toISOString().split("T")[0]}`;
+          break;
 
         case "categories":
-          data = await getCategoriesForExport()
-          headers = ["Nome da Categoria", "Tipo", "Cor"]
-          fields = ["name", "type", "color"]
-          title = "Exportação de Categorias"
-          filename = `categorias_${new Date().toISOString().split("T")[0]}`
-          break
+          data = await getCategoriesForExport();
+          headers = ["Nome da Categoria", "Tipo", "Cor"];
+          fields = ["name", "type", "color"];
+          title = "Exportação de Categorias";
+          filename = `categorias_${new Date().toISOString().split("T")[0]}`;
+          break;
 
         case "goals":
-          data = await getGoalsForExport()
+          data = await getGoalsForExport();
           headers = [
             "Nome da Meta",
             "Valor Alvo",
@@ -122,35 +135,38 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             "Data Alvo",
             "Conta",
             "Status",
-          ]
+          ];
           fields = [
             "name",
             "target_amount",
             "current_amount",
             // Calculate progress percentage
-            (item) => `${Math.round((item.current_amount / item.target_amount) * 100)}%`,
+            (item) =>
+              `${Math.round(
+                (item.current_amount / item.target_amount) * 100
+              )}%`,
             "start_date",
             "target_date",
             "account.name",
             (item) => (item.is_completed ? "Concluído" : "Em Andamento"),
-          ]
-          title = "Exportação de Metas Financeiras"
-          filename = `metas_${new Date().toISOString().split("T")[0]}`
-          break
+          ];
+          title = "Exportação de Metas Financeiras";
+          filename = `metas_${new Date().toISOString().split("T")[0]}`;
+          break;
 
         case "monthly_summary":
-          data = await getMonthlySummaryForExport()
-          headers = ["Mês", "Receitas", "Despesas", "Economia"]
-          fields = ["month", "income", "expenses", "savings"]
-          title = "Resumo Mensal"
-          filename = `resumo_mensal_${new Date().toISOString().split("T")[0]}`
-          break
+          data = await getMonthlySummaryForExport();
+          headers = ["Mês", "Receitas", "Despesas", "Economia"];
+          fields = ["month", "income", "expenses", "savings"];
+          title = "Resumo Mensal";
+          filename = `resumo_mensal_${new Date().toISOString().split("T")[0]}`;
+          break;
       }
 
       // Generate export file
       if (fileFormat === "csv") {
-        const csvContent = convertToCSV(data, headers, fields)
-        downloadCSV(csvContent, `${filename}.csv`)
+        const csvContent = convertToCSV(data, headers, fields);
+        downloadCSV(csvContent, `${filename}.csv`);
       } else {
         generatePDF(
           data,
@@ -158,37 +174,43 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
           fields,
           title,
           `${filename}.pdf`,
-          exportType === "transactions" ? "landscape" : "portrait",
-        )
+          exportType === "transactions" ? "landscape" : "portrait"
+        );
       }
 
       toast({
-        title: "Exportação Concluída",
+        title: "Sucesso",
         description: `Seus dados foram exportados com sucesso no formato ${fileFormat.toUpperCase()}.`,
-      })
+        variant: "success",
+      });
 
-      onOpenChange(false)
+      onOpenChange(false);
     } catch (error) {
-      console.error("Erro ao exportar dados:", error)
+      console.error("Erro ao exportar dados:", error);
       toast({
-        title: "Falha na Exportação",
-        description: "Ocorreu um erro ao exportar seus dados. Por favor, tente novamente.",
+        title: "Erro",
+        description: (error as Error).message || "Falha ao exportar dados",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>Exportar Dados Financeiros</DialogTitle>
-          <DialogDescription>Exporte seus dados financeiros em formato CSV ou PDF.</DialogDescription>
+          <DialogDescription>
+            Exporte seus dados financeiros em formato CSV ou PDF.
+          </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="transactions" onValueChange={(value) => setExportType(value)}>
+        <Tabs
+          defaultValue="transactions"
+          onValueChange={(value) => setExportType(value)}
+        >
           <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
@@ -200,7 +222,11 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
           <TabsContent value="transactions" className="space-y-4">
             <div className="space-y-2">
               <Label>Período</Label>
-              <RadioGroup defaultValue="all" onValueChange={setDateRange} className="flex flex-col space-y-1">
+              <RadioGroup
+                defaultValue="all"
+                onValueChange={setDateRange}
+                className="flex flex-col space-y-1"
+              >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="all" id="date-all" />
                   <Label htmlFor="date-all">Todo o Período</Label>
@@ -215,11 +241,21 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div className="space-y-1">
                     <Label htmlFor="date-from">De</Label>
-                    <Input id="date-from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+                    <Input
+                      id="date-from"
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="date-to">Até</Label>
-                    <Input id="date-to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+                    <Input
+                      id="date-to"
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                    />
                   </div>
                 </div>
               )}
@@ -242,7 +278,10 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Categoria</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <Select
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
@@ -259,7 +298,10 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
 
               <div className="space-y-2">
                 <Label>Conta</Label>
-                <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <Select
+                  value={selectedAccount}
+                  onValueChange={setSelectedAccount}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as Contas" />
                   </SelectTrigger>
@@ -276,7 +318,11 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox id="include-notes" checked={includeNotes} onCheckedChange={setIncludeNotes} />
+              <Checkbox
+                id="include-notes"
+                checked={includeNotes}
+                onCheckedChange={setIncludeNotes}
+              />
               <Label htmlFor="include-notes">Incluir Observações</Label>
             </div>
           </TabsContent>
@@ -288,7 +334,9 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
           </TabsContent>
 
           <TabsContent value="categories">
-            <p className="text-sm text-muted-foreground mb-4">Exporte todas as suas categorias de transações.</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Exporte todas as suas categorias de transações.
+            </p>
           </TabsContent>
 
           <TabsContent value="goals">
@@ -306,7 +354,11 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
 
         <div className="space-y-2">
           <Label>Formato do Arquivo</Label>
-          <RadioGroup defaultValue="csv" onValueChange={setFileFormat} className="flex space-x-4">
+          <RadioGroup
+            defaultValue="csv"
+            onValueChange={setFileFormat}
+            className="flex space-x-4"
+          >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="csv" id="format-csv" />
               <Label htmlFor="format-csv">CSV</Label>
@@ -328,5 +380,5 @@ export function ExportDialog({ open, onOpenChange, categories, accounts }: Expor
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

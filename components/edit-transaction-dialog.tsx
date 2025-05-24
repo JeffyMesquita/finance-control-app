@@ -179,20 +179,18 @@ export function EditTransactionDialog({
         toast({
           title: "Sucesso",
           description: "Transação atualizada com sucesso",
+          variant: "success",
         });
+        onSuccess();
         onOpenChange(false);
-        if (onSuccess) onSuccess();
       } else {
         throw new Error(result.error || "Falha ao atualizar transação");
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Erro ao atualizar transação:", error);
       toast({
         title: "Erro",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Falha ao atualizar transação",
+        description: (error as Error).message || "Falha ao atualizar transação",
         variant: "destructive",
       });
     } finally {

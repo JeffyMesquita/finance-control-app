@@ -1,109 +1,135 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2, User, Mail, Phone, Calendar, MapPin, Briefcase, Save } from "lucide-react"
-import { getUserProfile, updateUserProfile } from "@/app/actions/profile"
-import type { UserProfile } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Briefcase,
+  Save,
+} from "lucide-react";
+import { getUserProfile, updateUserProfile } from "@/app/actions/profile";
+import type { UserProfile } from "@/lib/types";
 
 export default function PerfilPage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const { toast } = useToast()
-  const router = useRouter()
-  const supabase = createClientComponentClient()
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
-        setIsLoading(true)
+        setIsLoading(true);
 
         // Obter usuário atual
         const {
           data: { user },
-        } = await supabase.auth.getUser()
+        } = await supabase.auth.getUser();
         if (!user) {
-          router.push("/login")
-          return
+          router.push("/login");
+          return;
         }
 
-        setUser(user)
+        setUser(user);
 
         // Obter perfil do usuário
-        const profileData = await getUserProfile()
-        setProfile(profileData)
+        const profileData = await getUserProfile();
+        setProfile(profileData);
       } catch (error) {
-        console.error("Erro ao carregar perfil:", error)
+        console.error("Erro ao carregar perfil:", error);
         toast({
           title: "Erro",
-          description: "Não foi possível carregar seu perfil. Tente novamente mais tarde.",
+          description:
+            "Não foi possível carregar seu perfil. Tente novamente mais tarde.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUserAndProfile()
-  }, [router, supabase, toast])
+    fetchUserAndProfile();
+  }, [router, supabase, toast]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!profile) return
+    if (!profile) return;
 
     try {
-      setIsSaving(true)
+      setIsSaving(true);
 
-      await updateUserProfile(profile)
+      const result = await updateUserProfile(profile);
 
-      toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram atualizadas com sucesso.",
-      })
+      if (result.success) {
+        toast({
+          title: "Sucesso",
+          description: "Perfil atualizado com sucesso",
+          variant: "success",
+        });
+      } else {
+        throw new Error(result.error || "Falha ao atualizar perfil");
+      }
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error)
+      console.error("Erro ao atualizar perfil:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar seu perfil. Tente novamente mais tarde.",
+        description: (error as Error).message || "Falha ao atualizar perfil",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setProfile((prev) => (prev ? { ...prev, [name]: value } : null))
-  }
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-[400px] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Meu Perfil</h1>
-        <p className="text-muted-foreground">Gerencie suas informações pessoais e preferências</p>
+        <p className="text-muted-foreground">
+          Gerencie suas informações pessoais e preferências
+        </p>
       </div>
 
       <Tabs defaultValue="informacoes" className="space-y-4">
@@ -118,7 +144,8 @@ export default function PerfilPage() {
               <CardHeader>
                 <CardTitle>Informações Pessoais</CardTitle>
                 <CardDescription>
-                  Atualize suas informações pessoais. Estas informações serão exibidas em seu perfil.
+                  Atualize suas informações pessoais. Estas informações serão
+                  exibidas em seu perfil.
                 </CardDescription>
               </CardHeader>
 
@@ -127,11 +154,19 @@ export default function PerfilPage() {
                   <div className="flex flex-col items-center space-y-2">
                     <Avatar className="h-24 w-24">
                       <AvatarImage
-                        src={user?.user_metadata?.avatar_url || profile?.profile_image || ""}
+                        src={
+                          user?.user_metadata?.avatar_url ||
+                          profile?.profile_image ||
+                          ""
+                        }
                         alt={profile?.full_name || user?.email}
                       />
                       <AvatarFallback className="text-2xl">
-                        {(profile?.full_name?.[0] || user?.email?.[0] || "U").toUpperCase()}
+                        {(
+                          profile?.full_name?.[0] ||
+                          user?.email?.[0] ||
+                          "U"
+                        ).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <Button variant="outline" size="sm" className="mt-2">
@@ -142,7 +177,10 @@ export default function PerfilPage() {
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="full_name" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="full_name"
+                          className="flex items-center gap-2"
+                        >
                           <User className="h-4 w-4 text-muted-foreground" />
                           Nome completo
                         </Label>
@@ -156,17 +194,28 @@ export default function PerfilPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="email"
+                          className="flex items-center gap-2"
+                        >
                           <Mail className="h-4 w-4 text-muted-foreground" />
                           Email
                         </Label>
-                        <Input id="email" value={user?.email || ""} disabled className="bg-muted" />
+                        <Input
+                          id="email"
+                          value={user?.email || ""}
+                          disabled
+                          className="bg-muted"
+                        />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="phone"
+                          className="flex items-center gap-2"
+                        >
                           <Phone className="h-4 w-4 text-muted-foreground" />
                           Telefone
                         </Label>
@@ -180,7 +229,10 @@ export default function PerfilPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="birth_date" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="birth_date"
+                          className="flex items-center gap-2"
+                        >
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           Data de nascimento
                         </Label>
@@ -188,7 +240,13 @@ export default function PerfilPage() {
                           id="birth_date"
                           name="birth_date"
                           type="date"
-                          value={profile?.birth_date ? new Date(profile.birth_date).toISOString().split("T")[0] : ""}
+                          value={
+                            profile?.birth_date
+                              ? new Date(profile.birth_date)
+                                  .toISOString()
+                                  .split("T")[0]
+                              : ""
+                          }
                           onChange={handleInputChange}
                         />
                       </div>
@@ -196,7 +254,10 @@ export default function PerfilPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="document_id" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="document_id"
+                          className="flex items-center gap-2"
+                        >
                           <User className="h-4 w-4 text-muted-foreground" />
                           CPF
                         </Label>
@@ -210,7 +271,10 @@ export default function PerfilPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="profession" className="flex items-center gap-2">
+                        <Label
+                          htmlFor="profession"
+                          className="flex items-center gap-2"
+                        >
                           <Briefcase className="h-4 w-4 text-muted-foreground" />
                           Profissão
                         </Label>
@@ -311,7 +375,10 @@ export default function PerfilPage() {
           <Card>
             <CardHeader>
               <CardTitle>Informações da Conta</CardTitle>
-              <CardDescription>Gerencie as informações da sua conta e preferências de segurança.</CardDescription>
+              <CardDescription>
+                Gerencie as informações da sua conta e preferências de
+                segurança.
+              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
@@ -388,7 +455,9 @@ export default function PerfilPage() {
               <div className="space-y-2">
                 <Label>Data de criação da conta</Label>
                 <div className="p-2 rounded-md bg-muted">
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString("pt-BR") : "N/A"}
+                  {user?.created_at
+                    ? new Date(user.created_at).toLocaleDateString("pt-BR")
+                    : "N/A"}
                 </div>
               </div>
 
@@ -396,13 +465,16 @@ export default function PerfilPage() {
                 <Label>Último login</Label>
                 <div className="p-2 rounded-md bg-muted">
                   {user?.last_sign_in_at
-                    ? new Date(user.last_sign_in_at).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                    ? new Date(user.last_sign_in_at).toLocaleDateString(
+                        "pt-BR",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
                     : "N/A"}
                 </div>
               </div>
@@ -411,7 +483,9 @@ export default function PerfilPage() {
             <CardFooter className="flex flex-col items-start gap-4">
               <div>
                 <h3 className="text-lg font-medium">Ações da conta</h3>
-                <p className="text-sm text-muted-foreground">Ações que afetam sua conta e seus dados.</p>
+                <p className="text-sm text-muted-foreground">
+                  Ações que afetam sua conta e seus dados.
+                </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -422,7 +496,10 @@ export default function PerfilPage() {
                 >
                   Exportar meus dados
                 </Button>
-                <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700">
+                <Button
+                  variant="outline"
+                  className="text-red-600 border-red-600 hover:bg-red-50 hover:text-red-700"
+                >
                   Excluir minha conta
                 </Button>
               </div>
@@ -431,5 +508,5 @@ export default function PerfilPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }

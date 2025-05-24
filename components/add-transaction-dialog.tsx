@@ -228,26 +228,23 @@ export function AddTransactionDialog({
 
         const result = await createTransaction(transaction);
 
-        if (!result.success) {
-          throw new Error(result.error || "Falha ao adicionar transação");
+        if (result.success) {
+          toast({
+            title: "Sucesso",
+            description: "Transação criada com sucesso",
+            variant: "success",
+          });
+          onSuccess();
+          onOpenChange(false);
+        } else {
+          throw new Error(result.error || "Falha ao criar transação");
         }
-
-        toast({
-          title: "Sucesso",
-          description: "Transação adicionada com sucesso",
-        });
       }
-
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
     } catch (error) {
-      console.error("Erro ao adicionar transação:", error);
+      console.error("Erro ao criar transação:", error);
       toast({
         title: "Erro",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Falha ao adicionar transação",
+        description: (error as Error).message || "Falha ao criar transação",
         variant: "destructive",
       });
     } finally {

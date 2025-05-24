@@ -134,6 +134,7 @@ export function CategoriesTable() {
         toast({
           title: "Sucesso",
           description: "Categoria excluída com sucesso",
+          variant: "success",
         });
         fetchCategories();
       } else {
@@ -143,8 +144,7 @@ export function CategoriesTable() {
       console.error("Erro ao excluir categoria:", error);
       toast({
         title: "Erro",
-        description:
-          error instanceof Error ? error.message : "Falha ao excluir categoria",
+        description: (error as Error).message || "Falha ao excluir categoria",
         variant: "destructive",
       });
     }

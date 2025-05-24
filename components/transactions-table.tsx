@@ -165,6 +165,7 @@ export function TransactionsTable() {
         toast({
           title: "Sucesso",
           description: "Transação excluída com sucesso",
+          variant: "success",
         });
         fetchTransactions();
       } else {
