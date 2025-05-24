@@ -5,6 +5,7 @@ import { RecentTransactions } from "@/components/recent-transactions";
 import { FinancialOverview } from "@/components/financial-overview";
 import { GoalsSummary } from "@/components/goals-summary";
 import { WelcomeCard } from "@/components/welcome-card";
+import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart";
 
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -15,6 +16,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-full">
         <DashboardCards />
       </div>
+      <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
         <FinancialOverview className="lg:col-span-4" />
         <div className="flex flex-col gap-4 lg:col-span-3">

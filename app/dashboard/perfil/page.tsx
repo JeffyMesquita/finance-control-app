@@ -94,7 +94,7 @@ export default function PerfilPage() {
           variant: "success",
         });
       } else {
-        throw new Error(result.error || "Falha ao atualizar perfil");
+        throw new Error("Falha ao atualizar perfil");
       }
     } catch (error) {
       console.error("Erro ao atualizar perfil:", error);

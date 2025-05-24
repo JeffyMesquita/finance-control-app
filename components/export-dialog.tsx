@@ -141,14 +141,15 @@ export function ExportDialog({
             "target_amount",
             "current_amount",
             // Calculate progress percentage
-            (item) =>
+            (item: { current_amount: number; target_amount: number }) =>
               `${Math.round(
                 (item.current_amount / item.target_amount) * 100
               )}%`,
             "start_date",
             "target_date",
             "account.name",
-            (item) => (item.is_completed ? "Concluído" : "Em Andamento"),
+            (item: { is_completed: boolean }) =>
+              item.is_completed ? "Concluído" : "Em Andamento",
           ];
           title = "Exportação de Metas Financeiras";
           filename = `metas_${new Date().toISOString().split("T")[0]}`;

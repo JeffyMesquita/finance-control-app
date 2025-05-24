@@ -68,48 +68,53 @@ export async function getDashboardData() {
     };
   }
 
-  // Calcular o primeiro e último dia do mês seguinte
+  // Calcular o primeiro e último dia do mês atual
   const now = new Date();
-  const firstDayNextMonth = new Date(
+  const lastDayOfCurrentMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+    999
+  ).toISOString();
+
+  let totalBalance = 0;
+
+  for (const account of accounts) {
+    // Buscar todas as transações até o final do mês atual
+    const { data: transactions, error: transactionsError } = await supabase
+      .from("transactions")
+      .select("amount, type")
+      .eq("account_id", account.id)
+      .eq("user_id", user.id)
+      .lte("date", lastDayOfCurrentMonth);
+
+    let accountBalance = account.balance;
+
+    if (!transactionsError && transactions) {
+      // Somar todas as entradas
+      const totalIncome = transactions
+        .filter((t) => t.type === "INCOME")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      // Subtrair todas as despesas
+      const totalExpenses = transactions
+        .filter((t) => t.type === "EXPENSE")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      accountBalance = totalIncome - totalExpenses;
+    }
+
+    totalBalance += accountBalance;
+  }
+
+  // Calcular gastos futuros (a partir do próximo mês)
+  const nextMonth = new Date(
     now.getFullYear(),
     now.getMonth() + 1,
     1,
-    0,
-    0,
-    0,
-    0
-  ).toISOString();
-
-  let adjustedTotalBalance = 0;
-
-  for (const account of accounts) {
-    // Buscar despesas do mês seguinte dessa conta
-    const { data: nextMonthExpenses, error: nextMonthExpensesError } =
-      await supabase
-        .from("transactions")
-        .select("amount")
-        .eq("account_id", account.id)
-        .eq("user_id", user.id)
-        .eq("type", "EXPENSE")
-        .gte("date", firstDayNextMonth);
-
-    let nextMonthExpensesSum = 0;
-    if (!nextMonthExpensesError && nextMonthExpenses) {
-      nextMonthExpensesSum = nextMonthExpenses.reduce(
-        (sum, t) => sum + t.amount,
-        0
-      );
-    }
-
-    // Subtrair despesas do mês seguinte do saldo da conta
-    adjustedTotalBalance += account.balance + nextMonthExpensesSum;
-  }
-
-  // Calcular gastos futuros (a partir de amanhã)
-  const tomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
     0,
     0,
     0,
@@ -123,7 +128,7 @@ export async function getDashboardData() {
       .eq("account_id", account.id)
       .eq("user_id", user.id)
       .eq("type", "EXPENSE")
-      .gte("date", tomorrow);
+      .gte("date", nextMonth);
     if (!futureExpensesError && futureExpenses) {
       gastosFuturos += futureExpenses.reduce((sum, t) => sum + t.amount, 0);
     }
@@ -183,7 +188,7 @@ export async function getDashboardData() {
   const monthlySavings = monthlyIncome - monthlyExpenses;
 
   return {
-    totalBalance: adjustedTotalBalance,
+    totalBalance,
     monthlyIncome,
     monthlyExpenses,
     monthlySavings,
@@ -261,7 +266,9 @@ export async function getMonthlyData() {
   return months;
 }
 
-export async function getExpenseBreakdown() {
+export async function getExpenseBreakdown(
+  month: "current" | "previous" = "current"
+) {
   const supabase = createActionClient();
 
   const {
@@ -273,14 +280,16 @@ export async function getExpenseBreakdown() {
 
   // Get current month's expenses by category
   const now = new Date();
+  const monthOffset = month === "previous" ? -1 : 0;
+
   const firstDayOfMonth = new Date(
     now.getFullYear(),
-    now.getMonth(),
+    now.getMonth() + monthOffset,
     1
   ).toISOString();
   const lastDayOfMonth = new Date(
     now.getFullYear(),
-    now.getMonth() + 1,
+    now.getMonth() + monthOffset + 1,
     0
   ).toISOString();
 

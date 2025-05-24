@@ -35,6 +35,7 @@ import {
 } from "recharts";
 import { getMonthlyData, getExpenseBreakdown } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
+import { ExpensesComparisonChart } from "@/components/expenses-comparison-chart";
 
 const COLORS = [
   "#0088FE",
@@ -202,6 +203,7 @@ export function ReportsOverview() {
           )}
         </CardContent>
       </Card>
+      <ExpensesComparisonChart />
       <Card className="lg:col-span-3 bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader>
           <CardTitle>Tendência de Economia</CardTitle>
