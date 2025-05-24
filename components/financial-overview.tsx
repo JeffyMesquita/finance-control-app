@@ -35,6 +35,39 @@ type MonthlyData = {
   savings: number;
 };
 
+const CATEGORY_LABEL_MAX = 10;
+const ellipsis = (str: string, max: number) =>
+  str.length > max ? str.slice(0, max) + "…" : str;
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const entry = payload[0].payload;
+    return (
+      <div className="bg-background p-2 rounded shadow text-xs">
+        <div>
+          <strong>Mês:</strong> {entry.name}
+        </div>
+        {entry.income !== undefined && (
+          <div>
+            <strong>Receitas:</strong> {entry.income}
+          </div>
+        )}
+        {entry.expenses !== undefined && (
+          <div>
+            <strong>Despesas:</strong> {entry.expenses}
+          </div>
+        )}
+        {entry.savings !== undefined && (
+          <div>
+            <strong>Economia:</strong> {entry.savings}
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+};
+
 export function FinancialOverview({ className }: FinancialOverviewProps) {
   const [data, setData] = useState<MonthlyData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,9 +122,28 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  width={80}
+                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="income" fill="#22c55e" name="Receitas" />
                 <Bar dataKey="expenses" fill="#ef4444" name="Despesas" />
@@ -102,9 +154,28 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  width={80}
+                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line
                   type="monotone"
@@ -131,9 +202,28 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis
+                  tick={{
+                    fontSize: 12,
+                    fontFamily: "Inter, Roboto, Arial, sans-serif",
+                    fontWeight: 700,
+                  }}
+                  width={80}
+                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="income" fill="#22c55e" name="Receitas" />
                 <Bar dataKey="expenses" fill="#ef4444" name="Despesas" />

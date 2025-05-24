@@ -76,10 +76,88 @@ interface ExpenseData {
   color: string;
 }
 
+const CATEGORY_LABEL_MAX = 10;
+const ellipsis = (str: string, max: number) =>
+  str.length > max ? str.slice(0, max) + "…" : str;
+
+const PIE_LABEL_MAX = 10;
+const PieLabel = (props: any) => {
+  const {
+    name,
+    percent,
+    cx,
+    cy,
+    midAngle,
+    outerRadius,
+    color,
+    value,
+    payload,
+  } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = outerRadius + 40;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  const displayName = ellipsis(name, PIE_LABEL_MAX);
+  return (
+    <g>
+      <foreignObject x={x - 60} y={y - 12} width="120" height="24">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              maxWidth: 80,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              marginRight: 4,
+              color: color,
+              display: "inline-block",
+            }}
+          >
+            {displayName}
+          </span>
+          <span style={{ fontSize: "12px", color: color, fontWeight: 700 }}>
+            {(percent * 100).toFixed(0)}%
+          </span>
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+const YAxisCustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={25}
+        y={0}
+        dy={2}
+        textAnchor="end"
+        fontSize={10}
+        fontFamily="Inter, Roboto, Arial, sans-serif"
+        fontWeight={800}
+        fill="#64748b"
+        transform="rotate(-10)"
+      >
+        {formatCurrency(payload.value)}
+      </text>
+    </g>
+  );
+};
+
 export function ReportsOverview() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [expenseData, setExpenseData] = useState<ExpenseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPieIndex, setSelectedPieIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -102,6 +180,8 @@ export function ReportsOverview() {
 
     fetchData();
   }, []);
+
+  const totalExpenses = expenseData.reduce((sum, e) => sum + e.value, 0);
 
   if (isLoading) {
     return (
@@ -141,10 +221,21 @@ export function ReportsOverview() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="name"
+                tick={{
+                  fontSize: 12,
+                  fontFamily: "Inter, Roboto, Arial, sans-serif",
+                  fontWeight: 700,
+                }}
                 tickFormatter={(value: string) => monthNames[value] || value}
+                interval={0}
+                angle={-20}
+                textAnchor="end"
+                height={40}
               />
               <YAxis
-                tickFormatter={(value: number) => formatCurrency(value)}
+                tick={(props) => <YAxisCustomTick {...props} />}
+                tickFormatter={(value) => formatCurrency(value)}
+                width={80}
                 tickSize={30}
                 textLength="60"
                 textAnchor="middle"
@@ -180,15 +271,16 @@ export function ReportsOverview() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent, value }) =>
-                    `${name}: ${formatCurrency(value)} (${(
-                      percent * 100
-                    ).toFixed(0)}%)`
-                  }
+                  label={PieLabel}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
                   nameKey="name"
+                  isAnimationActive={false}
+                  onClick={(_, index) => setSelectedPieIndex(index)}
+                  activeIndex={
+                    selectedPieIndex === null ? undefined : selectedPieIndex
+                  }
                 >
                   {expenseData.map((entry, index) => (
                     <Cell
@@ -197,7 +289,21 @@ export function ReportsOverview() {
                     />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Tooltip
+                  content={
+                    <PieCustomTooltip
+                      selected={selectedPieIndex}
+                      expenseData={expenseData}
+                      totalExpenses={totalExpenses}
+                    />
+                  }
+                  isAnimationActive={false}
+                  wrapperStyle={
+                    selectedPieIndex != null
+                      ? { opacity: 1, pointerEvents: "auto" }
+                      : {}
+                  }
+                />
               </RechartsPieChart>
             </ResponsiveContainer>
           )}
@@ -213,15 +319,40 @@ export function ReportsOverview() {
           <ResponsiveContainer width="100%" height="100%">
             <RechartsLineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <XAxis
+                dataKey="name"
+                tick={{
+                  fontSize: 12,
+                  fontFamily: "Inter, Roboto, Arial, sans-serif",
+                  fontWeight: 700,
+                }}
+                tickFormatter={(value: string) => monthNames[value] || value}
+                interval={0}
+                angle={-20}
+                textAnchor="end"
+                height={40}
+              />
+              <YAxis
+                tickFormatter={(value: number) => formatCurrency(value)}
+                tick={{
+                  fontSize: 12,
+                  fontFamily: "Inter, Roboto, Arial, sans-serif",
+                  fontWeight: 700,
+                }}
+                width={80}
+                tickSize={30}
+                textLength="60"
+                textAnchor="middle"
+                tickLine={{ stroke: "transparent" }}
+                axisLine={{ stroke: "transparent" }}
+              />
+              <Tooltip content={<SavingsTooltip />} />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="savings"
                 stroke="#3b82f6"
-                name="Savings"
+                name="Economia"
               />
             </RechartsLineChart>
           </ResponsiveContainer>
@@ -320,3 +451,52 @@ function ReportCard({ title, description, icon: Icon }: ReportCardProps) {
     </Card>
   );
 }
+
+const SavingsTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const entry = payload[0].payload;
+    return (
+      <div className="bg-background p-2 rounded shadow text-xs">
+        <div>
+          <strong>Mês:</strong> {entry.name}
+        </div>
+        <div>
+          <strong>Economia:</strong> {formatCurrency(entry.savings)}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const PieCustomTooltip = ({
+  active,
+  payload,
+  selected,
+  expenseData,
+  totalExpenses,
+}: any) => {
+  let entry,
+    percent = 0;
+  if (typeof selected === "number" && expenseData[selected]) {
+    entry = expenseData[selected];
+    percent = totalExpenses ? entry.value / totalExpenses : 0;
+  } else if (active && payload && payload.length) {
+    entry = payload[0].payload;
+    percent = totalExpenses ? entry.value / totalExpenses : 0;
+  }
+  if (!entry) return null;
+  return (
+    <div className="bg-background p-2 rounded shadow text-xs">
+      <div>
+        <strong>Categoria:</strong> {entry.name}
+      </div>
+      <div>
+        <strong>Valor:</strong> {formatCurrency(entry.value)}
+      </div>
+      <div>
+        <strong>Percentual:</strong> {(percent * 100).toFixed(1)}%
+      </div>
+    </div>
+  );
+};

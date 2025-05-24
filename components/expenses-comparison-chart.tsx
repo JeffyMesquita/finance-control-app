@@ -123,10 +123,7 @@ export function ExpensesComparisonChart() {
                     textAnchor="end"
                     height={40}
                   />
-                  <YAxis
-                    tickFormatter={(value) => formatCurrency(value)}
-                    tick={{ fontSize: 12 }}
-                  />
+                  <YAxis tick={YAxisCustomTick} width={80} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value">
                     {expenseData.currentMonth.map((entry, index) => (
@@ -166,10 +163,7 @@ export function ExpensesComparisonChart() {
                     textAnchor="end"
                     height={40}
                   />
-                  <YAxis
-                    tickFormatter={(value) => formatCurrency(value)}
-                    tick={{ fontSize: 12 }}
-                  />
+                  <YAxis tick={YAxisCustomTick} width={80} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value">
                     {expenseData.previousMonth.map((entry, index) => (
@@ -185,3 +179,24 @@ export function ExpensesComparisonChart() {
     </Card>
   );
 }
+
+const YAxisCustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={2}
+        textAnchor="end"
+        fontSize={10}
+        fontFamily="Inter, Roboto, Arial, sans-serif"
+        fontWeight={800}
+        fill="#64748b"
+        transform="rotate(-10)"
+      >
+        {formatCurrency(payload.value)}
+      </text>
+    </g>
+  );
+};
