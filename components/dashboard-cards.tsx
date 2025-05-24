@@ -45,8 +45,6 @@ export function DashboardCards() {
     fetchData();
   }, []);
 
-  console.log(data.totalBalance);
-
   return (
     <>
       <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">

@@ -5,7 +5,14 @@ import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
-export async function getTransactions(page = 1, pageSize = 10, month?: string) {
+export async function getTransactions(
+  page = 1,
+  pageSize = 10,
+  month?: string,
+  type?: string,
+  category?: string,
+  search?: string
+) {
   const supabase = createActionClient();
 
   const {
@@ -31,6 +38,23 @@ export async function getTransactions(page = 1, pageSize = 10, month?: string) {
     query = query.gte("date", startDate).lte("date", endDate);
   }
 
+  // Apply type filter if provided
+  if (type && type !== "all") {
+    query = query.eq("type", type.toUpperCase());
+  }
+
+  // Apply category filter if provided
+  if (category && category !== "all") {
+    query = query.eq("category_id", category);
+  }
+
+  // Apply search filter if provided
+  if (search) {
+    query = query.or(
+      `description.ilike.%${search}%,categories.name.ilike.%${search}%,financial_accounts.name.ilike.%${search}%`
+    );
+  }
+
   const { count } = await query;
 
   let dataQuery = supabase
@@ -45,12 +69,26 @@ export async function getTransactions(page = 1, pageSize = 10, month?: string) {
     .eq("user_id", user.id)
     .order("date", { ascending: false });
 
-  // Apply month filter if provided
+  // Apply the same filters to the data query
   if (month && month !== "all") {
     const currentYear = new Date().getFullYear();
     const startDate = new Date(currentYear, parseInt(month), 1).toISOString();
     const endDate = new Date(currentYear, parseInt(month) + 1, 0).toISOString();
     dataQuery = dataQuery.gte("date", startDate).lte("date", endDate);
+  }
+
+  if (type && type !== "all") {
+    dataQuery = dataQuery.eq("type", type.toUpperCase());
+  }
+
+  if (category && category !== "all") {
+    dataQuery = dataQuery.eq("category_id", category);
+  }
+
+  if (search) {
+    dataQuery = dataQuery.or(
+      `description.ilike.%${search}%,categories.name.ilike.%${search}%,financial_accounts.name.ilike.%${search}%`
+    );
   }
 
   const { data, error } = await dataQuery.range(offset, offset + pageSize - 1);

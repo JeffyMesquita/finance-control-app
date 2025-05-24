@@ -3,15 +3,37 @@
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
-interface Category {
+export type Category = {
+  id: string;
+  icon: string;
+  name: string;
+  type: string;
+  color: string;
+  user_id: string;
+};
+
+export type Account = {
   id: string;
   name: string;
-  color: string | null;
-}
+  type: string;
+  balance: number;
+  currency: string;
+};
 
-interface Transaction {
+// type Transaction = {
+
+type TransactionType = "INCOME" | "EXPENSE";
+
+export interface Transaction {
+  account: Account;
+  account_id: string;
   amount: number;
   category: Category;
+  category_id: string;
+  date: string;
+  description: string;
+  id: string;
+  type: TransactionType;
 }
 
 export async function getDashboardData() {

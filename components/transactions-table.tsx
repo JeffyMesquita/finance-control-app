@@ -64,33 +64,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import TransactionsSkeleton from "@/components/TransactionsSkeleton";
-
-type Category = {
-  id: string;
-  icon: string;
-  name: string;
-  type: string;
-  color: string;
-  user_id: string;
-};
-
-type Account = {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currency: string;
-};
-
-type Transaction = {
-  id: string;
-  amount: number;
-  description: string;
-  date: string;
-  type: string;
-  category: Category;
-  account: Account;
-};
+import { Category } from "@/app/actions/dashboard";
+import { Transaction } from "@/app/actions/dashboard";
 
 export function TransactionsTable() {
   const { toast } = useToast();
@@ -131,48 +106,12 @@ export function TransactionsTable() {
   useEffect(() => {
     fetchTransactions();
     fetchCategories();
-  }, [currentPage, selectedMonth]);
+  }, [currentPage, selectedMonth, filter, selectedCategory, search]);
 
   useEffect(() => {
     if (!transactions.length) return;
-
-    let filtered = [...transactions];
-
-    // Apply type filter
-    if (filter !== "all") {
-      filtered = filtered.filter((t) => t.type.toLowerCase() === filter);
-    }
-
-    // Apply category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((t) => t.category?.id === selectedCategory);
-    }
-
-    // Apply month filter
-    if (selectedMonth !== "all") {
-      const currentYear = new Date().getFullYear();
-      filtered = filtered.filter((t) => {
-        const transactionDate = new Date(t.date);
-        return (
-          transactionDate.getMonth() === parseInt(selectedMonth) &&
-          transactionDate.getFullYear() === currentYear
-        );
-      });
-    }
-
-    // Apply search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.description.toLowerCase().includes(searchLower) ||
-          t.category?.name?.toLowerCase().includes(searchLower) ||
-          t.account?.name?.toLowerCase().includes(searchLower)
-      );
-    }
-
-    setFilteredTransactions(filtered);
-  }, [transactions, filter, search, selectedCategory, selectedMonth]);
+    setFilteredTransactions(transactions);
+  }, [transactions]);
 
   async function fetchTransactions() {
     try {
@@ -180,7 +119,10 @@ export function TransactionsTable() {
       const result = await getTransactions(
         currentPage,
         pageSize,
-        selectedMonth
+        selectedMonth,
+        filter,
+        selectedCategory,
+        search
       );
       setTransactions(result.data);
       setFilteredTransactions(result.data);
@@ -253,12 +195,21 @@ export function TransactionsTable() {
               placeholder="Buscar transações..."
               className="w-full sm:w-[300px]"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
         </div>
         <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
-          <Select value={filter} onValueChange={setFilter}>
+          <Select
+            value={filter}
+            onValueChange={(value) => {
+              setFilter(value);
+              setCurrentPage(1);
+            }}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filtrar por tipo" />
             </SelectTrigger>
@@ -268,7 +219,13 @@ export function TransactionsTable() {
               <SelectItem value="expense">Despesas</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) => {
+              setSelectedCategory(value);
+              setCurrentPage(1);
+            }}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filtrar por categoria" />
             </SelectTrigger>
@@ -281,7 +238,13 @@ export function TransactionsTable() {
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <Select
+            value={selectedMonth}
+            onValueChange={(value) => {
+              setSelectedMonth(value);
+              setCurrentPage(1);
+            }}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filtrar por mês" />
             </SelectTrigger>

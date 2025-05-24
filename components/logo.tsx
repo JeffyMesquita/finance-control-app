@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -22,14 +22,22 @@ export function Logo({
   ...props
 }: LogoProps) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const src = light
-    ? "/logo-light.png"
-    : dark
-    ? "/logo-dark.png"
-    : resolvedTheme === "dark"
-    ? "/logo-light.png"
-    : "/logo-dark.png";
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  let src = "/logo-dark.png";
+  if (mounted) {
+    src = light
+      ? "/logo-light.png"
+      : dark
+      ? "/logo-dark.png"
+      : resolvedTheme === "dark"
+      ? "/logo-dark.png"
+      : "/logo-light.png";
+  }
 
   return (
     <Image
