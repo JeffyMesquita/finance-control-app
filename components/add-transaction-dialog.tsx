@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
+import { Switch } from "@/components/ui/switch";
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -65,12 +66,14 @@ export function AddTransactionDialog({
     type: "EXPENSE",
     amount: "",
     description: "",
-    category_id: "",
-    account_id: "",
+    category_id: categories[0]?.id,
+    account_id: accounts[0]?.id,
     date: new Date().toISOString().split("T")[0],
     notes: "",
     is_recurring: false,
+    recurring_interval: null,
     installment_number: "1",
+    total_installments: null,
   });
 
   useEffect(() => {
@@ -81,12 +84,14 @@ export function AddTransactionDialog({
         type: "EXPENSE",
         amount: "",
         description: "",
-        category_id: "",
-        account_id: "",
+        category_id: categories[0]?.id,
+        account_id: accounts[0]?.id,
         date: new Date().toISOString().split("T")[0],
         notes: "",
         is_recurring: false,
+        recurring_interval: null,
         installment_number: "1",
+        total_installments: null,
       });
     }
   }, [open]);
@@ -100,12 +105,13 @@ export function AddTransactionDialog({
       setCategories(categoriesData);
       setAccounts(accountsData);
 
-      console.log(categoriesData);
-      console.log(accountsData);
-
       // Set default account if available
       if (accountsData.length > 0) {
-        setFormData((prev) => ({ ...prev, account_id: accountsData[0].id }));
+        setFormData((prev) => ({
+          ...prev,
+          account_id: accountsData[0].id,
+          category_id: categoriesData[0].id,
+        }));
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -136,7 +142,7 @@ export function AddTransactionDialog({
     setFormData((prev) => ({ ...prev, amount: value?.toString() || "" }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, accountIdValue: string) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -150,7 +156,7 @@ export function AddTransactionDialog({
         throw new Error("A descrição é obrigatória");
       }
 
-      if (!formData.account_id) {
+      if (!accountIdValue) {
         throw new Error("Selecione uma conta");
       }
 
@@ -162,8 +168,12 @@ export function AddTransactionDialog({
       // Criar transação base
       const baseTransaction = {
         ...formData,
-        amount: Number(formData.amount) * 100,
+        amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
+        account_id: accountIdValue,
+        recurring_interval: formData.is_recurring
+          ? formData.recurring_interval || null
+          : null,
       };
 
       // Se for parcelado, criar múltiplas transações
@@ -172,10 +182,6 @@ export function AddTransactionDialog({
         Number(formData.installment_number) > 1
       ) {
         const installments = Number(formData.installment_number);
-        const installmentAmount = Math.floor(
-          (Number(formData.amount) * 100) / installments
-        );
-        const remainder = (Number(formData.amount) * 100) % installments;
 
         const installmentPromises = [];
 
@@ -185,10 +191,6 @@ export function AddTransactionDialog({
           installmentDate.setMonth(installmentDate.getMonth() + i);
 
           // Ajustar o valor da última parcela para incluir o resto da divisão
-          const amount =
-            i === installments - 1
-              ? installmentAmount + remainder
-              : installmentAmount;
 
           const installmentTransaction = {
             ...baseTransaction,
@@ -220,7 +222,7 @@ export function AddTransactionDialog({
         // Transação única (não parcelada)
         const transaction = {
           ...baseTransaction,
-          amount: Number(baseTransaction.amount),
+          amount: Math.round(Number(baseTransaction.amount)),
           installment_number: null,
           total_installments: null,
           type: baseTransaction.type as "EXPENSE" | "INCOME",
@@ -235,7 +237,7 @@ export function AddTransactionDialog({
               "Sua transação foi registrada com sucesso e já está disponível no histórico.",
             variant: "success",
           });
-          onSuccess();
+          onSuccess?.();
           onOpenChange(false);
         } else {
           throw new Error(result.error || "Falha ao criar transação");
@@ -259,10 +261,19 @@ export function AddTransactionDialog({
     (category) => category.type === formData.type
   );
 
+  useEffect(() => {
+    if (categories.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        category_id: categories[0]?.id,
+      }));
+    }
+  }, [categories]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(e) => handleSubmit(e, accounts[0]?.id)}>
           <DialogHeader>
             <DialogTitle>Adicionar Transação</DialogTitle>
             <DialogDescription>
@@ -343,7 +354,7 @@ export function AddTransactionDialog({
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 hidden">
               <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
@@ -407,6 +418,32 @@ export function AddTransactionDialog({
                 onChange={handleChange}
               />
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={(checked) =>
+                  handleSwitchChange("is_recurring", checked)
+                }
+              />
+              <Label htmlFor="is_recurring">Transação Recorrente</Label>
+            </div>
+
+            {formData.is_recurring && (
+              <div className="space-y-2">
+                <Label htmlFor="recurring_interval">
+                  Intervalo de Recorrência (Opcional)
+                </Label>
+                <Input
+                  id="recurring_interval"
+                  name="recurring_interval"
+                  type="month"
+                  value={formData.recurring_interval || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button

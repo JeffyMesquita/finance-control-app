@@ -4,15 +4,17 @@ import { cookies } from "next/headers";
 import { LandingPage } from "@/components/landing-page";
 import { SchemaOrg } from "@/components/schema-org";
 import { websiteData, organizationData } from "@/lib/schema-data";
-// import { HeroVisual } from "@/components/hero-visual"; // No longer used here
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
+
   if (typeof window !== "undefined") {
     localStorage.setItem("pixAlertDismissed", "false");
+    localStorage.setItem("shareAlertDismissed", "false");
   }
 
   if (session) {

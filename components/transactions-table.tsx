@@ -37,6 +37,7 @@ import {
   ArrowDown,
   ChevronLeft,
   ChevronRight,
+  Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddTransactionDialog } from "@/components/add-transaction-dialog";
@@ -54,7 +55,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getTransactions, deleteTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -66,6 +67,12 @@ import {
 import TransactionsSkeleton from "@/components/TransactionsSkeleton";
 import { Category } from "@/app/actions/dashboard";
 import { Transaction } from "@/app/actions/dashboard";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function TransactionsTable() {
   const { toast } = useToast();
@@ -374,6 +381,21 @@ export function TransactionsTable() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">
+                        Recorrente:
+                      </span>
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          transaction.is_recurring
+                            ? "text-green-600"
+                            : "text-red-600"
+                        )}
+                      >
+                        {transaction.is_recurring ? "Sim" : "Não"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
                         Valor:
                       </span>
                       <span
@@ -386,6 +408,21 @@ export function TransactionsTable() {
                         {transaction.type === "INCOME" ? "+" : "-"}
                         {formatCurrency(transaction.amount)}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">
+                        Notas:
+                      </span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{transaction.notes}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <div className="flex gap-2 mt-2">
                       <Button
@@ -431,10 +468,11 @@ export function TransactionsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">Data</TableHead>
+                    <TableHead className="w-[200px]">Data</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
-                    <TableHead>Conta</TableHead>
+                    <TableHead>Recorrente</TableHead>
+                    <TableHead>Notas</TableHead>
                     <TableHead className="text-right">
                       <div className="flex items-center justify-end">
                         Valor
@@ -463,8 +501,27 @@ export function TransactionsTable() {
                           {transaction.category?.name || "Sem categoria"}
                         </Badge>
                       </TableCell>
+                      <TableCell
+                        className={cn(
+                          "text-base font-medium",
+                          transaction.is_recurring
+                            ? "text-green-600"
+                            : "text-red-600"
+                        )}
+                      >
+                        {transaction.is_recurring ? "Sim" : "Não"}
+                      </TableCell>
                       <TableCell>
-                        {transaction.account?.name || "Desconhecida"}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{transaction.notes}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell className="text-right">
                         <span

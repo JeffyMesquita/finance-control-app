@@ -1,3 +1,4 @@
+import { handleReferral } from "@/app/actions/referrals";
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
@@ -67,6 +68,12 @@ export async function GET(request: NextRequest) {
 
     if (typeof window !== "undefined") {
       localStorage.setItem("pixAlertDismissed", "false");
+    }
+
+    const referralId = localStorage.getItem("referralId");
+
+    if (referralId) {
+      handleReferral(referralId);
     }
     // Redirecione para o dashboard após o login bem-sucedido
     return NextResponse.redirect(new URL("/dashboard", request.url));

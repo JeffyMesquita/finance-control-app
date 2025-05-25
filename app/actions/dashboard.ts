@@ -34,6 +34,10 @@ export interface Transaction {
   description: string;
   id: string;
   type: TransactionType;
+  is_recurring: boolean;
+  installment_number: number | null;
+  total_installments: number | null;
+  notes: string;
 }
 
 export async function getDashboardData() {

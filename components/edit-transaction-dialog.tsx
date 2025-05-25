@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { updateTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
+import { Switch } from "@/components/ui/switch";
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -74,6 +75,8 @@ export function EditTransactionDialog({
     account_id: "",
     date: "",
     notes: "",
+    is_recurring: false,
+    recurring_interval: null,
   });
 
   useEffect(() => {
@@ -100,6 +103,8 @@ export function EditTransactionDialog({
         account_id: transaction.account_id || "",
         date: localDate,
         notes: transaction.notes || "",
+        is_recurring: transaction.is_recurring || false,
+        recurring_interval: transaction.recurring_interval || null,
       });
     }
   }, [transaction, open]);
@@ -138,6 +143,10 @@ export function EditTransactionDialog({
     setFormData((prev) => ({ ...prev, amount: value?.toString() || "" }));
   };
 
+  const handleSwitchChange = (name: string, value: boolean) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -165,9 +174,12 @@ export function EditTransactionDialog({
 
       const updatedTransaction = {
         ...formData,
-        amount: Number(formData.amount) * 100,
+        amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
         type: formData.type as "EXPENSE" | "INCOME",
+        recurring_interval: formData.is_recurring
+          ? formData.recurring_interval || null
+          : null,
       };
 
       const result = await updateTransaction(
@@ -181,7 +193,7 @@ export function EditTransactionDialog({
           description: "Transação atualizada com sucesso",
           variant: "success",
         });
-        onSuccess();
+        onSuccess?.();
         onOpenChange(false);
       } else {
         throw new Error(result.error || "Falha ao atualizar transação");
@@ -288,7 +300,7 @@ export function EditTransactionDialog({
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 hidden">
               <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
@@ -319,6 +331,32 @@ export function EditTransactionDialog({
                 onChange={handleChange}
               />
             </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_recurring"
+                checked={formData.is_recurring}
+                onCheckedChange={(checked) =>
+                  handleSwitchChange("is_recurring", checked)
+                }
+              />
+              <Label htmlFor="is_recurring">Transação Recorrente</Label>
+            </div>
+
+            {formData.is_recurring && (
+              <div className="space-y-2">
+                <Label htmlFor="recurring_interval">
+                  Intervalo de Recorrência (Opcional)
+                </Label>
+                <Input
+                  id="recurring_interval"
+                  name="recurring_interval"
+                  type="month"
+                  value={formData.recurring_interval || ""}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button

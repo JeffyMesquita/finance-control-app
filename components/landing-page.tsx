@@ -1,36 +1,35 @@
 "use client";
 
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { motion, useAnimation } from "framer-motion";
+import {
+  ArrowRight,
+  BarChart3,
+  ChevronRight,
+  CreditCard,
+  LineChart,
+  PieChart,
+  Shield,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  ChevronRight,
-  BarChart3,
-  PieChart,
-  LineChart,
-  DollarSign,
-  Shield,
-  ArrowRight,
-  CreditCard,
-  TrendingUp,
-  Target,
-} from "lucide-react";
-import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { Logo } from "./logo";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaEnvelope,
-  FaInstagram,
-  FaPhone,
-} from "react-icons/fa";
-import { Footer } from "@/components/footer";
+import { useSearchParams } from "next/navigation";
 
 export function LandingPage() {
-  const currentYear = new Date().getFullYear();
+  const params = useSearchParams();
+  const referralId = params.get("ref");
 
-  // Animações para seções
+  console.log(referralId, "referralId");
+
+  if (referralId) {
+    localStorage.setItem("referralId", referralId);
+  }
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 60 },
     visible: {
