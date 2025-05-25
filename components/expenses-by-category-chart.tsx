@@ -46,6 +46,27 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const YAxisCustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={2}
+        textAnchor="end"
+        fontSize={10}
+        fontFamily="Inter, Roboto, Arial, sans-serif"
+        fontWeight={800}
+        fill="#64748b"
+        transform="rotate(-10)"
+      >
+        {formatCurrency(payload.value)}
+      </text>
+    </g>
+  );
+};
+
 export function ExpensesByCategoryChart({
   className,
 }: ExpensesByCategoryChartProps) {
@@ -108,15 +129,7 @@ export function ExpensesByCategoryChart({
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis
-                  tickFormatter={(value) => formatCurrency(value)}
-                  tick={{
-                    fontSize: 12,
-                    fontFamily: "Inter, Roboto, Arial, sans-serif",
-                    fontWeight: 700,
-                  }}
-                  width={80}
-                />
+                <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value">
                   {expenseData.map((entry, index) => (

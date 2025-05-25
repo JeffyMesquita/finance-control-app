@@ -3,7 +3,13 @@
 import * as React from "react";
 import * as ToastPrimitives from "@radix-ui/react-toast";
 import { cva, type VariantProps } from "class-variance-authority";
-import { X } from "lucide-react";
+import {
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Info,
+  AlertTriangle,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -31,12 +37,12 @@ const toastVariants = cva(
       variant: {
         default: "border bg-background text-foreground",
         success:
-          "border-green-500 bg-green-400/95 dark:bg-green-950/95 text-green-800 dark:text-green-200",
+          "border-green-500 bg-green-300 dark:bg-green-950/95 text-green-800 dark:text-green-200",
         destructive:
-          "border-red-500 bg-red-400/95 dark:bg-red-950/95 text-red-800 dark:text-red-200",
+          "border-red-500 bg-red-300 dark:bg-red-950/95 text-red-800 dark:text-red-200",
         warning:
-          "border-yellow-500 bg-yellow-400/95 dark:bg-yellow-950/95 text-yellow-800 dark:text-yellow-200",
-        info: "border-blue-500 bg-blue-400/95 dark:bg-blue-950/95 text-blue-800 dark:text-blue-200",
+          "border-yellow-500 bg-yellow-300 dark:bg-yellow-950/95 text-yellow-800 dark:text-yellow-200",
+        info: "border-blue-500 bg-blue-300 dark:bg-blue-950/95 text-blue-800 dark:text-blue-200",
       },
     },
     defaultVariants: {
@@ -99,7 +105,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn("text-sm font-semibold", className)}
+    className={cn("text-sm font-semibold flex items-center gap-2", className)}
     {...props}
   />
 ));
@@ -117,6 +123,34 @@ const ToastDescription = React.forwardRef<
 ));
 ToastDescription.displayName = ToastPrimitives.Description.displayName;
 
+// Toast Icon component
+const ToastIcon = ({
+  variant,
+}: {
+  variant?: "default" | "success" | "destructive" | "warning" | "info";
+}) => {
+  switch (variant) {
+    case "success":
+      return (
+        <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400 animate-pulse flex-shrink-0" />
+      );
+    case "destructive":
+      return (
+        <AlertCircle className="h-10 w-10 text-red-600 dark:text-red-400 animate-pulse flex-shrink-0" />
+      );
+    case "warning":
+      return (
+        <AlertTriangle className="h-10 w-10 text-yellow-600 dark:text-yellow-400 animate-pulse flex-shrink-0" />
+      );
+    case "info":
+      return (
+        <Info className="h-10 w-10 text-blue-600 dark:text-blue-400 animate-pulse flex-shrink-0" />
+      );
+    default:
+      return null;
+  }
+};
+
 type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>;
 
 type ToastActionElement = React.ReactElement<typeof ToastAction>;
@@ -131,4 +165,5 @@ export {
   ToastDescription,
   ToastClose,
   ToastAction,
+  ToastIcon,
 };

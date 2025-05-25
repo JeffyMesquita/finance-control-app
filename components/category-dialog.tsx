@@ -83,8 +83,9 @@ export function CategoryDialog({
 
       if (result.success) {
         toast({
-          title: "Sucesso",
-          description: "Categoria criada com sucesso",
+          title: "Categoria Criada",
+          description:
+            "Sua nova categoria foi criada com sucesso e já está disponível para uso.",
           variant: "success",
         });
         onSuccess();
@@ -95,8 +96,9 @@ export function CategoryDialog({
     } catch (error) {
       console.error("Erro ao criar categoria:", error);
       toast({
-        title: "Erro",
-        description: (error as Error).message || "Falha ao criar categoria",
+        title: "Erro ao Criar",
+        description:
+          "Não foi possível criar a categoria. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {

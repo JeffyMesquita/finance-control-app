@@ -40,6 +40,9 @@ export default function LoginPage() {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("pixAlertDismissed", "false");
+        }
         router.push("/dashboard");
       }
     };
@@ -74,6 +77,10 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem("pixAlertDismissed", "false");
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center p-1 sm:px-4 py-12 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

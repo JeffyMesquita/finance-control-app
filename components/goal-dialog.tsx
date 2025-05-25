@@ -107,8 +107,9 @@ export function GoalDialog({
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
-        title: "Error",
-        description: "Failed to load accounts and categories",
+        title: "Erro ao Carregar",
+        description:
+          "Não foi possível carregar as contas e categorias. Tente novamente mais tarde.",
         variant: "destructive",
       });
     }
@@ -149,8 +150,9 @@ export function GoalDialog({
 
       if (result.success) {
         toast({
-          title: "Sucesso",
-          description: "Meta criada com sucesso",
+          title: "Meta Criada",
+          description:
+            "Sua meta financeira foi criada com sucesso e já está disponível no dashboard.",
           variant: "success",
         });
         onSuccess();
@@ -161,8 +163,9 @@ export function GoalDialog({
     } catch (error) {
       console.error("Erro ao criar meta:", error);
       toast({
-        title: "Erro",
-        description: (error as Error).message || "Falha ao criar meta",
+        title: "Erro ao Criar",
+        description:
+          "Não foi possível criar sua meta financeira. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {

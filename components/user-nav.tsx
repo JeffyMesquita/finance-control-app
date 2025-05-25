@@ -32,6 +32,7 @@ export function UserNav({ user }: UserNavProps) {
 
   const handleSignOut = async () => {
     try {
+      setTheme("dark");
       await supabase.auth.signOut();
       router.push("/login");
       router.refresh();

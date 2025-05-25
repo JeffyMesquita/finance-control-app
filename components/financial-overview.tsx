@@ -23,6 +23,7 @@ import {
 } from "recharts";
 import { getMonthlyData } from "@/app/actions/dashboard";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 
 interface FinancialOverviewProps {
   className?: string;
@@ -39,27 +40,63 @@ const CATEGORY_LABEL_MAX = 10;
 const ellipsis = (str: string, max: number) =>
   str.length > max ? str.slice(0, max) + "…" : str;
 
+const monthNames: { [key: string]: string } = {
+  Jan: "Jan",
+  Feb: "Fev",
+  Mar: "Mar",
+  Apr: "Abr",
+  May: "Mai",
+  Jun: "Jun",
+  Jul: "Jul",
+  Aug: "Ago",
+  Sep: "Set",
+  Oct: "Out",
+  Nov: "Nov",
+  Dec: "Dez",
+};
+
+const YAxisCustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={2}
+        textAnchor="end"
+        fontSize={10}
+        fontFamily="Inter, Roboto, Arial, sans-serif"
+        fontWeight={800}
+        fill="#64748b"
+        transform="rotate(-10)"
+      >
+        {formatCurrency(payload.value)}
+      </text>
+    </g>
+  );
+};
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const entry = payload[0].payload;
     return (
       <div className="bg-background p-2 rounded shadow text-xs">
         <div>
-          <strong>Mês:</strong> {entry.name}
+          <strong>Mês:</strong> {monthNames[entry.name] || entry.name}
         </div>
         {entry.income !== undefined && (
           <div>
-            <strong>Receitas:</strong> {entry.income}
+            <strong>Receitas:</strong> {formatCurrency(entry.income)}
           </div>
         )}
         {entry.expenses !== undefined && (
           <div>
-            <strong>Despesas:</strong> {entry.expenses}
+            <strong>Despesas:</strong> {formatCurrency(entry.expenses)}
           </div>
         )}
         {entry.savings !== undefined && (
           <div>
-            <strong>Economia:</strong> {entry.savings}
+            <strong>Economia:</strong> {formatCurrency(entry.savings)}
           </div>
         )}
       </div>
@@ -129,20 +166,13 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                     fontFamily: "Inter, Roboto, Arial, sans-serif",
                     fontWeight: 700,
                   }}
-                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  tickFormatter={(value: string) => monthNames[value] || value}
                   interval={0}
                   angle={-20}
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis
-                  tick={{
-                    fontSize: 12,
-                    fontFamily: "Inter, Roboto, Arial, sans-serif",
-                    fontWeight: 700,
-                  }}
-                  width={80}
-                />
+                <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="income" fill="#22c55e" name="Receitas" />
@@ -161,20 +191,13 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                     fontFamily: "Inter, Roboto, Arial, sans-serif",
                     fontWeight: 700,
                   }}
-                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  tickFormatter={(value: string) => monthNames[value] || value}
                   interval={0}
                   angle={-20}
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis
-                  tick={{
-                    fontSize: 12,
-                    fontFamily: "Inter, Roboto, Arial, sans-serif",
-                    fontWeight: 700,
-                  }}
-                  width={80}
-                />
+                <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line
@@ -209,20 +232,13 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
                     fontFamily: "Inter, Roboto, Arial, sans-serif",
                     fontWeight: 700,
                   }}
-                  tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
+                  tickFormatter={(value: string) => monthNames[value] || value}
                   interval={0}
                   angle={-20}
                   textAnchor="end"
                   height={40}
                 />
-                <YAxis
-                  tick={{
-                    fontSize: 12,
-                    fontFamily: "Inter, Roboto, Arial, sans-serif",
-                    fontWeight: 700,
-                  }}
-                  width={80}
-                />
+                <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Bar dataKey="income" fill="#22c55e" name="Receitas" />

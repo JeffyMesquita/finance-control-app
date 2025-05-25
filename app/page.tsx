@@ -11,6 +11,9 @@ export default async function Home() {
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  if (typeof window !== "undefined") {
+    localStorage.setItem("pixAlertDismissed", "false");
+  }
 
   if (session) {
     redirect("/dashboard");

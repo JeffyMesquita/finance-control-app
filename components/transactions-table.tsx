@@ -130,8 +130,9 @@ export function TransactionsTable() {
     } catch (error) {
       console.error("Erro ao carregar transações:", error);
       toast({
-        title: "Erro",
-        description: "Falha ao carregar transações",
+        title: "Erro ao Carregar",
+        description:
+          "Não foi possível carregar as transações. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {
@@ -146,8 +147,9 @@ export function TransactionsTable() {
     } catch (error) {
       console.error("Erro ao carregar categorias:", error);
       toast({
-        title: "Erro",
-        description: "Falha ao carregar categorias",
+        title: "Erro ao Carregar",
+        description:
+          "Não foi possível carregar as categorias. Tente novamente mais tarde.",
         variant: "destructive",
       });
     }
@@ -163,8 +165,8 @@ export function TransactionsTable() {
       const result = await deleteTransaction(id);
       if (result.success) {
         toast({
-          title: "Sucesso",
-          description: "Transação excluída com sucesso",
+          title: "Transação Excluída",
+          description: "A transação foi excluída com sucesso do seu histórico.",
           variant: "success",
         });
         fetchTransactions();
@@ -174,8 +176,9 @@ export function TransactionsTable() {
     } catch (error) {
       console.error("Erro ao excluir transação:", error);
       toast({
-        title: "Erro",
-        description: (error as Error).message || "Falha ao excluir transação",
+        title: "Erro ao Excluir",
+        description:
+          "Não foi possível excluir a transação. Tente novamente mais tarde.",
         variant: "destructive",
       });
     }

@@ -6,12 +6,14 @@ import { FinancialOverview } from "@/components/financial-overview";
 import { GoalsSummary } from "@/components/goals-summary";
 import { WelcomeCard } from "@/components/welcome-card";
 import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart";
+import { PixSupportAlert } from "@/components/pix-support-alert";
 
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies });
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">
+      <PixSupportAlert />
       <WelcomeCard />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-full">
         <DashboardCards />

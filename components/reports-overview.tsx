@@ -333,12 +333,8 @@ export function ReportsOverview() {
                 height={40}
               />
               <YAxis
-                tickFormatter={(value: number) => formatCurrency(value)}
-                tick={{
-                  fontSize: 12,
-                  fontFamily: "Inter, Roboto, Arial, sans-serif",
-                  fontWeight: 700,
-                }}
+                tick={(props) => <YAxisCustomTick {...props} />}
+                tickFormatter={(value) => formatCurrency(value)}
                 width={80}
                 tickSize={30}
                 textLength="60"

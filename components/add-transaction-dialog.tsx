@@ -230,8 +230,9 @@ export function AddTransactionDialog({
 
         if (result.success) {
           toast({
-            title: "Sucesso",
-            description: "Transação criada com sucesso",
+            title: "Transação Criada",
+            description:
+              "Sua transação foi registrada com sucesso e já está disponível no histórico.",
             variant: "success",
           });
           onSuccess();
@@ -243,8 +244,9 @@ export function AddTransactionDialog({
     } catch (error) {
       console.error("Erro ao criar transação:", error);
       toast({
-        title: "Erro",
-        description: (error as Error).message || "Falha ao criar transação",
+        title: "Erro ao Criar",
+        description:
+          "Não foi possível registrar a transação. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {
