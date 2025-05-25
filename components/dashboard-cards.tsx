@@ -11,6 +11,8 @@ import {
   TrendingUp,
   TrendingDown,
   PiggyBank,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { getDashboardData } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
@@ -29,6 +31,14 @@ export function DashboardCards() {
     savings: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+
+  const toggleVisibility = (cardId: string) => {
+    setVisibleCards((prev) => ({
+      ...prev,
+      [cardId]: !prev[cardId],
+    }));
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -47,7 +57,7 @@ export function DashboardCards() {
 
   return (
     <>
-      <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-100">
             Saldo Total
@@ -57,19 +67,50 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-orange-500 dark:text-orange-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.totalBalance)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-orange-500 dark:text-orange-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.totalBalance)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #78350f 60%, #a16207 100%)",
+                  clipPath: visibleCards["totalBalance"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-orange-100/80 dark:bg-orange-900/80 hover:bg-orange-200 dark:hover:bg-orange-800 transition-colors"
+                onClick={() => toggleVisibility("totalBalance")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["totalBalance"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["totalBalance"] ? (
+                  <EyeOff className="h-5 w-5 text-orange-500 dark:text-orange-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-orange-500 dark:text-orange-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-orange-600 dark:text-orange-300">
             Seu saldo atual em todas as contas
           </p>
         </CardContent>
       </Card>
-      <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-green-800 dark:text-green-100">
             Receitas
@@ -79,19 +120,50 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-green-500 dark:text-green-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.monthlyIncome)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-green-500 dark:text-green-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.monthlyIncome)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #14532d 60%, #22c55e 100%)",
+                  clipPath: visibleCards["monthlyIncome"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-green-100/80 dark:bg-green-900/80 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                onClick={() => toggleVisibility("monthlyIncome")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["monthlyIncome"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["monthlyIncome"] ? (
+                  <EyeOff className="h-5 w-5 text-green-500 dark:text-green-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-green-500 dark:text-green-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-green-600 dark:text-green-300">
             Total de receitas deste mês
           </p>
         </CardContent>
       </Card>
-      <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-red-800 dark:text-red-100">
             Despesas
@@ -101,19 +173,50 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-red-500 dark:text-red-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.monthlyExpenses)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-red-500 dark:text-red-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.monthlyExpenses)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #7f1d1d 60%, #ef4444 100%)",
+                  clipPath: visibleCards["monthlyExpenses"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-red-100/80 dark:bg-red-900/80 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                onClick={() => toggleVisibility("monthlyExpenses")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["monthlyExpenses"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["monthlyExpenses"] ? (
+                  <EyeOff className="h-5 w-5 text-red-500 dark:text-red-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-red-500 dark:text-red-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-red-600 dark:text-red-300">
             Total de despesas deste mês
           </p>
         </CardContent>
       </Card>
-      <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-100">
             Economia
@@ -123,19 +226,50 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.monthlySavings)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.monthlySavings)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1e3a8a 60%, #2563eb 100%)",
+                  clipPath: visibleCards["monthlySavings"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-blue-100/80 dark:bg-blue-900/80 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                onClick={() => toggleVisibility("monthlySavings")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["monthlySavings"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["monthlySavings"] ? (
+                  <EyeOff className="h-5 w-5 text-blue-500 dark:text-blue-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-blue-500 dark:text-blue-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-blue-600 dark:text-blue-300">
             Total economizado neste mês
           </p>
         </CardContent>
       </Card>
-      <Card className="bg-purple-100 dark:bg-purple-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-purple-100 dark:bg-purple-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-purple-800 dark:text-purple-100">
             Gastos Futuros
@@ -145,12 +279,43 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.gastosFuturos)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.gastosFuturos)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #3b0764 60%, #a21caf 100%)",
+                  clipPath: visibleCards["gastosFuturos"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-purple-100/80 dark:bg-purple-900/80 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
+                onClick={() => toggleVisibility("gastosFuturos")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["gastosFuturos"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["gastosFuturos"] ? (
+                  <EyeOff className="h-5 w-5 text-purple-500 dark:text-purple-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-purple-500 dark:text-purple-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-purple-600 dark:text-purple-300">
             Total de despesas agendadas para o futuro
@@ -211,7 +376,7 @@ export function DashboardCards() {
           </div>
         </CardContent>
       </Card>
-      <Card className="bg-yellow-100 dark:bg-yellow-900 shadow-sm">
+      <Card className="relative overflow-hidden bg-yellow-100 dark:bg-yellow-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-yellow-800 dark:text-yellow-100">
             Poupança
@@ -221,12 +386,41 @@ export function DashboardCards() {
           </span>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-yellow-500 dark:text-yellow-400">
-            {isLoading ? (
-              <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
-            ) : (
-              formatCurrency(data.savings)
-            )}
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-yellow-500 dark:text-yellow-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.savings)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #854d0e 60%, #eab308 100%)",
+                  clipPath: visibleCards["savings"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-yellow-100/80 dark:bg-yellow-900/80 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors"
+                onClick={() => toggleVisibility("savings")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["savings"] ? "Ocultar valor" : "Mostrar valor"
+                }
+              >
+                {visibleCards["savings"] ? (
+                  <EyeOff className="h-5 w-5 text-yellow-500 dark:text-yellow-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-yellow-500 dark:text-yellow-300" />
+                )}
+              </button>
+            </div>
           </div>
           <p className="text-xs text-yellow-600 dark:text-yellow-300">
             Dinheiro guardado na poupança
