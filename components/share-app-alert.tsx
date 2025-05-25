@@ -185,7 +185,7 @@ export function ShareAppAlert() {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="border-blue-700 text-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800"
+                    className="border-blue-700 text-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 flex-shrink-0"
                     onClick={handleCopy}
                     aria-label="Copiar link de convite"
                   >

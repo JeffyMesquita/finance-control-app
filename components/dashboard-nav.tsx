@@ -1,10 +1,19 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { LayoutDashboard, ArrowUpDown, BarChart3, Goal, CreditCard, Download, User, Sliders } from "lucide-react"
-import { motion } from "framer-motion"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  ArrowUpDown,
+  BarChart3,
+  Goal,
+  CreditCard,
+  Download,
+  User,
+  Sliders,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
 const navItems = [
   {
@@ -47,10 +56,10 @@ const navItems = [
     href: "/dashboard/configuracoes",
     icon: Sliders,
   },
-]
+];
 
 export function DashboardNav() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <nav className="grid gap-2 p-4 bg-muted/40">
@@ -67,7 +76,7 @@ export function DashboardNav() {
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:text-primary",
               pathname === item.href
                 ? "bg-primary/10 font-medium text-primary"
-                : "text-muted-foreground hover:bg-muted",
+                : "text-muted-foreground hover:bg-muted"
             )}
           >
             <item.icon className="h-4 w-4" />
@@ -76,5 +85,5 @@ export function DashboardNav() {
         </motion.div>
       ))}
     </nav>
-  )
+  );
 }

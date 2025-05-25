@@ -8,6 +8,7 @@ import { WelcomeCard } from "@/components/welcome-card";
 import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart";
 import { PixSupportAlert } from "@/components/pix-support-alert";
 import { ShareAppAlert } from "@/components/share-app-alert";
+import { PaymentReminders } from "@/components/payment-reminders";
 
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -17,10 +18,11 @@ export default async function DashboardPage() {
       <PixSupportAlert />
       <ShareAppAlert />
       <WelcomeCard />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 max-w-full">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 max-w-full">
         <DashboardCards />
       </div>
       <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
+      <PaymentReminders />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
         <FinancialOverview className="lg:col-span-4" />
         <div className="flex flex-col gap-4 lg:col-span-3">
