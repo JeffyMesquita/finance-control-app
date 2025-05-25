@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -22,36 +22,68 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 export function ShareAppAlert() {
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [inviteCount, setInviteCount] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClientComponentClient<Database>();
 
+  // Buscar usuário atual
+  const fetchUser = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (error) throw error;
+      setUserId(user?.id ?? null);
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar suas informações",
+        variant: "destructive",
+      });
+    }
+  }, [supabase, toast]);
+
+  // Buscar estatísticas de referral
+  const fetchStats = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      setIsLoading(true);
+      const stats = await getReferralStats();
+      setInviteCount(stats.referralCount);
+    } catch (error) {
+      console.error("Erro ao buscar estatísticas:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar suas estatísticas",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [userId, toast]);
+
   useEffect(() => {
-    // Reset dismiss if session changes
+    // Reset dismiss se a sessão mudar
     setVisible(
       typeof window !== "undefined" &&
         localStorage.getItem(SESSION_KEY) !== "true"
     );
 
-    // Get current user
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUserId(user?.id ?? null);
-    };
-    getUser();
+    fetchUser();
+  }, [fetchUser]);
 
-    // Fetch invite count and badges
-    const fetchStats = async () => {
-      const stats = await getReferralStats();
-      setInviteCount(stats.referralCount);
-    };
-    fetchStats();
-  }, [userId, supabase]);
+  useEffect(() => {
+    if (userId) {
+      fetchStats();
+    }
+  }, [userId, fetchStats]);
 
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     setExiting(true);
     setTimeout(() => {
       setVisible(false);
@@ -59,49 +91,61 @@ export function ShareAppAlert() {
         localStorage.setItem(SESSION_KEY, "true");
       }
     }, 1000);
-  };
+  }, []);
 
-  const getShareUrl = () => {
+  const getShareUrl = useCallback(() => {
     if (!userId) return BASE_URL;
     return `${BASE_URL}?ref=${userId}`;
-  };
+  }, [userId]);
 
-  const handleCopy = async () => {
-    const shareUrl = getShareUrl();
-    await navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "🔗 Link copiado!",
-      description:
-        "Link de convite copiado com sucesso! Compartilhe com seus amigos! 🚀",
-      variant: "info",
-    });
-  };
+  const handleCopy = useCallback(async () => {
+    try {
+      const shareUrl = getShareUrl();
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "🔗 Link copiado!",
+        description:
+          "Link de convite copiado com sucesso! Compartilhe com seus amigos! 🚀",
+        variant: "info",
+      });
+    } catch (error) {
+      console.error("Erro ao copiar link:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível copiar o link",
+        variant: "destructive",
+      });
+    }
+  }, [getShareUrl, toast]);
 
-  const handleSocialShare = (platform: string) => {
-    const shareUrl = getShareUrl();
-    const text = "Venha descomplicar sua vida financeira comigo! 🚀";
+  const handleSocialShare = useCallback(
+    (platform: string) => {
+      const shareUrl = getShareUrl();
+      const text = "Venha descomplicar sua vida financeira comigo! 🚀";
 
-    const urls = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        text
-      )}&url=${encodeURIComponent(shareUrl)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-        shareUrl
-      )}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-        shareUrl
-      )}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
-      whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
-      instagram: `https://www.instagram.com/share?url=${encodeURIComponent(
-        shareUrl
-      )}`,
-    };
+      const urls = {
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          text
+        )}&url=${encodeURIComponent(shareUrl)}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          shareUrl
+        )}`,
+        linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+          shareUrl
+        )}`,
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
+        instagram: `https://www.instagram.com/share?url=${encodeURIComponent(
+          shareUrl
+        )}`,
+      };
 
-    window.open(urls[platform as keyof typeof urls], "_blank");
-  };
+      window.open(urls[platform as keyof typeof urls], "_blank");
+    },
+    [getShareUrl]
+  );
 
-  if (!visible || !userId) return null;
+  if (!visible || !userId || isLoading) return null;
 
   return (
     <AnimatePresence>
@@ -185,7 +229,6 @@ export function ShareAppAlert() {
                   >
                     <FaTelegram className="w-4 h-4" />
                   </Button>
-
                   <Button
                     size="icon"
                     variant="outline"
@@ -195,7 +238,6 @@ export function ShareAppAlert() {
                   >
                     <FaWhatsapp className="w-4 h-4" />
                   </Button>
-
                   <Button
                     size="icon"
                     variant="outline"

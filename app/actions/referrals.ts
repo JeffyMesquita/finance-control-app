@@ -3,8 +3,20 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function handleReferral(referralId: string) {
-  if (!referralId) return;
+type ReferralResult = {
+  success: boolean;
+  message: string;
+};
+
+export async function handleReferral(
+  referralId: string
+): Promise<ReferralResult> {
+  if (!referralId) {
+    return {
+      success: false,
+      message: "ID de referência não encontrado",
+    };
+  }
 
   const supabase = createServerClient();
 
@@ -12,15 +24,36 @@ export async function handleReferral(referralId: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return;
+  if (!user) {
+    return {
+      success: false,
+      message: "Usuário não autenticado",
+    };
+  }
 
   // Prevenir auto-referência
   if (user.id === referralId) {
-    console.log("Usuário tentou se auto-referenciar");
-    return;
+    return {
+      success: false,
+      message: "Você não pode se auto-referenciar",
+    };
   }
 
   try {
+    // Verificar se o usuário que está referenciando existe e está ativo
+    const { data: referrer, error: referrerError } = await supabase
+      .from("users")
+      .select("id, email")
+      .eq("id", referralId)
+      .single();
+
+    if (referrerError || !referrer) {
+      return {
+        success: false,
+        message: "Usuário que está referenciando não encontrado",
+      };
+    }
+
     // Check if user was already referred
     const { data: existingReferral } = await supabase
       .from("user_invites")
@@ -28,7 +61,12 @@ export async function handleReferral(referralId: string) {
       .eq("referred_id", user.id)
       .single();
 
-    if (existingReferral) return;
+    if (existingReferral) {
+      return {
+        success: false,
+        message: "Você já foi referenciado anteriormente",
+      };
+    }
 
     // Create referral
     const { error: referralError }: { error: unknown } = await supabase
@@ -40,7 +78,10 @@ export async function handleReferral(referralId: string) {
 
     if (referralError) {
       console.error("Failed to create referral:", referralError);
-      return;
+      return {
+        success: false,
+        message: "Erro ao processar referência",
+      };
     }
 
     // Get total referrals for the referrer
@@ -51,6 +92,8 @@ export async function handleReferral(referralId: string) {
 
     // Award badges based on referral count
     const badgeThresholds = [5, 10, 25, 50, 100];
+    let newBadges = 0;
+
     for (const threshold of badgeThresholds) {
       if (totalReferrals && totalReferrals >= threshold) {
         const { error: badgeError } = await supabase
@@ -60,15 +103,26 @@ export async function handleReferral(referralId: string) {
             badge_type: `REFERRAL_${threshold}`,
           });
 
-        if (badgeError) {
-          console.error("Failed to create badge:", badgeError);
+        if (!badgeError) {
+          newBadges++;
         }
       }
     }
 
     revalidatePath("/");
+
+    return {
+      success: true,
+      message: `Referência processada com sucesso! ${
+        newBadges > 0 ? `Novas badges conquistadas: ${newBadges}` : ""
+      }`,
+    };
   } catch (error) {
     console.error("Error handling referral:", error);
+    return {
+      success: false,
+      message: "Erro ao processar referência",
+    };
   }
 }
 
