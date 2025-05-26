@@ -125,6 +125,13 @@ export default function RootLayout({
           sizes="96x96"
           href="/favicon-96x96.png"
         />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#ffffff" />
+        <link rel="apple-touch-icon" href="/web-app-manifest-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-title" content="FinanceTrack" />
+        <link rel="apple-touch-startup-image" href="/splash.png" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
       </head>
       <body className={inter.className}>
