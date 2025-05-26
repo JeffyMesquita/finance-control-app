@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#ffffff",
+    background_color: "#000000",
+    theme_color: "#000000",
     icons: [
       {
         src: "/web-app-manifest-192x192.png",
