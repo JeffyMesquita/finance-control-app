@@ -5,6 +5,7 @@ import { LandingPage } from "@/components/landing-page";
 import { SchemaOrg } from "@/components/schema-org";
 import { websiteData, organizationData } from "@/lib/schema-data";
 import { handleReferral } from "./actions/referrals";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 interface HomeProps {
   searchParams: {
@@ -40,6 +41,7 @@ export default async function Home({ searchParams }: HomeProps) {
     <>
       <SchemaOrg type="Organization" data={organizationData} />
       <SchemaOrg type="WebSite" data={websiteData} />
+      <ServiceWorkerRegistration />
       {referralMessage && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-stone-800 p-4 rounded-lg shadow-lg z-50">
           {referralMessage}
