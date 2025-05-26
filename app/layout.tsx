@@ -24,14 +24,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  manifest: "/site.webmanifest",
+  manifest: "/manifest.json",
   themeColor: "#ffffff",
   icons: [
-    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "apple-touch-icon", url: "/web-app-manifest-192x192.png" },
     { rel: "icon", url: "/favicon.ico" },
-    { rel: "icon", url: "/favicon-16x16.png" },
-    { rel: "icon", url: "/favicon-32x32.png" },
-    { rel: "icon", url: "/favicon-96x96.png" },
+    { rel: "icon", url: "/favicon-16x16.png", sizes: "16x16" },
+    { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32" },
+    { rel: "icon", url: "/favicon-96x96.png", sizes: "96x96" },
   ],
   appleWebApp: {
     capable: true,
@@ -41,7 +41,6 @@ export const metadata: Metadata = {
   },
   applicationName: "FinanceTrack",
   category: "finance",
-
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com"
   ),
@@ -76,7 +75,7 @@ export const metadata: Metadata = {
     siteName: "FinanceTrack",
     images: [
       {
-        url: "/opengraph-image.png", // Add your OG image
+        url: "/opengraph-image.png",
         width: 1200,
         height: 630,
         alt: "FinanceTrack - Controle Financeiro",
@@ -88,8 +87,8 @@ export const metadata: Metadata = {
     title: "FinanceTrack - Controle Financeiro",
     description:
       "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
-    images: ["/twitter-image.png"], // Add your Twitter image
-    creator: "@_Jeferson___", // TODO: Replace with your Twitter handle
+    images: ["/twitter-image.png"],
+    creator: "@_Jeferson___",
   },
   robots: {
     index: true,
@@ -103,7 +102,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-site-verification", // TODO: Replace with your verification code
+    google: "your-google-site-verification",
   },
 };
 
@@ -114,44 +113,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-
-        <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
-
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="96x96"
-          href="/favicon-96x96.png"
-        />
-        <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#ffffff" />
-        <link rel="apple-touch-icon" href="/web-app-manifest-192x192.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta name="apple-mobile-web-app-title" content="FinanceTrack" />
-        <link rel="apple-touch-startup-image" href="/splash.png" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
