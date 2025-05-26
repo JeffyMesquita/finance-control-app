@@ -24,6 +24,24 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  manifest: "/site.webmanifest",
+  themeColor: "#ffffff",
+  icons: [
+    { rel: "apple-touch-icon", url: "/apple-touch-icon.png" },
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "icon", url: "/favicon-16x16.png" },
+    { rel: "icon", url: "/favicon-32x32.png" },
+    { rel: "icon", url: "/favicon-96x96.png" },
+  ],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black",
+    title: "FinanceTrack",
+    startupImage: "/splash.png",
+  },
+  applicationName: "FinanceTrack",
+  category: "finance",
+
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com"
   ),
