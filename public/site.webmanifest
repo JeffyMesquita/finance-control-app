@@ -2,7 +2,6 @@
   "name": "FinanceTrack - Controle Financeiro",
   "short_name": "FinanceTrack",
   "description": "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
-  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
@@ -34,5 +33,10 @@
       "sizes": "96x96",
       "type": "image/png"
     }
-  ]
+  ],
+  "id": "dev.jeffymesquita.FinanceTrack",
+  "lang": "pt-BR",
+  "orientation": "portrait",
+  "start_url": "https://v0-fullstack-finance-system.vercel.app",
+  "scope": "https://v0-fullstack-finance-system.vercel.app"
 }
