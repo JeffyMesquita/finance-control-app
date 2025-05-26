@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "dev.jeffyMesquita.finance-track",
     name: "FinanceTrack - Controle Financeiro",
     short_name: "FinanceTrack",
     description:
@@ -90,6 +91,31 @@ export default function manifest(): MetadataRoute.Manifest {
     display_override: ["window-controls-overlay", "standalone", "minimal-ui"],
     launch_handler: {
       client_mode: ["focus-existing", "auto"],
+    },
+    protocol_handlers: [
+      {
+        protocol: "web+finance-track",
+        url: "/",
+      },
+    ],
+    file_handlers: [
+      {
+        action: "/",
+        accept: {
+          "application/json": [".json"],
+        },
+      },
+    ],
+    scope: "/",
+    share_target: {
+      action: "/",
+      method: "POST",
+      enctype: "multipart/form-data",
+      params: {
+        title: "Compartilhar Transação",
+        text: "Compartilhe uma transação com o FinanceTrack",
+        url: process.env.NEXT_PUBLIC_BASE_URL,
+      },
     },
   };
 }
