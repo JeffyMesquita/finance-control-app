@@ -1,14 +1,13 @@
 "use client";
 
-import type React from "react";
 import { DashboardNav } from "@/components/dashboard-nav";
-import { UserNav } from "@/components/user-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { DollarSign } from "lucide-react";
-import Link from "next/link";
-import { MobileNav } from "@/components/mobile-nav";
 import { Logo } from "@/components/logo";
+import { MobileNav } from "@/components/mobile-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserNav } from "@/components/user-nav";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import Link from "next/link";
+import type React from "react";
 export default function DashboardLayout({
   children,
 }: {
