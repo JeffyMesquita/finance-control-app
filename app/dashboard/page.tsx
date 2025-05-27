@@ -9,28 +9,28 @@ import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart
 import { PixSupportAlert } from "@/components/pix-support-alert";
 import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
-import { useProtectedRoute } from "@/hooks/use-protected-route";
+import { AuthGuard } from "@/components/auth-guard";
 
 export default function DashboardPage() {
-  useProtectedRoute();
-
   return (
-    <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">
-      <PixSupportAlert />
-      <ShareAppAlert />
-      <WelcomeCard />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 max-w-full">
-        <DashboardCards />
-      </div>
-      <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
-      <PaymentReminders />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
-        <FinancialOverview className="lg:col-span-4" />
-        <div className="flex flex-col gap-4 lg:col-span-3">
-          <GoalsSummary />
-          <RecentTransactions />
+    <AuthGuard>
+      <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">
+        <PixSupportAlert />
+        <ShareAppAlert />
+        <WelcomeCard />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 max-w-full">
+          <DashboardCards />
+        </div>
+        <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
+        <PaymentReminders />
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
+          <FinancialOverview className="lg:col-span-4" />
+          <div className="flex flex-col gap-4 lg:col-span-3">
+            <GoalsSummary />
+            <RecentTransactions />
+          </div>
         </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

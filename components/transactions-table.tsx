@@ -238,6 +238,7 @@ export function TransactionsTable() {
       toast({
         title: "Sucesso",
         description: `${selectedTransactions.length} transações excluídas com sucesso.`,
+        variant: "success",
       });
       fetchTransactions();
     } catch (error) {
