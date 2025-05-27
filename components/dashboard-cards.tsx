@@ -92,7 +92,7 @@ export function DashboardCards() {
   if (!data) return null;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <>
       <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-100">
@@ -580,6 +580,6 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }
