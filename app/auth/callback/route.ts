@@ -9,54 +9,62 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const error = requestUrl.searchParams.get("error");
-  const error_description = requestUrl.searchParams.get("error_description");
 
-  // Se houver um erro no callback, redirecione para a página de login com o erro
-  if (error) {
-    console.error("Auth error:", error, error_description);
-    return NextResponse.redirect(
-      new URL(
-        `/login?error=${encodeURIComponent(
-          error_description || "Falha na autenticação"
-        )}`,
-        request.url
-      )
-    );
-  }
-
-  // Se não houver código, redirecione para a página de login
   if (!code) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(
+      new URL("/login?error=Código+de+autenticação+não+encontrado", request.url)
+    );
   }
 
   try {
     const cookieStore = cookies();
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
-    // Troque o código por uma sessão
-    await supabase.auth.exchangeCodeForSession(code);
+    // Exchange code for session
+    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(
+      code
+    );
 
-    // Verificar se a sessão foi criada com sucesso
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      throw new Error("Falha ao criar sessão");
+    if (sessionError) {
+      console.error("Session error:", sessionError);
+      return NextResponse.redirect(
+        new URL(
+          `/login?error=${encodeURIComponent(sessionError.message)}`,
+          request.url
+        )
+      );
     }
 
-    // Verificar se o usuário existe na tabela public.users
+    // Verify session was created successfully
+    const {
+      data: { session },
+      error: getSessionError,
+    } = await supabase.auth.getSession();
+
+    if (getSessionError || !session) {
+      console.error("Get session error:", getSessionError);
+      return NextResponse.redirect(
+        new URL("/login?error=Falha+ao+obter+sessão", request.url)
+      );
+    }
+
+    // Validate user data
+    if (!session.user?.email) {
+      return NextResponse.redirect(
+        new URL("/login?error=Email+do+usuário+não+encontrado", request.url)
+      );
+    }
+
+    // Check if user exists in public.users table
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("*")
       .eq("id", session.user.id)
       .single();
 
-    // Se o usuário não existir na tabela public.users, insira-o manualmente
+    // If user doesn't exist in public.users table, insert them
     if (userError && userError.code === "PGRST116") {
-      // Usuário não encontrado, inserir manualmente
-      await supabase.from("users").upsert({
+      const { error: insertError } = await supabase.from("users").upsert({
         id: session.user.id,
         email: session.user.email,
         full_name: session.user.user_metadata?.full_name || null,
@@ -64,19 +72,33 @@ export async function GET(request: NextRequest) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
+
+      if (insertError) {
+        console.error("Insert user error:", insertError);
+        return NextResponse.redirect(
+          new URL("/login?error=Falha+ao+criar+usuário", request.url)
+        );
+      }
     }
 
+    // Reset local storage items
     if (typeof window !== "undefined") {
       localStorage.setItem("pixAlertDismissed", "false");
       localStorage.setItem("shareAlertDismissed", "false");
     }
 
+    // Handle referral if exists
     const referralId = localStorage.getItem("referralId");
-
     if (referralId) {
-      handleReferral(referralId);
+      try {
+        await handleReferral(referralId);
+      } catch (referralError) {
+        console.error("Referral error:", referralError);
+        // Continue with login even if referral fails
+      }
     }
-    // Redirecione para o dashboard após o login bem-sucedido
+
+    // Redirect to dashboard after successful login
     return NextResponse.redirect(new URL("/dashboard", request.url));
   } catch (error) {
     console.error("Callback error:", error);
