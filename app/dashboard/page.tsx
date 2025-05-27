@@ -1,3 +1,5 @@
+"use client";
+
 import { DashboardCards } from "@/components/dashboard-cards";
 import { RecentTransactions } from "@/components/recent-transactions";
 import { FinancialOverview } from "@/components/financial-overview";
