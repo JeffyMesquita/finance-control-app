@@ -167,8 +167,6 @@ export function ReportsOverview() {
           getExpenseBreakdown(),
         ]);
 
-        console.log("monthlyResult", monthlyResult);
-        console.log("expenseResult", expenseResult);
         setMonthlyData(monthlyResult);
         setExpenseData(expenseResult);
       } catch (error) {

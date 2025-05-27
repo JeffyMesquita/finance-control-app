@@ -29,6 +29,8 @@ export function DashboardCards() {
     expenseCount: 0,
     maxExpense: 0,
     savings: 0,
+    nextMonthExpenses: 0,
+    nextMonthIncome: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
@@ -110,6 +112,7 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
+
       <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-green-800 dark:text-green-100">
@@ -163,6 +166,7 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
+
       <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-red-800 dark:text-red-100">
@@ -216,6 +220,7 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
+
       <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-100">
@@ -269,6 +274,117 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Novos cards */}
+
+      <Card className="relative overflow-hidden bg-pink-100 dark:bg-pink-900 shadow-sm col-span-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-pink-800 dark:text-pink-100">
+            Despesas do Próximo Mês
+          </CardTitle>
+          <span className="text-pink-100 dark:text-pink-700 bg-pink-400 dark:bg-pink-200 rounded-full p-2">
+            <Calendar className="h-4 w-4" />
+          </span>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-pink-500 dark:text-pink-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.nextMonthExpenses)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #831843 60%, #ec4899 100%)",
+                  clipPath: visibleCards["nextMonthExpenses"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-pink-100/80 dark:bg-pink-900/80 hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+                onClick={() => toggleVisibility("nextMonthExpenses")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["nextMonthExpenses"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["nextMonthExpenses"] ? (
+                  <EyeOff className="h-5 w-5 text-pink-500 dark:text-pink-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-pink-500 dark:text-pink-300" />
+                )}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-pink-600 dark:text-pink-300">
+            Total de despesas agendadas para o próximo mês
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="relative overflow-hidden bg-green-100 dark:bg-green-900 shadow-sm col-span-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-green-800 dark:text-green-100">
+            Receitas do Próximo Mês
+          </CardTitle>
+          <span className="text-green-100 dark:text-green-700 bg-green-400 dark:bg-green-200 rounded-full p-2">
+            <Calendar className="h-4 w-4" />
+          </span>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-start mb-2">
+            <div className="relative w-full">
+              <div className="text-2xl font-bold text-green-500 dark:text-green-400">
+                {isLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
+                ) : (
+                  formatCurrency(data.nextMonthIncome)
+                )}
+              </div>
+              <div
+                className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #14532d 60%, #22c55e 100%)",
+                  clipPath: visibleCards["nextMonthIncome"]
+                    ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
+                    : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
+                  transition: "clip-path 0.7s cubic-bezier(.4,0,.2,1)",
+                }}
+              />
+              <button
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-green-100/80 dark:bg-green-900/80 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                onClick={() => toggleVisibility("nextMonthIncome")}
+                tabIndex={0}
+                aria-label={
+                  visibleCards["nextMonthIncome"]
+                    ? "Ocultar valor"
+                    : "Mostrar valor"
+                }
+              >
+                {visibleCards["nextMonthIncome"] ? (
+                  <EyeOff className="h-5 w-5 text-green-500 dark:text-green-300" />
+                ) : (
+                  <Eye className="h-5 w-5 text-green-500 dark:text-green-300" />
+                )}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-green-600 dark:text-green-300">
+            Total de receitas agendadas para o próximo mês
+          </p>
+        </CardContent>
+      </Card>
+
       <Card className="relative overflow-hidden bg-purple-100 dark:bg-purple-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-purple-800 dark:text-purple-100">
@@ -322,6 +438,7 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
+
       <Card className="bg-emerald-100 dark:bg-emerald-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-100">
@@ -349,6 +466,7 @@ export function DashboardCards() {
           </div>
         </CardContent>
       </Card>
+
       <Card className="bg-rose-100 dark:bg-rose-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-rose-800 dark:text-rose-100">
@@ -376,6 +494,7 @@ export function DashboardCards() {
           </div>
         </CardContent>
       </Card>
+
       <Card className="relative overflow-hidden bg-yellow-100 dark:bg-yellow-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-yellow-800 dark:text-yellow-100">

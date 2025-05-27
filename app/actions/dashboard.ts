@@ -69,6 +69,8 @@ export async function getDashboardData() {
       expenseCount: 0,
       maxExpense: 0,
       savings: 0,
+      nextMonthExpenses: 0,
+      nextMonthIncome: 0,
     };
   }
 
@@ -124,17 +126,45 @@ export async function getDashboardData() {
     0,
     0
   ).toISOString();
+
+  const lastDayOfNextMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() + 2,
+    0,
+    23,
+    59,
+    59,
+    999
+  ).toISOString();
+
   let gastosFuturos = 0;
+  let nextMonthExpenses = 0;
+  let nextMonthIncome = 0;
+
   for (const account of accounts) {
     const { data: futureExpenses, error: futureExpensesError } = await supabase
       .from("transactions")
-      .select("amount")
+      .select("amount, type, date")
       .eq("account_id", account.id)
       .eq("user_id", user.id)
-      .eq("type", "EXPENSE")
-      .gte("date", nextMonth);
+      .gte("date", nextMonth)
+      .lte("date", lastDayOfNextMonth);
+
     if (!futureExpensesError && futureExpenses) {
-      gastosFuturos += futureExpenses.reduce((sum, t) => sum + t.amount, 0);
+      // Calcular gastos futuros totais
+      gastosFuturos += futureExpenses
+        .filter((t) => t.type === "EXPENSE")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      // Calcular despesas do próximo mês
+      nextMonthExpenses += futureExpenses
+        .filter((t) => t.type === "EXPENSE")
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      // Calcular receitas do próximo mês
+      nextMonthIncome += futureExpenses
+        .filter((t) => t.type === "INCOME")
+        .reduce((sum, t) => sum + t.amount, 0);
     }
   }
 
@@ -202,6 +232,8 @@ export async function getDashboardData() {
     expenseCount,
     maxExpense,
     savings: 0, // Placeholder para poupança
+    nextMonthExpenses,
+    nextMonthIncome,
   };
 }
 

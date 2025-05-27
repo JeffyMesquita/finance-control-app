@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
 
     if (typeof window !== "undefined") {
       localStorage.setItem("pixAlertDismissed", "false");
+      localStorage.setItem("shareAlertDismissed", "false");
     }
 
     const referralId = localStorage.getItem("referralId");

@@ -170,8 +170,6 @@ export function EditTransactionDialog({
       // Cria a data como meia-noite no horário de Brasília (UTC-3)
       const brasiliaDate = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
 
-      console.log(formData.amount);
-
       const updatedTransaction = {
         ...formData,
         amount: Math.round(Number(formData.amount) * 100),

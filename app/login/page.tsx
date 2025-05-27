@@ -42,6 +42,7 @@ export default function LoginPage() {
       if (session) {
         if (typeof window !== "undefined") {
           localStorage.setItem("pixAlertDismissed", "false");
+          localStorage.setItem("shareAlertDismissed", "false");
         }
         router.push("/dashboard");
       }

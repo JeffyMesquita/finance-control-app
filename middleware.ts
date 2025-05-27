@@ -16,8 +16,6 @@ export async function middleware(req: NextRequest) {
   const url = new URL(req.url);
   const refId = url.searchParams.get("ref");
 
-  console.log(refId, "refId");
-
   // Ignorar a rota de callback para evitar loops de redirecionamento
   if (currentPath.startsWith("/auth/callback")) {
     return res;
