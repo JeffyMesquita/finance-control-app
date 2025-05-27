@@ -1,110 +1,122 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Copy, X, Zap } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Database } from "@/lib/supabase/database.types";
+import { useToast } from "@/components/ui/use-toast";
+import { supabaseCache } from "@/lib/supabase/cache";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
-const PIX_KEY = process.env.NEXT_PUBLIC_PIX_KEY || "";
-const SESSION_KEY = "pixAlertDismissed";
+const CACHE_KEY = "pix-support-alert-user";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 export function PixSupportAlert() {
-  const [visible, setVisible] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const supabase = createClientComponentClient<Database>();
+  const { user, loading: userLoading } = useCurrentUser();
+
+  const handleClose = () => {
+    setIsVisible(false);
+    localStorage.setItem("pixSupportAlertDismissed", "true");
+  };
+
+  const fetchUser = async () => {
+    try {
+      // Check cache first
+      const cachedUser = supabaseCache.get<{ id: string }>(CACHE_KEY);
+      if (cachedUser) {
+        setUserId(cachedUser.id);
+        return;
+      }
+
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        if (error.status === 429 && retryCount < MAX_RETRIES) {
+          setTimeout(() => {
+            setRetryCount((prev) => prev + 1);
+            fetchUser();
+          }, RETRY_DELAY);
+          return;
+        }
+        throw error;
+      }
+
+      if (user) {
+        setUserId(user.id);
+        // Cache the user data
+        supabaseCache.set(CACHE_KEY, { id: user.id });
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados do usuário.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
-    // Reset dismiss if session changes (simulate by always showing on mount)
-    setVisible(
-      typeof window !== "undefined" &&
-        localStorage.getItem(SESSION_KEY) !== "true"
-    );
+    const sessionKey = localStorage.getItem("supabase.auth.token");
+    const isDismissed =
+      localStorage.getItem("pixSupportAlertDismissed") === "true";
+    setIsVisible(!!sessionKey && !isDismissed);
   }, []);
 
-  const handleDismiss = () => {
-    setExiting(true);
-    setTimeout(() => {
-      setVisible(false);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(SESSION_KEY, "true");
-      }
-    }, 1000); // match animation duration
-  };
+  useEffect(() => {
+    if (isVisible && user && !userLoading) {
+      setUserId(user.id);
+    }
+  }, [isVisible, user, userLoading]);
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(PIX_KEY);
-    toast({
-      title: "💸 Pix copiado!",
-      description: "Chave Pix copiada com sucesso. Valeu pelo apoio! 💚",
-      variant: "info",
-    });
-  };
-
-  if (!visible || !PIX_KEY) return null;
+  if (!isVisible) return null;
 
   return (
-    <AnimatePresence>
-      {!exiting && (
-        <motion.div
-          initial={{ opacity: 0, y: -30, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -30, scale: 0.98 }}
-          transition={{ duration: 1, type: "tween", ease: "easeInOut" }}
-        >
-          <Card className="border-green-700 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 relative shadow-lg">
+    <Alert className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <AlertTitle className="text-green-900">
+            Suporte ao PIX Agora Disponível!
+          </AlertTitle>
+          <AlertDescription className="text-green-700 mt-2">
+            <p>
+              Agora você pode gerenciar suas transações PIX diretamente no app.
+              Experimente esta nova funcionalidade e simplifique seus
+              pagamentos!
+            </p>
+          </AlertDescription>
+          <div className="mt-4">
             <Button
-              size="icon"
-              variant="ghost"
-              className="absolute right-2 top-2 text-green-700 hover:bg-green-200 dark:hover:bg-green-800"
-              onClick={handleDismiss}
-              aria-label="Fechar alerta"
+              variant="outline"
+              size="sm"
+              className="text-green-700 border-green-200 hover:bg-green-100"
+              onClick={() => {
+                window.location.href = "/pix";
+              }}
             >
-              <X className="w-4 h-4" />
+              Experimentar PIX
             </Button>
-            <CardHeader className="flex flex-row items-center gap-2 pb-2">
-              <Zap className="w-5 h-5 animate-bounce text-green-600" />
-              <CardTitle className="text-green-900 dark:text-green-200 text-lg font-bold">
-                Curtiu o app? Ajude com um PIX!
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-green-900 dark:text-green-100">
-                Se este app te ajudou, que tal retribuir com um cafezinho?{" "}
-                <br />
-                <span className="inline-flex items-center gap-2 mt-2">
-                  <span className="font-mono bg-green-100 dark:bg-green-800 px-2 py-1 rounded text-green-900 dark:text-green-100 select-all">
-                    {PIX_KEY}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="border-green-700 text-green-900 hover:bg-green-200 dark:hover:bg-green-800"
-                    onClick={handleCopy}
-                    aria-label="Copiar chave PIX"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </Button>
-                </span>
-                <br />
-                <span className="text-xs italic text-green-800 dark:text-green-200">
-                  Prometemos que o dinheiro não será usado para comprar pão de
-                  queijo... (ou será?)
-                </span>
-                <span className="text-xs text-green-800 dark:text-green-200">
-                  &nbsp; &nbsp; &nbsp;😜 😜
-                </span>
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-green-700 hover:bg-green-100"
+          onClick={handleClose}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </Alert>
   );
 }

@@ -16,23 +16,16 @@ import {
 } from "lucide-react";
 import { getDashboardData } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
+import { supabaseCache } from "@/lib/supabase/cache";
+
+const CACHE_KEY = "dashboard-data";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 export function DashboardCards() {
-  const [data, setData] = useState({
-    totalBalance: 0,
-    monthlyIncome: 0,
-    monthlyExpenses: 0,
-    monthlySavings: 0,
-    gastosFuturos: 0,
-    incomeCount: 0,
-    maxIncome: 0,
-    expenseCount: 0,
-    maxExpense: 0,
-    savings: 0,
-    nextMonthExpenses: 0,
-    nextMonthIncome: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
 
   const toggleVisibility = (cardId: string) => {
@@ -42,23 +35,64 @@ export function DashboardCards() {
     }));
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const dashboardData = await getDashboardData();
-        setData(dashboardData);
-      } catch (error) {
-        console.error("Erro ao carregar dados do painel:", error);
-      } finally {
-        setIsLoading(false);
+  const fetchData = async () => {
+    try {
+      // Check cache first
+      const cachedData = supabaseCache.get(CACHE_KEY);
+      if (cachedData) {
+        setData(cachedData);
+        setLoading(false);
+        return;
       }
-    }
 
+      const dashboardData = await getDashboardData();
+
+      if (!dashboardData) {
+        if (retryCount < MAX_RETRIES) {
+          setTimeout(() => {
+            setRetryCount((prev) => prev + 1);
+            fetchData();
+          }, RETRY_DELAY);
+          return;
+        }
+        throw new Error("Failed to fetch dashboard data");
+      }
+
+      setData(dashboardData);
+      // Cache the data
+      supabaseCache.set(CACHE_KEY, dashboardData);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="h-4 w-24 bg-gray-200 rounded"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 w-16 bg-gray-200 rounded"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
   return (
-    <>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-100">
@@ -72,7 +106,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-orange-500 dark:text-orange-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.totalBalance)
@@ -126,7 +160,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-green-500 dark:text-green-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlyIncome)
@@ -180,7 +214,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-red-500 dark:text-red-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlyExpenses)
@@ -234,7 +268,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlySavings)
@@ -290,7 +324,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-pink-500 dark:text-pink-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.nextMonthExpenses)
@@ -344,7 +378,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-green-500 dark:text-green-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.nextMonthIncome)
@@ -398,7 +432,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.gastosFuturos)
@@ -450,7 +484,7 @@ export function DashboardCards() {
         </CardHeader>
         <CardContent>
           <div className="text-lg font-bold text-emerald-500 dark:text-emerald-400">
-            {isLoading ? (
+            {loading ? (
               <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
             ) : (
               `${data.incomeCount} entradas`
@@ -458,7 +492,7 @@ export function DashboardCards() {
           </div>
           <div className="text-xs text-emerald-700 dark:text-emerald-300">
             Maior entrada:{" "}
-            {isLoading ? (
+            {loading ? (
               <span className="h-4 w-12 inline-block animate-pulse rounded bg-muted"></span>
             ) : (
               formatCurrency(data.maxIncome)
@@ -478,7 +512,7 @@ export function DashboardCards() {
         </CardHeader>
         <CardContent>
           <div className="text-lg font-bold text-rose-500 dark:text-rose-400">
-            {isLoading ? (
+            {loading ? (
               <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
             ) : (
               `${data.expenseCount} despesas`
@@ -486,7 +520,7 @@ export function DashboardCards() {
           </div>
           <div className="text-xs text-rose-700 dark:text-rose-300">
             Maior despesa:{" "}
-            {isLoading ? (
+            {loading ? (
               <span className="h-4 w-12 inline-block animate-pulse rounded bg-muted"></span>
             ) : (
               formatCurrency(data.maxExpense)
@@ -508,7 +542,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-yellow-500 dark:text-yellow-400">
-                {isLoading ? (
+                {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.savings)
@@ -546,6 +580,6 @@ export function DashboardCards() {
           </p>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

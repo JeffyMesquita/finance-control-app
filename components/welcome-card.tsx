@@ -15,8 +15,10 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AddTransactionDialog } from "./add-transaction-dialog";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function WelcomeCard() {
+  const { user, loading: userLoading } = useCurrentUser();
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -26,26 +28,19 @@ export function WelcomeCard() {
 
   useEffect(() => {
     async function fetchUserProfile() {
+      if (!user) return;
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (user) {
-          // Tentar obter o nome do perfil do usuário
-          const { data: profile } = await supabase
-            .from("user_profiles")
-            .select("full_name")
-            .eq("id", user.id)
-            .single();
-
-          if (profile?.full_name) {
-            setUserName(profile.full_name);
-          } else if (user.user_metadata?.full_name) {
-            setUserName(user.user_metadata.full_name);
-          } else {
-            setUserName("usuário");
-          }
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("full_name")
+          .eq("id", user.id)
+          .single();
+        if (profile?.full_name) {
+          setUserName(profile.full_name);
+        } else if (user.user_metadata?.full_name) {
+          setUserName(user.user_metadata.full_name);
+        } else {
+          setUserName("usuário");
         }
       } catch (error) {
         console.error("Erro ao buscar perfil:", error);
@@ -53,9 +48,10 @@ export function WelcomeCard() {
         setIsLoading(false);
       }
     }
-
-    fetchUserProfile();
-  }, [supabase]);
+    if (user && !userLoading) {
+      fetchUserProfile();
+    }
+  }, [supabase, user, userLoading]);
 
   const handleAddTransaction = () => {
     router.push("/dashboard/transactions");
@@ -68,7 +64,7 @@ export function WelcomeCard() {
     return "Boa noite";
   };
 
-  if (isLoading) {
+  if (isLoading || userLoading) {
     return (
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-none shadow-md w-full">
         <CardContent className="p-6">

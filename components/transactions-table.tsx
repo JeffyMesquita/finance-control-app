@@ -53,7 +53,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getTransactions, deleteTransaction } from "@/app/actions/transactions";
+import {
+  getTransactions,
+  deleteTransaction,
+  deleteTransactions,
+} from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -73,6 +77,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { supabaseCache } from "@/lib/supabase/cache";
+
+const CACHE_KEY = "transactions-data";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 export function TransactionsTable() {
   const { toast } = useToast();
@@ -93,6 +111,11 @@ export function TransactionsTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const pageSize = 10;
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>(
+    []
+  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const months = [
     { value: "all", label: "Todos os Meses" },
@@ -134,6 +157,7 @@ export function TransactionsTable() {
       setTransactions(result.data);
       setFilteredTransactions(result.data);
       setTotalTransactions(result.total);
+      supabaseCache.set(CACHE_KEY, result.data);
     } catch (error) {
       console.error("Erro ao carregar transações:", error);
       toast({
@@ -169,23 +193,17 @@ export function TransactionsTable() {
 
   const handleDelete = async (id: string) => {
     try {
-      const result = await deleteTransaction(id);
-      if (result.success) {
-        toast({
-          title: "Transação Excluída",
-          description: "A transação foi excluída com sucesso do seu histórico.",
-          variant: "success",
-        });
-        fetchTransactions();
-      } else {
-        throw new Error(result.error || "Falha ao excluir transação");
-      }
-    } catch (error) {
-      console.error("Erro ao excluir transação:", error);
+      await deleteTransaction(id);
       toast({
-        title: "Erro ao Excluir",
-        description:
-          "Não foi possível excluir a transação. Tente novamente mais tarde.",
+        title: "Sucesso",
+        description: "Transação excluída com sucesso.",
+      });
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a transação.",
         variant: "destructive",
       });
     }
@@ -194,6 +212,42 @@ export function TransactionsTable() {
   // Traduzir tipos de transação
   const translateType = (type: string) => {
     return type === "INCOME" ? "Receita" : "Despesa";
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions(filteredTransactions.map((t) => t.id));
+    } else {
+      setSelectedTransactions([]);
+    }
+  };
+
+  const handleSelectTransaction = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions([...selectedTransactions, id]);
+    } else {
+      setSelectedTransactions(selectedTransactions.filter((t) => t !== id));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    try {
+      await deleteTransactions(selectedTransactions);
+      setSelectedTransactions([]);
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: `${selectedTransactions.length} transações excluídas com sucesso.`,
+      });
+      fetchTransactions();
+    } catch (error) {
+      console.error("Error deleting transactions:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir as transações.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -307,6 +361,66 @@ export function TransactionsTable() {
         </div>
       </div>
 
+      {/* Batch Delete Button */}
+      {selectedTransactions.length > 0 && (
+        <div className="flex items-center gap-2 p-2 bg-stone-100 dark:bg-stone-900 rounded-md">
+          <span className="text-sm text-muted-foreground">
+            {selectedTransactions.length} item(ns) selecionado(s)
+          </span>
+          <AlertDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+          >
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash className="h-4 w-4 mr-2" />
+                Excluir Selecionados
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta ação excluirá permanentemente{" "}
+                  {selectedTransactions.length} transação(ões). Esta ação não
+                  pode ser desfeita.
+                </AlertDialogDescription>
+                <div className="mt-4 max-h-[200px] overflow-y-auto">
+                  <p className="text-sm font-medium mb-2">
+                    Transações a serem excluídas:
+                  </p>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    {filteredTransactions
+                      .filter((t) => selectedTransactions.includes(t.id))
+                      .map((t) => (
+                        <li key={t.id} className="flex items-center gap-2">
+                          <span className="w-4 h-4">
+                            {t.type === "INCOME" ? (
+                              <ArrowUp className="text-green-600" />
+                            ) : (
+                              <ArrowDown className="text-red-600" />
+                            )}
+                          </span>
+                          {t.description} - {formatCurrency(t.amount)}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleBatchDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Excluir
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
       {isLoading ? (
         <TransactionsSkeleton />
       ) : filteredTransactions.length === 0 ? (
@@ -327,16 +441,31 @@ export function TransactionsTable() {
               {filteredTransactions.map((transaction) => (
                 <Card
                   key={transaction.id}
-                  className="bg-stone-100 dark:bg-stone-900 shadow-sm rounded-sm"
+                  className={cn(
+                    "bg-stone-100 dark:bg-stone-900 shadow-sm rounded-sm",
+                    selectedTransactions.includes(transaction.id) &&
+                      "ring-2 ring-primary"
+                  )}
                 >
                   <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                    <div>
-                      <CardTitle className="text-base">
-                        {transaction.description}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {formatDate(transaction.date)}
-                      </CardDescription>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        checked={selectedTransactions.includes(transaction.id)}
+                        onCheckedChange={(checked) =>
+                          handleSelectTransaction(
+                            transaction.id,
+                            checked as boolean
+                          )
+                        }
+                      />
+                      <div>
+                        <CardTitle className="text-base">
+                          {transaction.description}
+                        </CardTitle>
+                        <CardDescription className="text-xs">
+                          {formatDate(transaction.date)}
+                        </CardDescription>
+                      </div>
                     </div>
                     <Badge
                       variant="outline"
@@ -468,6 +597,15 @@ export function TransactionsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox
+                        checked={
+                          selectedTransactions.length ===
+                          filteredTransactions.length
+                        }
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead className="w-[200px]">Data</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead>Categoria</TableHead>
@@ -484,7 +622,26 @@ export function TransactionsTable() {
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
+                    <TableRow
+                      key={transaction.id}
+                      className={cn(
+                        selectedTransactions.includes(transaction.id) &&
+                          "bg-stone-100 dark:bg-stone-900"
+                      )}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedTransactions.includes(
+                            transaction.id
+                          )}
+                          onCheckedChange={(checked) =>
+                            handleSelectTransaction(
+                              transaction.id,
+                              checked as boolean
+                            )
+                          }
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {formatDate(transaction.date)}
                       </TableCell>
@@ -642,6 +799,40 @@ export function TransactionsTable() {
           onSuccess={fetchTransactions}
         />
       )}
+
+      {selectedTransactions.length > 0 && (
+        <div className="mt-4 flex justify-end">
+          <Button
+            variant="destructive"
+            onClick={() => setIsDeleteDialogOpen(true)}
+          >
+            Excluir Selecionados ({selectedTransactions.length})
+          </Button>
+        </div>
+      )}
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir {selectedTransactions.length}{" "}
+              transações? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleBatchDelete}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

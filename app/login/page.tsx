@@ -21,6 +21,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import ReCAPTCHA from "react-google-recaptcha";
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   // Verificar se há um erro na URL
   useEffect(() => {
@@ -57,11 +60,24 @@ export default function LoginPage() {
     checkSession();
   }, [router, supabase.auth]);
 
+  const handleRecaptcha = (token: string | null) => {
+    setRecaptchaToken(token);
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setIsLoading(true);
       setError(null);
+
+      // Valide o token do reCAPTCHA no backend antes de prosseguir
+      // Exemplo:
+      // const isHuman = await validateRecaptcha(recaptchaToken);
+      // if (!isHuman) {
+      //   setError("Falha na verificação do reCAPTCHA. Tente novamente.");
+      //   setIsLoading(false);
+      //   return;
+      // }
 
       if (isRegister) {
         const { data, error } = await supabase.auth.signUp({
@@ -74,7 +90,6 @@ export default function LoginPage() {
 
         if (error) throw error;
 
-        // Mostrar mensagem de sucesso para verificar email
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -187,10 +202,16 @@ export default function LoginPage() {
                   className="bg-white dark:bg-gray-800"
                 />
               </div>
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                  onChange={handleRecaptcha}
+                />
+              </div>
               <Button
                 type="submit"
                 className="w-full flex items-center justify-center gap-2"
-                disabled={isLoading}
+                disabled={isLoading || !recaptchaToken}
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

@@ -51,8 +51,19 @@ import {
 } from "@/components/ui/card";
 import { useIsMobile } from "@/components/ui/use-mobile";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { supabaseCache } from "@/lib/supabase/cache";
 
-// }
+const CACHE_KEY = "categories-data";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 type Category = {
   id: string;
@@ -73,6 +84,9 @@ export function CategoriesTable() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const isMobile = useIsMobile();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     fetchCategories();
@@ -128,23 +142,27 @@ export function CategoriesTable() {
   };
 
   const handleDelete = async (id: string) => {
+    setCategoryToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
+
     try {
-      const result = await deleteCategory(id);
-      if (result.success) {
-        toast({
-          title: "Sucesso",
-          description: "Categoria excluída com sucesso",
-          variant: "success",
-        });
-        fetchCategories();
-      } else {
-        throw new Error(result.error || "Falha ao excluir categoria");
-      }
+      await deleteCategory(categoryToDelete);
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+      fetchCategories();
+      toast({
+        title: "Sucesso",
+        description: "Categoria excluída com sucesso.",
+      });
     } catch (error) {
-      console.error("Erro ao excluir categoria:", error);
+      console.error("Error deleting category:", error);
       toast({
         title: "Erro",
-        description: (error as Error).message || "Falha ao excluir categoria",
+        description: "Não foi possível excluir a categoria.",
         variant: "destructive",
       });
     }
@@ -364,6 +382,29 @@ export function CategoriesTable() {
         category={selectedCategory}
         onSuccess={fetchCategories}
       />
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir esta categoria? Esta ação não pode
+              ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

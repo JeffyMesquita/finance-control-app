@@ -258,6 +258,49 @@ export async function deleteTransaction(id: string) {
   return { success: true };
 }
 
+export async function deleteTransactions(ids: string[]) {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Get all account_ids before deleting
+  const { data: transactions } = await supabase
+    .from("transactions")
+    .select("account_id")
+    .in("id", ids)
+    .eq("user_id", user.id);
+
+  // Delete all transactions in a single query
+  const { error } = await supabase
+    .from("transactions")
+    .delete()
+    .in("id", ids)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error deleting transactions:", error);
+    return { success: false, error: error.message };
+  }
+
+  // Update account balances for all affected accounts
+  if (transactions) {
+    const uniqueAccountIds = [
+      ...new Set(transactions.map((t) => t.account_id)),
+    ];
+    await Promise.all(uniqueAccountIds.map((id) => updateAccountBalance(id)));
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
+
+  return { success: true };
+}
+
 // Helper function to update account balance based on transactions
 async function updateAccountBalance(accountId: string) {
   const supabase = createActionClient();

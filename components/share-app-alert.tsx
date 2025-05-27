@@ -15,9 +15,19 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import type { Database } from "@/lib/supabase/database.types";
 import { getReferralStats } from "@/app/actions/referrals";
 import { FaInstagram, FaTelegram, FaWhatsapp } from "react-icons/fa";
+import { supabaseCache } from "@/lib/supabase/cache";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const SESSION_KEY = "shareAlertDismissed";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+const CACHE_KEYS = {
+  USER: "share-app-alert-user",
+  STATS: "share-app-alert-stats",
+};
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 export function ShareAppAlert() {
   const [visible, setVisible] = useState(false);
@@ -25,73 +35,115 @@ export function ShareAppAlert() {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const [inviteCount, setInviteCount] = useState(0);
+  const { user, loading: userLoading } = useCurrentUser();
   const [userId, setUserId] = useState<string | null>(null);
   const supabase = createClientComponentClient<Database>();
+  const [retryCount, setRetryCount] = useState(0);
+  const [referralStats, setReferralStats] = useState<{
+    totalReferrals: number;
+    activeReferrals: number;
+  } | null>(null);
 
-  // Buscar usuário atual
+  const handleClose = () => {
+    setVisible(false);
+    localStorage.setItem(SESSION_KEY, "true");
+  };
+
   const fetchUser = useCallback(async () => {
     try {
+      // Check cache first
+      const cachedUser = supabaseCache.get<{ id: string }>(CACHE_KEYS.USER);
+      if (cachedUser) {
+        setUserId(cachedUser.id);
+        return;
+      }
+
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
-      if (error) throw error;
-      setUserId(user?.id ?? null);
+
+      if (error) {
+        if (error.status === 429 && retryCount < MAX_RETRIES) {
+          setTimeout(() => {
+            setRetryCount((prev) => prev + 1);
+            fetchUser();
+          }, RETRY_DELAY);
+          return;
+        }
+        throw error;
+      }
+
+      if (user) {
+        setUserId(user.id);
+        // Cache the user data
+        supabaseCache.set(CACHE_KEYS.USER, { id: user.id });
+      }
     } catch (error) {
-      console.error("Erro ao buscar usuário:", error);
+      console.error("Error fetching user:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar suas informações",
+        description: "Não foi possível carregar os dados do usuário.",
         variant: "destructive",
       });
     }
-  }, [supabase, toast]);
+  }, [supabase, retryCount, toast]);
 
-  // Buscar estatísticas de referral
   const fetchStats = useCallback(async () => {
     if (!userId) return;
 
     try {
-      setIsLoading(true);
+      // Check cache first
+      const cachedStats = supabaseCache.get<{
+        totalReferrals: number;
+        activeReferrals: number;
+      }>(CACHE_KEYS.STATS);
+
+      if (cachedStats) {
+        setReferralStats(cachedStats);
+        setInviteCount(cachedStats.totalReferrals);
+        setIsLoading(false);
+        return;
+      }
+
       const stats = await getReferralStats();
+      const formattedStats = {
+        totalReferrals: stats.referralCount,
+        activeReferrals: stats.badges.length,
+      };
+      setReferralStats(formattedStats);
       setInviteCount(stats.referralCount);
+      // Cache the stats
+      supabaseCache.set(CACHE_KEYS.STATS, formattedStats);
     } catch (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      console.error("Error fetching referral stats:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar suas estatísticas",
+        description: "Não foi possível carregar as estatísticas de indicação.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  }, [userId, toast]);
+  }, [userId, supabase, retryCount, toast]);
 
   useEffect(() => {
-    // Reset dismiss se a sessão mudar
-    setVisible(
-      typeof window !== "undefined" &&
-        localStorage.getItem(SESSION_KEY) !== "true"
-    );
+    const sessionKey = localStorage.getItem("supabase.auth.token");
+    const isDismissed = localStorage.getItem(SESSION_KEY) === "true";
+    setVisible(!!sessionKey && !isDismissed);
+  }, []);
 
-    fetchUser();
-  }, [fetchUser]);
+  useEffect(() => {
+    if (visible && user && !userLoading) {
+      setUserId(user.id);
+    }
+  }, [visible, user, userLoading]);
 
   useEffect(() => {
     if (userId) {
       fetchStats();
     }
   }, [userId, fetchStats]);
-
-  const handleDismiss = useCallback(() => {
-    setExiting(true);
-    setTimeout(() => {
-      setVisible(false);
-      if (typeof window !== "undefined") {
-        localStorage.setItem(SESSION_KEY, "true");
-      }
-    }, 1000);
-  }, []);
 
   const getShareUrl = useCallback(() => {
     if (!userId) return BASE_URL;
@@ -161,7 +213,7 @@ export function ShareAppAlert() {
               size="icon"
               variant="ghost"
               className="absolute right-2 top-2 text-blue-700 hover:bg-blue-200 dark:hover:bg-blue-800"
-              onClick={handleDismiss}
+              onClick={handleClose}
               aria-label="Fechar alerta"
             >
               <X className="w-4 h-4" />
