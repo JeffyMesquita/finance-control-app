@@ -311,19 +311,19 @@ export function DashboardCards() {
 
       {/* Novos cards */}
 
-      <Card className="relative overflow-hidden bg-pink-100 dark:bg-pink-900 shadow-sm col-span-2">
+      <Card className="relative overflow-hidden bg-red-100 dark:bg-red-900 shadow-sm col-span-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-pink-800 dark:text-pink-100">
+          <CardTitle className="text-sm font-medium text-red-800 dark:text-red-100">
             Despesas do Próximo Mês
           </CardTitle>
-          <span className="text-pink-100 dark:text-pink-700 bg-pink-400 dark:bg-pink-200 rounded-full p-2">
+          <span className="text-red-100 dark:text-red-700 bg-red-400 dark:bg-red-200 rounded-full p-2">
             <Calendar className="h-4 w-4" />
           </span>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
-              <div className="text-2xl font-bold text-pink-500 dark:text-pink-400">
+              <div className="text-2xl font-bold text-red-500 dark:text-red-400">
                 {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
@@ -334,7 +334,7 @@ export function DashboardCards() {
                 className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
                 style={{
                   background:
-                    "linear-gradient(135deg, #831843 60%, #ec4899 100%)",
+                    "linear-gradient(135deg, #6a0113 60%, #ef4444 100%)",
                   clipPath: visibleCards["nextMonthExpenses"]
                     ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
                     : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
@@ -342,7 +342,7 @@ export function DashboardCards() {
                 }}
               />
               <button
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-pink-100/80 dark:bg-pink-900/80 hover:bg-pink-200 dark:hover:bg-pink-800 transition-colors"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-red-100/80 dark:bg-red-900/80 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
                 onClick={() => toggleVisibility("nextMonthExpenses")}
                 tabIndex={0}
                 aria-label={
@@ -352,32 +352,32 @@ export function DashboardCards() {
                 }
               >
                 {visibleCards["nextMonthExpenses"] ? (
-                  <EyeOff className="h-5 w-5 text-pink-500 dark:text-pink-300" />
+                  <EyeOff className="h-5 w-5 text-red-500 dark:text-red-300" />
                 ) : (
-                  <Eye className="h-5 w-5 text-pink-500 dark:text-pink-300" />
+                  <Eye className="h-5 w-5 text-red-500 dark:text-red-300" />
                 )}
               </button>
             </div>
           </div>
-          <p className="text-xs text-pink-600 dark:text-pink-300">
+          <p className="text-xs text-red-600 dark:text-red-300">
             Total de despesas agendadas para o próximo mês
           </p>
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-green-100 dark:bg-green-900 shadow-sm col-span-2">
+      <Card className="relative overflow-hidden bg-emerald-100 dark:bg-emerald-900 shadow-sm col-span-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-green-800 dark:text-green-100">
+          <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-100">
             Receitas do Próximo Mês
           </CardTitle>
-          <span className="text-green-100 dark:text-green-700 bg-green-400 dark:bg-green-200 rounded-full p-2">
+          <span className="text-emerald-100 dark:text-emerald-700 bg-emerald-400 dark:bg-emerald-200 rounded-full p-2">
             <Calendar className="h-4 w-4" />
           </span>
         </CardHeader>
         <CardContent>
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
-              <div className="text-2xl font-bold text-green-500 dark:text-green-400">
+              <div className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
                 {loading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
@@ -388,7 +388,7 @@ export function DashboardCards() {
                 className={`absolute inset-0 transition-all duration-700 ease-out z-10 rounded-xl`}
                 style={{
                   background:
-                    "linear-gradient(135deg, #14532d 60%, #22c55e 100%)",
+                    "linear-gradient(135deg, #09341a 60%, #22c55e 100%)",
                   clipPath: visibleCards["nextMonthIncome"]
                     ? "polygon(0 0, 0 0, 0 100%, 0 100%)"
                     : "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
@@ -396,7 +396,7 @@ export function DashboardCards() {
                 }}
               />
               <button
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-green-100/80 dark:bg-green-900/80 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-1 rounded-full bg-emerald-100/80 dark:bg-emerald-900/80 hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
                 onClick={() => toggleVisibility("nextMonthIncome")}
                 tabIndex={0}
                 aria-label={
@@ -406,14 +406,14 @@ export function DashboardCards() {
                 }
               >
                 {visibleCards["nextMonthIncome"] ? (
-                  <EyeOff className="h-5 w-5 text-green-500 dark:text-green-300" />
+                  <EyeOff className="h-5 w-5 text-emerald-500 dark:text-emerald-300" />
                 ) : (
-                  <Eye className="h-5 w-5 text-green-500 dark:text-green-300" />
+                  <Eye className="h-5 w-5 text-emerald-500 dark:text-emerald-300" />
                 )}
               </button>
             </div>
           </div>
-          <p className="text-xs text-green-600 dark:text-green-300">
+          <p className="text-xs text-emerald-600 dark:text-emerald-300">
             Total de receitas agendadas para o próximo mês
           </p>
         </CardContent>
