@@ -32,36 +32,27 @@ import {
 } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "@/app/actions/profile";
 import type { UserProfile } from "@/lib/types";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export default function PerfilPage() {
+  const { user, loading: userLoading } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      try {
-        setIsLoading(true);
-
-        // Obter usuário atual
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          router.push("/login");
-          return;
-        }
-
-        setUser(user);
-
-        // Obter perfil do usuário
-        const profileData = await getUserProfile();
-        setProfile(profileData);
-      } catch (error) {
+    if (userLoading) return;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    setIsLoading(true);
+    getUserProfile()
+      .then((profileData) => setProfile(profileData))
+      .catch((error) => {
         console.error("Erro ao carregar perfil:", error);
         toast({
           title: "Erro",
@@ -69,13 +60,9 @@ export default function PerfilPage() {
             "Não foi possível carregar seu perfil. Tente novamente mais tarde.",
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserAndProfile();
-  }, [router, supabase, toast]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [user, userLoading, router, toast]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
