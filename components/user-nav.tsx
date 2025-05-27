@@ -18,11 +18,7 @@ import { useTheme } from "next-themes";
 import { AlertReminderModal } from "@/components/alert-reminder-modal";
 import { useState } from "react";
 
-interface UserNavProps {
-  user: User;
-}
-
-export function UserNav({ user }: UserNavProps) {
+export function UserNav({ user }: { user?: any }) {
   const { setTheme, theme } = useTheme();
 
   const handleThemeChange = () => {
@@ -43,10 +39,10 @@ export function UserNav({ user }: UserNavProps) {
     }
   };
 
-  const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "U";
-  const userName = user.user_metadata?.full_name || user.email || "Usuário";
-  const userEmail = user.email || "";
-  const avatarUrl = user.user_metadata?.avatar_url || "";
+  const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : "U";
+  const userName = user?.user_metadata?.full_name || user?.email || "Usuário";
+  const userEmail = user?.email || "";
+  const avatarUrl = user?.user_metadata?.avatar_url || "";
 
   const [openAlertModal, setOpenAlertModal] = useState(false);
 

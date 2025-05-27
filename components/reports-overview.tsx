@@ -255,7 +255,7 @@ export function ReportsOverview() {
           <CardDescription>Distribuição por categoria</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
-          {expenseData.length === 0 ? (
+          {expenseData?.length === 0 ? (
             <div className="flex h-full items-center justify-center">
               <p className="text-sm text-muted-foreground">
                 Nenhuma despesa disponível

@@ -1,103 +1,118 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { Loader2, Save, Bell, Moon, Sun, Globe, DollarSign } from "lucide-react"
-import { getUserSettings, updateUserSettings } from "@/app/actions/settings"
-import type { UserSettings } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Loader2,
+  Save,
+  Bell,
+  Moon,
+  Sun,
+  Globe,
+  DollarSign,
+} from "lucide-react";
+import { getUserSettings, updateUserSettings } from "@/app/actions/settings";
+import type { UserSettings } from "@/lib/types";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 
 export default function ConfiguracoesPage() {
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [settings, setSettings] = useState<UserSettings | null>(null)
-  const { toast } = useToast()
-  const router = useRouter()
-  const supabase = createClientComponentClient()
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const { toast } = useToast();
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  const user = useProtectedRoute();
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        setIsLoading(true)
-
-        // Obter usuário atual
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) {
-          router.push("/login")
-          return
-        }
-
+        setIsLoading(true);
         // Obter configurações do usuário
-        const settingsData = await getUserSettings()
-        setSettings(settingsData)
+        const settingsData = await getUserSettings();
+        setSettings(settingsData);
       } catch (error) {
-        console.error("Erro ao carregar configurações:", error)
+        console.error("Erro ao carregar configurações:", error);
         toast({
           title: "Erro",
-          description: "Não foi possível carregar suas configurações. Tente novamente mais tarde.",
+          description:
+            "Não foi possível carregar suas configurações. Tente novamente mais tarde.",
           variant: "destructive",
-        })
+        });
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-
-    fetchSettings()
-  }, [router, supabase, toast])
+    };
+    fetchSettings();
+  }, [supabase, toast]);
 
   const handleSettingsUpdate = async () => {
-    if (!settings) return
+    if (!settings) return;
 
     try {
-      setIsSaving(true)
+      setIsSaving(true);
 
-      await updateUserSettings(settings)
+      await updateUserSettings(settings);
 
       toast({
         title: "Configurações atualizadas",
         description: "Suas preferências foram atualizadas com sucesso.",
-      })
+      });
     } catch (error) {
-      console.error("Erro ao atualizar configurações:", error)
+      console.error("Erro ao atualizar configurações:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar suas configurações. Tente novamente mais tarde.",
+        description:
+          "Não foi possível atualizar suas configurações. Tente novamente mais tarde.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleSwitchChange = (name: keyof UserSettings) => {
-    setSettings((prev) => (prev ? { ...prev, [name]: !prev[name] } : null))
-  }
+    setSettings((prev) => (prev ? { ...prev, [name]: !prev[name] } : null));
+  };
 
   const handleSelectChange = (name: keyof UserSettings, value: string) => {
-    setSettings((prev) => (prev ? { ...prev, [name]: value } : null))
-  }
+    setSettings((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-[400px] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground">Personalize sua experiência no FinanceTrack</p>
+        <p className="text-muted-foreground">
+          Personalize sua experiência no FinanceTrack
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -107,7 +122,9 @@ export default function ConfiguracoesPage() {
               <DollarSign className="h-5 w-5 text-primary" />
               Preferências Financeiras
             </CardTitle>
-            <CardDescription>Configure suas preferências para exibição de valores e moedas.</CardDescription>
+            <CardDescription>
+              Configure suas preferências para exibição de valores e moedas.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -115,7 +132,9 @@ export default function ConfiguracoesPage() {
               <Label htmlFor="default_currency">Moeda padrão</Label>
               <Select
                 value={settings?.default_currency || "BRL"}
-                onValueChange={(value) => handleSelectChange("default_currency", value)}
+                onValueChange={(value) =>
+                  handleSelectChange("default_currency", value)
+                }
               >
                 <SelectTrigger id="default_currency">
                   <SelectValue placeholder="Selecione uma moeda" />
@@ -133,15 +152,23 @@ export default function ConfiguracoesPage() {
               <Label htmlFor="date_format">Formato de data</Label>
               <Select
                 value={settings?.date_format || "DD/MM/YYYY"}
-                onValueChange={(value) => handleSelectChange("date_format", value)}
+                onValueChange={(value) =>
+                  handleSelectChange("date_format", value)
+                }
               >
                 <SelectTrigger id="date_format">
                   <SelectValue placeholder="Selecione um formato" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/AAAA (31/12/2023)</SelectItem>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/AAAA (12/31/2023)</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">AAAA-MM-DD (2023-12-31)</SelectItem>
+                  <SelectItem value="DD/MM/YYYY">
+                    DD/MM/AAAA (31/12/2023)
+                  </SelectItem>
+                  <SelectItem value="MM/DD/YYYY">
+                    MM/DD/AAAA (12/31/2023)
+                  </SelectItem>
+                  <SelectItem value="YYYY-MM-DD">
+                    AAAA-MM-DD (2023-12-31)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -150,7 +177,8 @@ export default function ConfiguracoesPage() {
               <div className="space-y-0.5">
                 <Label htmlFor="budget_alerts">Alertas de orçamento</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receba alertas quando estiver próximo de atingir seu limite de orçamento.
+                  Receba alertas quando estiver próximo de atingir seu limite de
+                  orçamento.
                 </p>
               </div>
               <Switch
@@ -163,7 +191,9 @@ export default function ConfiguracoesPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="due_date_alerts">Alertas de vencimento</Label>
-                <p className="text-sm text-muted-foreground">Receba alertas sobre contas próximas do vencimento.</p>
+                <p className="text-sm text-muted-foreground">
+                  Receba alertas sobre contas próximas do vencimento.
+                </p>
               </div>
               <Switch
                 id="due_date_alerts"
@@ -180,26 +210,38 @@ export default function ConfiguracoesPage() {
               <Bell className="h-5 w-5 text-primary" />
               Notificações
             </CardTitle>
-            <CardDescription>Configure como e quando deseja receber notificações.</CardDescription>
+            <CardDescription>
+              Configure como e quando deseja receber notificações.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="email_notifications">Notificações por email</Label>
-                <p className="text-sm text-muted-foreground">Receba atualizações importantes por email.</p>
+                <Label htmlFor="email_notifications">
+                  Notificações por email
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba atualizações importantes por email.
+                </p>
               </div>
               <Switch
                 id="email_notifications"
                 checked={settings?.email_notifications || false}
-                onCheckedChange={() => handleSwitchChange("email_notifications")}
+                onCheckedChange={() =>
+                  handleSwitchChange("email_notifications")
+                }
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="app_notifications">Notificações no aplicativo</Label>
-                <p className="text-sm text-muted-foreground">Receba notificações dentro do aplicativo.</p>
+                <Label htmlFor="app_notifications">
+                  Notificações no aplicativo
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba notificações dentro do aplicativo.
+                </p>
               </div>
               <Switch
                 id="app_notifications"
@@ -216,7 +258,9 @@ export default function ConfiguracoesPage() {
               <Globe className="h-5 w-5 text-primary" />
               Idioma e Região
             </CardTitle>
-            <CardDescription>Configure suas preferências de idioma e região.</CardDescription>
+            <CardDescription>
+              Configure suas preferências de idioma e região.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -246,13 +290,18 @@ export default function ConfiguracoesPage() {
               <Moon className="h-5 w-5 text-primary" />
               Aparência
             </CardTitle>
-            <CardDescription>Personalize a aparência do aplicativo.</CardDescription>
+            <CardDescription>
+              Personalize a aparência do aplicativo.
+            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="theme">Tema</Label>
-              <Select value={settings?.theme || "system"} onValueChange={(value) => handleSelectChange("theme", value)}>
+              <Select
+                value={settings?.theme || "system"}
+                onValueChange={(value) => handleSelectChange("theme", value)}
+              >
                 <SelectTrigger id="theme">
                   <SelectValue placeholder="Selecione um tema" />
                 </SelectTrigger>
@@ -283,5 +332,5 @@ export default function ConfiguracoesPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

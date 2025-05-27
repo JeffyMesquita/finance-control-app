@@ -1,5 +1,3 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { DashboardCards } from "@/components/dashboard-cards";
 import { RecentTransactions } from "@/components/recent-transactions";
 import { FinancialOverview } from "@/components/financial-overview";
@@ -9,9 +7,10 @@ import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart
 import { PixSupportAlert } from "@/components/pix-support-alert";
 import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 
-export default async function DashboardPage() {
-  const supabase = createServerComponentClient({ cookies });
+export default function DashboardPage() {
+  useProtectedRoute();
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">

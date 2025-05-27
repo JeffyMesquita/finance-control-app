@@ -1,26 +1,35 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { createClient } from "@/lib/supabase/client"
-import { monitorUserInsertion } from "@/lib/utils/trigger-monitor"
-import { AlertCircle, CheckCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createClient } from "@/lib/supabase/client";
+import { monitorUserInsertion } from "@/lib/utils/trigger-monitor";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { useProtectedRoute } from "@/hooks/use-protected-route";
 
 export default function TriggerMonitorPage() {
-  const [users, setUsers] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createClient()
+  useProtectedRoute();
+  const [users, setUsers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    fetchAuthUsers()
-  }, [])
+    fetchAuthUsers();
+  }, []);
 
   // Buscar usuários da tabela auth.users (apenas para administradores)
   const fetchAuthUsers = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       // Na prática, você precisaria de uma função serverless ou API para isso
       // pois usuários comuns não têm acesso à tabela auth.users
@@ -28,26 +37,28 @@ export default function TriggerMonitorPage() {
       // Simulação: buscar o usuário atual
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
       if (user) {
-        const result = await monitorUserInsertion(user.id)
-        setUsers(result.data ? [result.data] : [])
+        const result = await monitorUserInsertion(user.id);
+        setUsers(result.data ? [result.data] : []);
       }
 
-      setError(null)
+      setError(null);
     } catch (err: any) {
-      console.error("Erro ao buscar usuários:", err)
-      setError(err.message)
-      setUsers([])
+      console.error("Erro ao buscar usuários:", err);
+      setError(err.message);
+      setUsers([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Monitor de Trigger de Usuários</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Monitor de Trigger de Usuários
+      </h1>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -60,7 +71,10 @@ export default function TriggerMonitorPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Status do Trigger</CardTitle>
-          <CardDescription>Verifique se o trigger está funcionando corretamente para todos os usuários</CardDescription>
+          <CardDescription>
+            Verifique se o trigger está funcionando corretamente para todos os
+            usuários
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -95,11 +109,17 @@ export default function TriggerMonitorPage() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground">Nenhum usuário encontrado ou trigger não funcionou</p>
+            <p className="text-center text-muted-foreground">
+              Nenhum usuário encontrado ou trigger não funcionou
+            </p>
           )}
         </CardContent>
         <CardFooter>
-          <Button onClick={fetchAuthUsers} disabled={isLoading} className="w-full">
+          <Button
+            onClick={fetchAuthUsers}
+            disabled={isLoading}
+            className="w-full"
+          >
             {isLoading ? "Atualizando..." : "Atualizar"}
           </Button>
         </CardFooter>
@@ -111,19 +131,24 @@ export default function TriggerMonitorPage() {
           <h3 className="font-medium">Se o trigger não estiver funcionando:</h3>
           <ol className="list-decimal list-inside space-y-1 text-sm">
             <li>
-              Verifique se a função <code>handle_new_user</code> foi criada corretamente
+              Verifique se a função <code>handle_new_user</code> foi criada
+              corretamente
             </li>
             <li>
-              Verifique se o trigger <code>on_auth_user_created</code> foi criado corretamente
+              Verifique se o trigger <code>on_auth_user_created</code> foi
+              criado corretamente
             </li>
             <li>
-              Verifique se a tabela <code>users</code> existe e tem a estrutura correta
+              Verifique se a tabela <code>users</code> existe e tem a estrutura
+              correta
             </li>
-            <li>Verifique os logs do Supabase para erros relacionados ao trigger</li>
+            <li>
+              Verifique os logs do Supabase para erros relacionados ao trigger
+            </li>
             <li>Tente criar um novo usuário para testar o trigger</li>
           </ol>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,9 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getDashboardData, getExpenseBreakdown } from "@/app/actions/dashboard"
-import { formatCurrency } from "@/lib/utils"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { getDashboardData, getExpenseBreakdown } from "@/app/actions/dashboard";
+import { formatCurrency } from "@/lib/utils";
 
 export function DataSummary() {
   const [dashboardData, setDashboardData] = useState({
@@ -11,33 +17,38 @@ export function DataSummary() {
     monthlyIncome: 0,
     monthlyExpenses: 0,
     monthlySavings: 0,
-  })
-  const [expenseData, setExpenseData] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  });
+  const [expenseData, setExpenseData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setIsLoading(true)
-        const [dashboardResult, expenseResult] = await Promise.all([getDashboardData(), getExpenseBreakdown()])
-        setDashboardData(dashboardResult)
-        setExpenseData(expenseResult)
+        setIsLoading(true);
+        const [dashboardResult, expenseResult] = await Promise.all([
+          getDashboardData(),
+          getExpenseBreakdown(),
+        ]);
+        setDashboardData(dashboardResult);
+        setExpenseData(expenseResult);
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Data Summary</CardTitle>
-          <CardDescription>Overview of your seeded financial data</CardDescription>
+          <CardDescription>
+            Overview of your seeded financial data
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -50,39 +61,66 @@ export function DataSummary() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Total Balance</h3>
-                  <p className="text-2xl font-bold">{formatCurrency(dashboardData.totalBalance)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Total Balance
+                  </h3>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(dashboardData.totalBalance)}
+                  </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Monthly Income</h3>
-                  <p className="text-2xl font-bold text-green-600">{formatCurrency(dashboardData.monthlyIncome)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Monthly Income
+                  </h3>
+                  <p className="text-2xl font-bold text-green-600">
+                    {formatCurrency(dashboardData.monthlyIncome)}
+                  </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Monthly Expenses</h3>
-                  <p className="text-2xl font-bold text-red-600">{formatCurrency(dashboardData.monthlyExpenses)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Monthly Expenses
+                  </h3>
+                  <p className="text-2xl font-bold text-red-600">
+                    {formatCurrency(dashboardData.monthlyExpenses)}
+                  </p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Monthly Savings</h3>
-                  <p className="text-2xl font-bold text-blue-600">{formatCurrency(dashboardData.monthlySavings)}</p>
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Monthly Savings
+                  </h3>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(dashboardData.monthlySavings)}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Expense Categories</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                  Expense Categories
+                </h3>
                 <div className="space-y-2">
-                  {expenseData.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No expense data available</p>
+                  {expenseData?.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No expense data available
+                    </p>
                   ) : (
                     expenseData.map((category, index) => (
-                      <div key={index} className="flex items-center justify-between">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between"
+                      >
                         <div className="flex items-center">
                           <div
                             className="h-3 w-3 rounded-full mr-2"
-                            style={{ backgroundColor: category.color || "#64748b" }}
+                            style={{
+                              backgroundColor: category.color || "#64748b",
+                            }}
                           ></div>
                           <span className="text-sm">{category.name}</span>
                         </div>
-                        <span className="text-sm font-medium">{formatCurrency(category.value)}</span>
+                        <span className="text-sm font-medium">
+                          {formatCurrency(category.value)}
+                        </span>
                       </div>
                     ))
                   )}
@@ -93,5 +131,5 @@ export function DataSummary() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
