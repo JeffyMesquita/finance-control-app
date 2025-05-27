@@ -48,12 +48,17 @@ export function useCurrentUser() {
   const supabase = createClientComponentClient<Database>();
   const isMounted = useRef(true);
 
-  // Atualiza user e cache local
-  const updateUser = useCallback((user: any) => {
-    setUser(user);
-    setLocalStorageUser(user);
-    supabaseCache.set(CACHE_KEY, user);
-    supabaseCache.set(CACHE_TIME_KEY, Date.now());
+  // Atualiza user e cache local, só se mudou
+  const updateUser = useCallback((newUser: any) => {
+    setUser((prevUser: any) => {
+      if (JSON.stringify(prevUser) !== JSON.stringify(newUser)) {
+        setLocalStorageUser(newUser);
+        supabaseCache.set(CACHE_KEY, newUser);
+        supabaseCache.set(CACHE_TIME_KEY, Date.now());
+        return newUser;
+      }
+      return prevUser;
+    });
   }, []);
 
   // Busca user do Supabase se necessário
@@ -125,7 +130,12 @@ export function useCurrentUser() {
     const onStorage = (e: StorageEvent) => {
       if (e.key === CACHE_KEY || e.key === CACHE_TIME_KEY) {
         const localUser = getLocalStorageUser();
-        setUser(localUser);
+        setUser((prevUser: any) => {
+          if (JSON.stringify(prevUser) !== JSON.stringify(localUser)) {
+            return localUser;
+          }
+          return prevUser;
+        });
       }
     };
     window.addEventListener("storage", onStorage);
@@ -161,5 +171,15 @@ export function useCurrentUser() {
     fetchUser(true);
   }, [fetchUser]);
 
-  return { user, loading, error, refresh };
+  // Função de logout
+  const logout = useCallback(async () => {
+    clearLocalStorageUser();
+    supabaseCache.delete(CACHE_KEY);
+    supabaseCache.delete(CACHE_TIME_KEY);
+    setUser(null);
+    setLoading(false);
+    await supabase.auth.signOut();
+  }, [supabase]);
+
+  return { user, loading, error, refresh, logout };
 }
