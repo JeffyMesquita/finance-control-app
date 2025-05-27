@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -24,7 +24,7 @@ export function WelcomeCard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = useMemo(() => createClientComponentClient(), []);
 
   useEffect(() => {
     async function fetchUserProfile() {
@@ -51,7 +51,7 @@ export function WelcomeCard() {
     if (user && !userLoading) {
       fetchUserProfile();
     }
-  }, [supabase, user, userLoading]);
+  }, [user, userLoading, supabase]);
 
   const handleAddTransaction = () => {
     router.push("/dashboard/transactions");
