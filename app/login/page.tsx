@@ -70,35 +70,20 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
 
-      // Valide o token do reCAPTCHA no backend antes de prosseguir
-      // Exemplo:
-      // const isHuman = await validateRecaptcha(recaptchaToken);
-      // if (!isHuman) {
-      //   setError("Falha na verificação do reCAPTCHA. Tente novamente.");
-      //   setIsLoading(false);
-      //   return;
-      // }
-
+      const res = await fetch("/api/auth/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, recaptchaToken, isRegister }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Erro desconhecido.");
+        setIsLoading(false);
+        return;
+      }
       if (isRegister) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
-
-        if (error) throw error;
-
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
-
         router.push("/dashboard");
       }
     } catch (error: any) {
