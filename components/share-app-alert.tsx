@@ -11,23 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Copy, X, Share2, Twitter, Facebook, Linkedin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import type { Database } from "@/lib/supabase/database.types";
 import { getReferralStats } from "@/app/actions/referrals";
 import { FaInstagram, FaTelegram, FaWhatsapp } from "react-icons/fa";
-import { supabaseCache } from "@/lib/supabase/cache";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 const SESSION_KEY = "shareAlertDismissed";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
-const CACHE_KEYS = {
-  USER: "share-app-alert-user",
-  STATS: "share-app-alert-stats",
-};
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
 
 export function ShareAppAlert() {
   const [visible, setVisible] = useState(false);
@@ -36,9 +25,6 @@ export function ShareAppAlert() {
   const { toast } = useToast();
   const [inviteCount, setInviteCount] = useState(0);
   const { user, loading: userLoading } = useCurrentUser();
-  const [userId, setUserId] = useState<string | null>(null);
-  const supabase = createClientComponentClient<Database>();
-  const [retryCount, setRetryCount] = useState(0);
   const [referralStats, setReferralStats] = useState<{
     totalReferrals: number;
     activeReferrals: number;
@@ -49,63 +35,10 @@ export function ShareAppAlert() {
     localStorage.setItem(SESSION_KEY, "true");
   };
 
-  const fetchUser = useCallback(async () => {
-    try {
-      // Check cache first
-      const cachedUser = supabaseCache.get<{ id: string }>(CACHE_KEYS.USER);
-      if (cachedUser) {
-        setUserId(cachedUser.id);
-        return;
-      }
-
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) {
-        if (error.status === 429 && retryCount < MAX_RETRIES) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            fetchUser();
-          }, RETRY_DELAY);
-          return;
-        }
-        throw error;
-      }
-
-      if (user) {
-        setUserId(user.id);
-        // Cache the user data
-        supabaseCache.set(CACHE_KEYS.USER, { id: user.id });
-      }
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os dados do usuário.",
-        variant: "destructive",
-      });
-    }
-  }, [supabase, retryCount, toast]);
-
   const fetchStats = useCallback(async () => {
-    if (!userId) return;
+    if (!user) return;
 
     try {
-      // Check cache first
-      const cachedStats = supabaseCache.get<{
-        totalReferrals: number;
-        activeReferrals: number;
-      }>(CACHE_KEYS.STATS);
-
-      if (cachedStats) {
-        setReferralStats(cachedStats);
-        setInviteCount(cachedStats.totalReferrals);
-        setIsLoading(false);
-        return;
-      }
-
       const stats = await getReferralStats();
       const formattedStats = {
         totalReferrals: stats.referralCount,
@@ -113,8 +46,6 @@ export function ShareAppAlert() {
       };
       setReferralStats(formattedStats);
       setInviteCount(stats.referralCount);
-      // Cache the stats
-      supabaseCache.set(CACHE_KEYS.STATS, formattedStats);
     } catch (error) {
       console.error("Error fetching referral stats:", error);
       toast({
@@ -125,7 +56,7 @@ export function ShareAppAlert() {
     } finally {
       setIsLoading(false);
     }
-  }, [userId, supabase, retryCount, toast]);
+  }, [user, toast]);
 
   useEffect(() => {
     const sessionKey = localStorage.getItem("supabase.auth.token");
@@ -134,21 +65,15 @@ export function ShareAppAlert() {
   }, []);
 
   useEffect(() => {
-    if (visible && user && !userLoading) {
-      setUserId(user.id);
-    }
-  }, [visible, user, userLoading]);
-
-  useEffect(() => {
-    if (userId) {
+    if (user && !userLoading) {
       fetchStats();
     }
-  }, [userId, fetchStats]);
+  }, [user, userLoading, fetchStats]);
 
   const getShareUrl = useCallback(() => {
-    if (!userId) return BASE_URL;
-    return `${BASE_URL}?ref=${userId}`;
-  }, [userId]);
+    if (!user) return BASE_URL;
+    return `${BASE_URL}?ref=${user.id}`;
+  }, [user]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -197,7 +122,7 @@ export function ShareAppAlert() {
     [getShareUrl]
   );
 
-  if (!visible || !userId || isLoading) return null;
+  if (!visible || !user || isLoading || userLoading) return null;
 
   return (
     <AnimatePresence>

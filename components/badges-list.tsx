@@ -3,58 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
-import { supabaseCache } from "@/lib/supabase/cache";
-
-const CACHE_KEY = "badges-list";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function BadgesList() {
   const [badges, setBadges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const supabase = createClientComponentClient<Database>();
+  const { user, loading: userLoading } = useCurrentUser();
 
   const fetchBadges = async () => {
+    if (!user) return;
+
     try {
-      // Check cache first
-      const cachedBadges = supabaseCache.get<any[]>(CACHE_KEY);
-      if (cachedBadges) {
-        setBadges(cachedBadges);
-        setLoading(false);
-        return;
-      }
+      const { data, error: badgesError } = await supabase
+        .from("badges")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      if (badgesError) throw badgesError;
 
-      if (error) {
-        if (error.status === 429 && retryCount < MAX_RETRIES) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            fetchBadges();
-          }, RETRY_DELAY);
-          return;
-        }
-        throw error;
-      }
-
-      if (user) {
-        const { data, error: badgesError } = await supabase
-          .from("badges")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (badgesError) throw badgesError;
-
-        setBadges(data || []);
-        // Cache the badges
-        supabaseCache.set(CACHE_KEY, data || []);
-      }
+      setBadges(data || []);
     } catch (error) {
       console.error("Error fetching badges:", error);
       toast({
@@ -68,10 +38,12 @@ export function BadgesList() {
   };
 
   useEffect(() => {
-    fetchBadges();
-  }, []);
+    if (!userLoading && user) {
+      fetchBadges();
+    }
+  }, [user, userLoading]);
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <Card className="animate-pulse">
         <CardHeader>

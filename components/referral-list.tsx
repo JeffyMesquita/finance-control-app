@@ -3,58 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
-import { supabaseCache } from "@/lib/supabase/cache";
-
-const CACHE_KEY = "referral-list";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function ReferralList() {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const supabase = createClientComponentClient<Database>();
+  const { user, loading: userLoading } = useCurrentUser();
 
   const fetchReferrals = async () => {
+    if (!user) return;
+
     try {
-      // Check cache first
-      const cachedReferrals = supabaseCache.get<any[]>(CACHE_KEY);
-      if (cachedReferrals) {
-        setReferrals(cachedReferrals);
-        setLoading(false);
-        return;
-      }
+      const { data, error: referralsError } = await supabase
+        .from("referrals")
+        .select("*")
+        .eq("referrer_id", user.id)
+        .order("created_at", { ascending: false });
 
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      if (referralsError) throw referralsError;
 
-      if (error) {
-        if (error.status === 429 && retryCount < MAX_RETRIES) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            fetchReferrals();
-          }, RETRY_DELAY);
-          return;
-        }
-        throw error;
-      }
-
-      if (user) {
-        const { data, error: referralsError } = await supabase
-          .from("referrals")
-          .select("*")
-          .eq("referrer_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (referralsError) throw referralsError;
-
-        setReferrals(data || []);
-        // Cache the referrals
-        supabaseCache.set(CACHE_KEY, data || []);
-      }
+      setReferrals(data || []);
     } catch (error) {
       console.error("Error fetching referrals:", error);
       toast({
@@ -68,10 +38,12 @@ export function ReferralList() {
   };
 
   useEffect(() => {
-    fetchReferrals();
-  }, []);
+    if (!userLoading && user) {
+      fetchReferrals();
+    }
+  }, [user, userLoading]);
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <Card className="animate-pulse">
         <CardHeader>

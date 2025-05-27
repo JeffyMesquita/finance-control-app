@@ -3,58 +3,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
-import { supabaseCache } from "@/lib/supabase/cache";
-
-const CACHE_KEY = "pix-transactions-list";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function PixTransactionsList() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const supabase = createClientComponentClient<Database>();
+  const { user, loading: userLoading } = useCurrentUser();
 
   const fetchTransactions = async () => {
+    if (!user) return;
+
     try {
-      // Check cache first
-      const cachedTransactions = supabaseCache.get<any[]>(CACHE_KEY);
-      if (cachedTransactions) {
-        setTransactions(cachedTransactions);
-        setLoading(false);
-        return;
-      }
+      const { data, error: transactionsError } = await supabase
+        .from("pix_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+      if (transactionsError) throw transactionsError;
 
-      if (error) {
-        if (error.status === 429 && retryCount < MAX_RETRIES) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            fetchTransactions();
-          }, RETRY_DELAY);
-          return;
-        }
-        throw error;
-      }
-
-      if (user) {
-        const { data, error: transactionsError } = await supabase
-          .from("pix_transactions")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-
-        if (transactionsError) throw transactionsError;
-
-        setTransactions(data || []);
-        // Cache the transactions
-        supabaseCache.set(CACHE_KEY, data || []);
-      }
+      setTransactions(data || []);
     } catch (error) {
       console.error("Error fetching PIX transactions:", error);
       toast({
@@ -68,10 +38,12 @@ export function PixTransactionsList() {
   };
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (!userLoading && user) {
+      fetchTransactions();
+    }
+  }, [user, userLoading]);
 
-  if (loading) {
+  if (loading || userLoading) {
     return (
       <Card className="animate-pulse">
         <CardHeader>

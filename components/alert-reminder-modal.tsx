@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const FREQUENCIES = [
   { value: "daily", label: "Diário" },
@@ -39,6 +40,7 @@ export function AlertReminderModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClientComponentClient();
+  const { user, loading: userLoading } = useCurrentUser();
 
   useEffect(() => {
     if (open) {
@@ -71,33 +73,36 @@ export function AlertReminderModal({
       setError("A data de vencimento é obrigatória.");
       return;
     }
-    setLoading(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
     if (!user) {
-      setLoading(false);
       setError("Usuário não autenticado.");
       return;
     }
-    const { error: insertError } = await supabase
-      .from("payment_reminders")
-      .insert({
-        user_id: user.id,
-        title,
-        description,
-        amount: parseFloat(amount),
-        due_date: date,
-        category,
-        is_recurring: isRecurring,
-        frequency: isRecurring ? frequency : null,
-      });
-    setLoading(false);
-    if (insertError) {
-      setError(insertError.message || "Erro ao salvar lembrete.");
-      return;
+
+    setLoading(true);
+    try {
+      const { error: insertError } = await supabase
+        .from("payment_reminders")
+        .insert({
+          user_id: user.id,
+          title,
+          description,
+          amount: parseFloat(amount),
+          due_date: date,
+          category,
+          is_recurring: isRecurring,
+          frequency: isRecurring ? frequency : null,
+        });
+
+      if (insertError) {
+        setError(insertError.message || "Erro ao salvar lembrete.");
+        return;
+      }
+      onClose();
+    } catch (error) {
+      setError("Erro ao salvar lembrete.");
+    } finally {
+      setLoading(false);
     }
-    onClose();
   }
 
   return (
@@ -190,7 +195,7 @@ export function AlertReminderModal({
             <Button type="button" onClick={onClose} variant="outline">
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || userLoading}>
               {loading ? "Salvando..." : "Salvar"}
             </Button>
           </div>
