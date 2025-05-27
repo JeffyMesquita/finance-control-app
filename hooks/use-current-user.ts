@@ -6,158 +6,158 @@ import { Database } from "@/lib/supabase/database.types";
 import { supabaseCache } from "@/lib/supabase/cache";
 
 const CACHE_KEY = "current-user";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // Aumentado para 2 segundos
-const MIN_REQUEST_INTERVAL = 10000; // Aumentado para 10 segundos
-const CACHE_DURATION = 300000; // 5 minutos em cache
+const CACHE_TIME_KEY = "current-user-time";
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutos
 
-// Sistema de fila para requisições
-let requestQueue: Array<() => Promise<any>> = [];
-let isProcessingQueue = false;
-
-// Lock para evitar múltiplos fetches simultâneos
 let fetchPromise: Promise<any> | null = null;
 let lastFetchTime = 0;
+const MIN_REQUEST_INTERVAL = 10000; // 10 segundos
 
-async function processQueue() {
-  if (isProcessingQueue || requestQueue.length === 0) return;
-
-  isProcessingQueue = true;
-  while (requestQueue.length > 0) {
-    const request = requestQueue.shift();
-    if (request) {
-      try {
-        await request();
-      } catch (error) {
-        console.error("Erro ao processar requisição:", error);
-      }
-      // Aguarda o intervalo mínimo entre requisições
-      await new Promise((resolve) => setTimeout(resolve, MIN_REQUEST_INTERVAL));
+function getLocalStorageUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const user = localStorage.getItem(CACHE_KEY);
+    const time = localStorage.getItem(CACHE_TIME_KEY);
+    if (user && time && Date.now() - Number(time) < CACHE_DURATION) {
+      return JSON.parse(user);
     }
-  }
-  isProcessingQueue = false;
+  } catch {}
+  return null;
+}
+
+function setLocalStorageUser(user: any) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(user));
+    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+  } catch {}
+}
+
+function clearLocalStorageUser() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(CACHE_KEY);
+    localStorage.removeItem(CACHE_TIME_KEY);
+  } catch {}
 }
 
 export function useCurrentUser() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(() => getLocalStorageUser());
+  const [loading, setLoading] = useState(!getLocalStorageUser());
   const [error, setError] = useState<any>(null);
   const supabase = createClientComponentClient<Database>();
   const isMounted = useRef(true);
 
+  // Atualiza user e cache local
+  const updateUser = useCallback((user: any) => {
+    setUser(user);
+    setLocalStorageUser(user);
+    supabaseCache.set(CACHE_KEY, user);
+    supabaseCache.set(CACHE_TIME_KEY, Date.now());
+  }, []);
+
+  // Busca user do Supabase se necessário
   const fetchUser = useCallback(
     async (force = false) => {
-      // Verificar cache primeiro
       if (!force) {
-        const cachedUser = supabaseCache.get(CACHE_KEY);
-        if (cachedUser) {
-          const cacheTime =
-            (supabaseCache.get(`${CACHE_KEY}_time`) as number) || 0;
-          if (Date.now() - cacheTime < CACHE_DURATION) {
-            setUser(cachedUser);
-            setLoading(false);
-            return cachedUser;
-          }
+        // 1. Tenta cache localStorage
+        const localUser = getLocalStorageUser();
+        if (localUser) {
+          updateUser(localUser);
+          setLoading(false);
+          return localUser;
+        }
+        // 2. Tenta cache global
+        const cacheUser = supabaseCache.get(CACHE_KEY);
+        const cacheTime = Number(supabaseCache.get(CACHE_TIME_KEY)) || 0;
+        if (cacheUser && Date.now() - cacheTime < CACHE_DURATION) {
+          updateUser(cacheUser);
+          setLoading(false);
+          return cacheUser;
         }
       }
-
-      // Verificar intervalo mínimo entre requisições
+      // 3. Throttle para evitar múltiplas requests
       const now = Date.now();
       if (!force && now - lastFetchTime < MIN_REQUEST_INTERVAL) {
-        const cachedUser = supabaseCache.get(CACHE_KEY);
-        if (cachedUser) {
-          setUser(cachedUser);
-          setLoading(false);
-          return cachedUser;
-        }
+        setLoading(false);
+        return user;
       }
-
       setLoading(true);
       setError(null);
-
-      // Adicionar requisição à fila
-      return new Promise((resolve, reject) => {
-        requestQueue.push(async () => {
-          try {
-            if (fetchPromise) {
-              const result = await fetchPromise;
-              if (isMounted.current) {
-                setUser(result);
-                setLoading(false);
-              }
-              resolve(result);
-              return;
-            }
-
-            fetchPromise = (async () => {
-              let lastError = null;
-              for (let i = 0; i < MAX_RETRIES; i++) {
-                try {
-                  const {
-                    data: { user },
-                    error,
-                  } = await supabase.auth.getUser();
-
-                  if (user) {
-                    lastFetchTime = Date.now();
-                    supabaseCache.set(CACHE_KEY, user);
-                    supabaseCache.set(`${CACHE_KEY}_time`, Date.now());
-                    return user;
-                  }
-
-                  if (error) {
-                    if (error.status === 429) {
-                      lastError = error;
-                      await new Promise((res) =>
-                        setTimeout(res, RETRY_DELAY * Math.pow(2, i))
-                      );
-                      continue;
-                    }
-                    lastError = error;
-                    break;
-                  }
-                } catch (err) {
-                  lastError = err;
-                  break;
-                }
-              }
-              throw lastError;
-            })();
-
-            const result = await fetchPromise;
-            if (isMounted.current) {
-              setUser(result);
-              setLoading(false);
-            }
-            fetchPromise = null;
-            resolve(result);
-          } catch (err) {
-            if (isMounted.current) {
-              setError(err);
-              setLoading(false);
-            }
-            fetchPromise = null;
-            reject(err);
+      if (fetchPromise) {
+        const result = await fetchPromise;
+        updateUser(result);
+        setLoading(false);
+        return result;
+      }
+      fetchPromise = (async () => {
+        try {
+          const { data, error } = await supabase.auth.getUser();
+          if (error) throw error;
+          if (data.user) {
+            lastFetchTime = Date.now();
+            updateUser(data.user);
+            return data.user;
+          } else {
+            clearLocalStorageUser();
+            updateUser(null);
+            return null;
           }
-        });
-
-        processQueue();
-      });
+        } catch (err) {
+          setError(err);
+          clearLocalStorageUser();
+          updateUser(null);
+          return null;
+        } finally {
+          setLoading(false);
+          fetchPromise = null;
+        }
+      })();
+      const result = await fetchPromise;
+      return result;
     },
-    [supabase]
+    [supabase, updateUser, user]
   );
 
+  // Sincronização entre abas
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === CACHE_KEY || e.key === CACHE_TIME_KEY) {
+        const localUser = getLocalStorageUser();
+        setUser(localUser);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Atualização automática via onAuthStateChange
   useEffect(() => {
     isMounted.current = true;
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_OUT" || !session) {
+          clearLocalStorageUser();
+          updateUser(null);
+        } else if (session.user) {
+          updateUser(session.user);
+        }
+      }
+    );
+    // Primeira busca
     fetchUser();
     return () => {
       isMounted.current = false;
+      listener?.subscription.unsubscribe();
     };
-  }, [fetchUser]);
+  }, [supabase, fetchUser, updateUser]);
 
+  // Forçar refresh manual
   const refresh = useCallback(() => {
+    clearLocalStorageUser();
     supabaseCache.delete(CACHE_KEY);
-    supabaseCache.delete(`${CACHE_KEY}_time`);
+    supabaseCache.delete(CACHE_TIME_KEY);
     fetchUser(true);
   }, [fetchUser]);
 
