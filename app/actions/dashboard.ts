@@ -116,7 +116,7 @@ export async function getDashboardData() {
     totalBalance += accountBalance;
   }
 
-  // Calcular gastos futuros (a partir do próximo mês)
+  // Calcular o primeiro dia do próximo mês
   const nextMonth = new Date(
     now.getFullYear(),
     now.getMonth() + 1,
@@ -137,7 +137,20 @@ export async function getDashboardData() {
     999
   ).toISOString();
 
+  // Buscar todas as despesas futuras (a partir do próximo mês, sem limite superior)
+  const { data: allFutureExpenses, error: allFutureExpensesError } =
+    await supabase
+      .from("transactions")
+      .select("amount, type, date")
+      .eq("user_id", user.id)
+      .eq("type", "EXPENSE")
+      .gte("date", nextMonth);
+
   let gastosFuturos = 0;
+  if (!allFutureExpensesError && allFutureExpenses) {
+    gastosFuturos = allFutureExpenses.reduce((sum, t) => sum + t.amount, 0);
+  }
+
   let nextMonthExpenses = 0;
   let nextMonthIncome = 0;
 
@@ -151,11 +164,6 @@ export async function getDashboardData() {
       .lte("date", lastDayOfNextMonth);
 
     if (!futureExpensesError && futureExpenses) {
-      // Calcular gastos futuros totais
-      gastosFuturos += futureExpenses
-        .filter((t) => t.type === "EXPENSE")
-        .reduce((sum, t) => sum + t.amount, 0);
-
       // Calcular despesas do próximo mês
       nextMonthExpenses += futureExpenses
         .filter((t) => t.type === "EXPENSE")
