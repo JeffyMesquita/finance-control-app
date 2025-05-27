@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { useRouter, useSearchParams } from "next/navigation";
+import { HeroVisual } from "@/components/hero-visual";
+import { Logo } from "@/components/logo";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +12,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DollarSign, Loader2, ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
-import { Logo } from "@/components/logo";
-import { HeroVisual } from "@/components/hero-visual";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
@@ -50,6 +56,43 @@ export default function LoginPage() {
 
     checkSession();
   }, [router, supabase.auth]);
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      if (isRegister) {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+
+        if (error) throw error;
+
+        // Mostrar mensagem de sucesso para verificar email
+        setError("Por favor, verifique seu email para confirmar o registro.");
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        router.push("/dashboard");
+      }
+    } catch (error: any) {
+      console.error("Erro na autenticação:", error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -95,7 +138,7 @@ export default function LoginPage() {
       </div>
 
       <Card className="w-full max-w-5xl shadow-lg flex flex-col md:flex-row items-center px-10 overflow-hidden">
-        <div className="ml-[20%] md:ml-0 w-full flex justify-center mt-6 mb-2 ">
+        <div className="ml-[20%] md:ml-0 w-full flex justify-center mt-6 mb-2">
           <HeroVisual className="max-w-xs sm:max-w-sm md:max-w-md" />
         </div>
         <div className="w-full flex flex-col items-center justify-center">
@@ -104,16 +147,76 @@ export default function LoginPage() {
               <Logo dark className="h-14 w-auto" />
             </div>
             <CardTitle className="text-2xl font-bold">
-              Bem-vindo ao FinanceTrack
+              {isRegister ? "Criar uma conta" : "Bem-vindo ao FinanceTrack"}
             </CardTitle>
-            <CardDescription>Entre na sua conta para continuar</CardDescription>
+            <CardDescription>
+              {isRegister
+                ? "Preencha os dados abaixo para criar sua conta"
+                : "Entre na sua conta para continuar"}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 w-full max-w-sm">
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            <form onSubmit={handleEmailAuth} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="bg-white dark:bg-gray-800"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-white dark:bg-gray-800"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                <span>
+                  {isLoading
+                    ? "Processando..."
+                    : isRegister
+                    ? "Criar conta"
+                    : "Entrar com Email"}
+                </span>
+              </Button>
+            </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Ou continue com
+                </span>
+              </div>
+            </div>
 
             <Button
               className="w-full flex items-center justify-center gap-2 bg-white text-gray-800 border hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
@@ -146,6 +249,15 @@ export default function LoginPage() {
             </Button>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
+            <Button
+              variant="link"
+              className="text-sm text-muted-foreground"
+              onClick={() => setIsRegister(!isRegister)}
+            >
+              {isRegister
+                ? "Já tem uma conta? Faça login"
+                : "Não tem uma conta? Registre-se"}
+            </Button>
             <div className="text-center text-sm text-muted-foreground">
               Ao continuar, você concorda com nossos{" "}
               <Link
