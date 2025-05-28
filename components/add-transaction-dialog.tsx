@@ -53,6 +53,34 @@ type Account = {
   currency: string;
 };
 
+type FormData = {
+  type: "EXPENSE" | "INCOME";
+  amount: string;
+  description: string;
+  category_id: string;
+  account_id: string;
+  date: string;
+  notes: string;
+  is_recurring: boolean;
+  recurring_interval: string | null;
+  installment_number: string;
+  total_installments: number | null;
+};
+
+const INITIAL_FORM_DATA: FormData = {
+  type: "EXPENSE",
+  amount: "",
+  description: "",
+  category_id: "",
+  account_id: "",
+  date: new Date().toISOString().split("T")[0],
+  notes: "",
+  is_recurring: false,
+  recurring_interval: null,
+  installment_number: "1",
+  total_installments: null,
+};
+
 export function AddTransactionDialog({
   open,
   onOpenChange,
@@ -62,18 +90,11 @@ export function AddTransactionDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+
   const [formData, setFormData] = useState({
-    type: "EXPENSE",
-    amount: "",
-    description: "",
+    ...INITIAL_FORM_DATA,
     category_id: categories[0]?.id,
     account_id: accounts[0]?.id,
-    date: new Date().toISOString().split("T")[0],
-    notes: "",
-    is_recurring: false,
-    recurring_interval: null,
-    installment_number: "1",
-    total_installments: null,
   });
 
   useEffect(() => {

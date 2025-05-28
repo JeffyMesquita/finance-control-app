@@ -68,15 +68,17 @@ export function EditTransactionDialog({
   const [categories, setCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [formData, setFormData] = useState({
-    type: "EXPENSE",
-    amount: "",
-    description: "",
-    category_id: "",
-    account_id: "",
-    date: "",
-    notes: "",
-    is_recurring: false,
-    recurring_interval: null,
+    type: transaction.type || "EXPENSE",
+    amount: (transaction.amount / 100)?.toString() || "",
+    description: transaction.description || "",
+    category_id: transaction.category_id || "",
+    account_id: transaction.account_id || "",
+    date: transaction.date || "",
+    notes: transaction.notes || "",
+    is_recurring: transaction.is_recurring || false,
+    recurring_interval: transaction.recurring_interval || null,
+    installment_number: transaction.installment_number || "1",
+    total_installments: transaction.total_installments || null,
   });
 
   useEffect(() => {
@@ -105,6 +107,8 @@ export function EditTransactionDialog({
         notes: transaction.notes || "",
         is_recurring: transaction.is_recurring || false,
         recurring_interval: transaction.recurring_interval || null,
+        installment_number: transaction.installment_number || "1",
+        total_installments: transaction.total_installments || null,
       });
     }
   }, [transaction, open]);
@@ -169,6 +173,17 @@ export function EditTransactionDialog({
       const [year, month, day] = formData.date.split("-").map(Number);
       // Cria a data como meia-noite no horário de Brasília (UTC-3)
       const brasiliaDate = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
+
+      // Formatar recurring_interval se existir
+      let formattedRecurringInterval = null;
+      if (formData.is_recurring && formData.recurring_interval) {
+        const [intervalYear, intervalMonth] = formData.recurring_interval
+          .split("-")
+          .map(Number);
+        formattedRecurringInterval = new Date(
+          Date.UTC(intervalYear, intervalMonth - 1, 1, 3, 0, 0)
+        ).toISOString();
+      }
 
       const updatedTransaction = {
         ...formData,
