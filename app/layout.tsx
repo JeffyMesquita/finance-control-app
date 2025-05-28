@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   applicationName: "FinanceTrack",
   category: "finance",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com"
+    process.env.NEXT_PUBLIC_BASE_URL || "https://financetrack.jeffymesquita.dev"
   ),
   title: {
     default: "FinanceTrack - Controle Financeiro",
@@ -68,7 +68,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url: process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com",
+    url:
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://financetrack.jeffymesquita.dev",
     title: "FinanceTrack - Controle Financeiro",
     description:
       "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",

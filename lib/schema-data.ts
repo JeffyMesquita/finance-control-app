@@ -3,7 +3,9 @@ import { Organization, WebSite, WebPage } from "schema-dts";
 export const organizationData: Organization = {
   "@type": "Organization",
   name: "Financial Management System",
-  url: process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com",
+  url:
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "https://financetrack.jeffymesquita.dev",
   logo: `${process.env.NEXT_PUBLIC_BASE_URL}/logo.png`,
   sameAs: [
     "https://twitter.com/yourhandle",
@@ -14,7 +16,9 @@ export const organizationData: Organization = {
 export const websiteData: WebSite = {
   "@type": "WebSite",
   name: "Financial Management System",
-  url: process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com",
+  url:
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "https://financetrack.jeffymesquita.dev",
   potentialAction: {
     "@type": "SearchAction",
     target: `${process.env.NEXT_PUBLIC_BASE_URL}/search?q={search_term_string}`,
@@ -27,7 +31,9 @@ export const createWebPageData = (
   path: string,
   breadcrumbs: Array<{ name: string; path: string }>
 ): WebPage => {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://your-domain.com";
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    "https://financetrack.jeffymesquita.dev";
 
   return {
     "@type": "WebPage",
