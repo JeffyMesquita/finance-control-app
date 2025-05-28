@@ -454,7 +454,7 @@ export function AddTransactionDialog({
             {formData.is_recurring && (
               <div className="space-y-2">
                 <Label htmlFor="recurring_interval">
-                  Intervalo de Recorrência (Opcional)
+                  Data da Finalização da Recorrência
                 </Label>
                 <Input
                   id="recurring_interval"

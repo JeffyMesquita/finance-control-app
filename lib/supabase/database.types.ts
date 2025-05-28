@@ -282,7 +282,7 @@ export interface Database {
           date: string;
           type: "INCOME" | "EXPENSE";
           is_recurring: boolean;
-          recurring_interval: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+          recurring_interval: string | null;
           notes: string | null;
           receipt_url: string | null;
           category_id: string | null;
@@ -300,7 +300,7 @@ export interface Database {
           date: string;
           type: "INCOME" | "EXPENSE";
           is_recurring?: boolean;
-          recurring_interval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+          recurring_interval?: string | null;
           notes?: string | null;
           receipt_url?: string | null;
           category_id?: string | null;
@@ -318,7 +318,7 @@ export interface Database {
           date?: string;
           type?: "INCOME" | "EXPENSE";
           is_recurring?: boolean;
-          recurring_interval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+          recurring_interval?: string | null;
           notes?: string | null;
           receipt_url?: string | null;
           category_id?: string | null;
