@@ -186,6 +186,17 @@ export function AddTransactionDialog({
       // Cria a data como meia-noite no horário de Brasília (UTC-3)
       const brasiliaDate = new Date(Date.UTC(year, month - 1, day, 3, 0, 0));
 
+      // Formatar recurring_interval se existir
+      let formattedRecurringInterval = null;
+      if (formData.is_recurring && formData.recurring_interval) {
+        const [intervalYear, intervalMonth] = formData.recurring_interval
+          .split("-")
+          .map(Number);
+        formattedRecurringInterval = new Date(
+          Date.UTC(intervalYear, intervalMonth - 1, 1, 3, 0, 0)
+        ).toISOString();
+      }
+
       // Criar transação base
       const baseTransaction = {
         ...formData,
@@ -193,7 +204,7 @@ export function AddTransactionDialog({
         date: brasiliaDate.toISOString(),
         account_id: accountIdValue,
         recurring_interval: formData.is_recurring
-          ? formData.recurring_interval || null
+          ? formattedRecurringInterval || null
           : null,
       };
 

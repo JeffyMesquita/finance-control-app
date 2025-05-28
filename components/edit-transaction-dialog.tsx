@@ -191,7 +191,7 @@ export function EditTransactionDialog({
         date: brasiliaDate.toISOString(),
         type: formData.type as "EXPENSE" | "INCOME",
         recurring_interval: formData.is_recurring
-          ? formData.recurring_interval || null
+          ? formattedRecurringInterval || null
           : null,
       };
 
