@@ -59,9 +59,8 @@ export function ShareAppAlert() {
   }, [user, toast]);
 
   useEffect(() => {
-    const sessionKey = localStorage.getItem("supabase.auth.token");
     const isDismissed = localStorage.getItem(SESSION_KEY) === "true";
-    setVisible(!!sessionKey && !isDismissed);
+    setVisible(!isDismissed);
   }, []);
 
   useEffect(() => {

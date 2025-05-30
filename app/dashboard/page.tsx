@@ -10,8 +10,13 @@ import { PixSupportAlert } from "@/components/pix-support-alert";
 import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
 import { AuthGuard } from "@/components/auth-guard";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
+  useEffect(() => {
+    localStorage.removeItem("googleLogin");
+  }, []);
+
   return (
     <AuthGuard>
       <div className="flex flex-col gap-4 p-4 md:p-8">

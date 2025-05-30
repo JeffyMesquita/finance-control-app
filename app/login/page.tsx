@@ -36,6 +36,10 @@ export default function LoginPage() {
   const supabase = createClientComponentClient();
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
+  useEffect(() => {
+    localStorage.removeItem("googleLogin");
+  }, []);
+
   // Verificar se há um erro na URL
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -68,12 +72,13 @@ export default function LoginPage() {
   // Monitorar retorno do Google Auth
   useEffect(() => {
     // Se houver ?code= ou ?state= na URL, provavelmente é retorno do Google Auth
+    const googleLogin = localStorage.getItem("googleLogin");
     const code = searchParams.get("code");
     const state = searchParams.get("state");
-    if (code || state) {
+    if (code || state || googleLogin) {
       setShowLogin(false);
       // Aguarda 2 segundos antes de mostrar o login
-      setTimeout(() => setShowLogin(true), 2000);
+      setTimeout(() => setShowLogin(true), 3000);
     } else {
       setShowLogin(true);
     }
@@ -117,6 +122,7 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       setError(null);
+      localStorage.setItem("googleLogin", "true");
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
