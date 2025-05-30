@@ -191,11 +191,11 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 w-full max-w-sm">
-                {error && (
+                {/* {error && (
                   <Alert variant="destructive" className="mb-4">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
-                )}
+                )} */}
 
                 <form onSubmit={handleEmailAuth} className="space-y-4">
                   <div className="space-y-2">
