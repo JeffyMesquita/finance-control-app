@@ -150,9 +150,27 @@ export function ShareAppAlert() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-blue-900 dark:text-blue-100">
-                Você já trouxe {inviteCount} amigos para descomplicar a vida
-                financeira! Continue compartilhando e ganhe distintivos
-                exclusivos! 🚀
+                {inviteCount > 0 ? (
+                  <p>
+                    Você já trouxe <b>{inviteCount}</b> amigos para a revolução
+                    financeira! 🥳
+                    <br />
+                    Continue espalhando a palavra e colecione distintivos
+                    exclusivos! 🚀🏅
+                    <br />
+                    Quem compartilha, brilha! ✨
+                  </p>
+                ) : (
+                  <p>
+                    Que tal ser o herói financeiro do seu grupo? 🦸‍♂️💸
+                    <br />
+                    Compartilhe o app com seus amigos e desbloqueie distintivos
+                    incríveis! 🏅🎉
+                    <br />
+                    Quanto mais amigos, mais diversão (e conquistas)! 😄🤝
+                  </p>
+                )}
+
                 <br />
                 <span className="inline-flex items-center gap-2 mt-2">
                   <span className="font-mono bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded text-blue-900 dark:text-blue-100 select-all">
