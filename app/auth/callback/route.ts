@@ -81,12 +81,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Reset local storage items
-    if (typeof window !== "undefined") {
-      localStorage.setItem("pixAlertDismissed", "false");
-      localStorage.setItem("shareAlertDismissed", "false");
-    }
-
     // Handle referral if exists
     const referralId = localStorage.getItem("referralId");
     if (referralId) {

@@ -14,13 +14,11 @@ import { AuthGuard } from "@/components/auth-guard";
 export default function DashboardPage() {
   return (
     <AuthGuard>
-      <div className="flex flex-col gap-4 p-4 md:p-8 overflow-x-clip">
+      <div className="flex flex-col gap-4 p-4 md:p-8">
         <PixSupportAlert />
         <ShareAppAlert />
         <WelcomeCard />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 max-w-full">
-          <DashboardCards />
-        </div>
+        <DashboardCards />
         <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
         <PaymentReminders />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 max-w-full">
