@@ -78,10 +78,15 @@ export function PixSupportAlert() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-green-900 dark:text-green-100">
-                Se este app te ajudou, que tal retribuir com um PIX? Assim você
-                incentiva o desenvolvimento de novas funcionalidades e mantém o
-                projeto vivo! 😄
-                <br />
+                <p>
+                  Se este app te ajudou, que tal retribuir com um PIX? Assim
+                  você incentiva o desenvolvimento de novas funcionalidades e
+                  mantém o projeto vivo! 😄
+                  <br />
+                  Só não posso prometer que não vou usar o PIX para comprar
+                  café! 😂 ou um energético! 🤣
+                </p>
+
                 <span className="inline-flex items-center gap-2 mt-2">
                   <span className="font-mono bg-green-100 dark:bg-green-800 px-2 py-1 rounded text-green-900 dark:text-green-100 select-all">
                     {PIX_KEY}
