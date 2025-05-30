@@ -20,12 +20,9 @@ export default async function Home({ searchParams }: HomeProps) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  let referralMessage = "";
-
   // Se tiver um ID de referência, processa o referral
   if (searchParams.ref) {
-    const result = await handleReferral(searchParams.ref);
-    referralMessage = result.message;
+    await handleReferral(searchParams.ref);
   }
 
   if (typeof window !== "undefined") {
@@ -42,11 +39,7 @@ export default async function Home({ searchParams }: HomeProps) {
       <SchemaOrg type="Organization" data={organizationData} />
       <SchemaOrg type="WebSite" data={websiteData} />
       <ServiceWorkerRegistration />
-      {referralMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-white dark:bg-stone-800 p-4 rounded-lg shadow-lg z-50">
-          {referralMessage}
-        </div>
-      )}
+
       <LandingPage />
     </>
   );
