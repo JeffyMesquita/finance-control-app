@@ -104,7 +104,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-site-verification",
+    google: "zpAWDLeUMoSZEiQWPVTibvM5lSBM2TeArXwRmbd9IvI",
   },
 };
 
