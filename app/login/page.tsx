@@ -197,6 +197,7 @@ export default function LoginPage() {
                   </Alert>
                 )} */}
 
+                {/*
                 <form onSubmit={handleEmailAuth} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -241,6 +242,7 @@ export default function LoginPage() {
                     </span>
                   </Button>
                 </form>
+                */}
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -283,12 +285,14 @@ export default function LoginPage() {
                   <span>{isLoading ? "Entrando..." : "Entrar com Google"}</span>
                 </Button>
 
+                {/*
                 <div className="flex justify-center mt-4">
                   <ReCAPTCHA
                     sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
                     onChange={handleRecaptcha}
                   />
                 </div>
+                */}
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
                 <Button
