@@ -1,31 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReferralProcessor } from "./referral-processor";
 
 export function ReferralTrigger() {
-  const [referralId, setReferralId] = useState<string | null>(null);
-  const [shouldProcess, setShouldProcess] = useState(false);
+  const [processed, setProcessed] = useState(false);
 
   useEffect(() => {
-    // Verifica se há referral_id no localStorage
-    const storedReferralId = localStorage.getItem("referral_id");
-    if (storedReferralId) {
-      setReferralId(storedReferralId);
+    // Evita processamento múltiplo
+    if (processed) return;
 
-      // Aguarda 10 segundos para garantir que o usuário está autenticado
-      const timer = setTimeout(() => {
-        setShouldProcess(true);
+    const processReferral = async () => {
+      const referralId = localStorage.getItem("referral_id");
+      if (!referralId) return;
+
+      try {
+        const response = await fetch("/api/referrals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ referralId }),
+        });
+
+        const result = await response.json();
+
         // Remove do localStorage após processar
         localStorage.removeItem("referral_id");
-      }, 10000);
+        setProcessed(true);
+      } catch (error) {
+        console.error("Erro ao processar referral:", error);
+      }
+    };
 
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    // Aguarda 2 segundos para garantir que o usuário está autenticado
+    const timer = setTimeout(processReferral, 2000);
+    return () => clearTimeout(timer);
+  }, [processed]);
 
-  // Só renderiza o ReferralProcessor quando deve processar
-  if (!shouldProcess || !referralId) return null;
-
-  return <ReferralProcessor referralId={referralId} />;
+  return null; // Componente invisível
 }
