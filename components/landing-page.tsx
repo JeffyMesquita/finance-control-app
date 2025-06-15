@@ -24,10 +24,8 @@ export function LandingPage() {
   const params = useSearchParams();
   const referralId = params.get("ref");
 
-  console.log(referralId, "referralId");
-
   if (referralId) {
-    localStorage.setItem("referralId", referralId);
+    localStorage.setItem("referral_id", referralId);
   }
 
   const fadeInUp = {
