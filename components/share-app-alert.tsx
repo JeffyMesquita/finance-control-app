@@ -173,7 +173,7 @@ export function ShareAppAlert() {
 
                 <br />
                 <span className="inline-flex items-center gap-2 mt-2">
-                  <span className="font-mono bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded text-blue-900 dark:text-blue-100 select-all">
+                  <span className="font-mono bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded text-blue-900 dark:text-blue-100 select-all break-all max-w-full overflow-x-auto">
                     {getShareUrl()}
                   </span>
                   <Button
@@ -186,7 +186,7 @@ export function ShareAppAlert() {
                     <Copy className="w-4 h-4" />
                   </Button>
                 </span>
-                <div className="flex gap-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-4">
                   <Button
                     size="icon"
                     variant="outline"
