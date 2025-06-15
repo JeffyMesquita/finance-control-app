@@ -133,7 +133,7 @@ export async function getReferralStats() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { referralCount: 0, badges: [] };
+  if (!user) return { referralCount: 0, badges: [], referrer: null };
 
   try {
     // Get referral count
@@ -148,12 +148,31 @@ export async function getReferralStats() {
       .select("*")
       .eq("user_id", user.id);
 
+    // Buscar quem foi o referrer deste usuário (se houver)
+    const { data: referralRecord } = await supabase
+      .from("user_invites")
+      .select("referrer_id")
+      .eq("referred_id", user.id)
+      .single();
+
+    let referrer = null;
+    if (referralRecord && referralRecord.referrer_id) {
+      // Buscar email do referrer
+      const { data: referrerUser } = await supabase
+        .from("users")
+        .select("id, email")
+        .eq("id", referralRecord.referrer_id)
+        .single();
+      referrer = referrerUser || { id: referralRecord.referrer_id };
+    }
+
     return {
       referralCount: referralCount ?? 0,
       badges: badges ?? [],
+      referrer,
     };
   } catch (error) {
     console.error("Error getting referral stats:", error);
-    return { referralCount: 0, badges: [] };
+    return { referralCount: 0, badges: [], referrer: null };
   }
 }

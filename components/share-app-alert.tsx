@@ -28,6 +28,7 @@ export function ShareAppAlert() {
   const [referralStats, setReferralStats] = useState<{
     totalReferrals: number;
     activeReferrals: number;
+    referrer?: { id: string; email?: string } | null;
   } | null>(null);
 
   const handleClose = () => {
@@ -43,6 +44,7 @@ export function ShareAppAlert() {
       const formattedStats = {
         totalReferrals: stats.referralCount,
         activeReferrals: stats.badges.length,
+        referrer: stats.referrer,
       };
       setReferralStats(formattedStats);
       setInviteCount(stats.referralCount);
@@ -169,6 +171,14 @@ export function ShareAppAlert() {
                     <br />
                     Quanto mais amigos, mais diversão (e conquistas)! 😄🤝
                   </p>
+                )}
+
+                {/* Exibe quem te indicou, se houver */}
+                {referralStats?.referrer && (
+                  <div className="mt-2 text-blue-800 dark:text-blue-200 text-sm">
+                    <b>Você foi indicado por:</b>{" "}
+                    {referralStats.referrer.email || referralStats.referrer.id}
+                  </div>
                 )}
 
                 <br />
