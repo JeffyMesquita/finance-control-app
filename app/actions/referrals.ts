@@ -11,7 +11,9 @@ type ReferralResult = {
 export async function handleReferral(
   referralId: string
 ): Promise<ReferralResult> {
+  console.log("[Referral] handleReferral chamada", { referralId });
   if (!referralId) {
+    console.log("[Referral] ID de referência não encontrado");
     return {
       success: false,
       message: "ID de referência não encontrado",
@@ -24,7 +26,9 @@ export async function handleReferral(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  console.log("[Referral] Usuário autenticado:", user);
   if (!user) {
+    console.log("[Referral] Usuário não autenticado");
     return {
       success: false,
       message: "Usuário não autenticado",
@@ -33,6 +37,7 @@ export async function handleReferral(
 
   // Prevenir auto-referência
   if (user.id === referralId) {
+    console.log("[Referral] Tentativa de auto-referência");
     return {
       success: false,
       message: "Você não pode se auto-referenciar",
@@ -46,8 +51,10 @@ export async function handleReferral(
       .select("id, email")
       .eq("id", referralId)
       .single();
+    console.log("[Referral] Referrer encontrado:", referrer, referrerError);
 
     if (referrerError || !referrer) {
+      console.log("[Referral] Usuário que está referenciando não encontrado");
       return {
         success: false,
         message: "Usuário que está referenciando não encontrado",
@@ -60,8 +67,10 @@ export async function handleReferral(
       .select("id")
       .eq("referred_id", user.id)
       .single();
+    console.log("[Referral] existingReferral:", existingReferral);
 
     if (existingReferral) {
+      console.log("[Referral] Usuário já foi referenciado anteriormente");
       return {
         success: false,
         message: "Você já foi referenciado anteriormente",
@@ -69,15 +78,17 @@ export async function handleReferral(
     }
 
     // Create referral
+    console.log("[Referral] Inserindo referral na tabela user_invites...");
     const { error: referralError }: { error: unknown } = await supabase
       .from("user_invites")
       .insert({
         referrer_id: referralId,
         referred_id: user.id,
       });
+    console.log("[Referral] Resultado insert:", referralError);
 
     if (referralError) {
-      console.error("Failed to create referral:", referralError);
+      console.error("[Referral] Failed to create referral:", referralError);
       return {
         success: false,
         message: "Erro ao processar referência",
@@ -89,6 +100,7 @@ export async function handleReferral(
       .from("user_invites")
       .select("*", { count: "exact", head: true })
       .eq("referrer_id", referralId);
+    console.log("[Referral] totalReferrals:", totalReferrals);
 
     // Award badges based on referral count
     const badgeThresholds = [5, 10, 25, 50, 100];
@@ -102,7 +114,10 @@ export async function handleReferral(
             user_id: referralId,
             badge_type: `REFERRAL_${threshold}`,
           });
-
+        console.log(
+          `[Referral] Badge para threshold ${threshold}:`,
+          badgeError
+        );
         if (!badgeError) {
           newBadges++;
         }
@@ -110,6 +125,7 @@ export async function handleReferral(
     }
 
     revalidatePath("/");
+    console.log("[Referral] Referral processado com sucesso!", { newBadges });
 
     return {
       success: true,
@@ -118,7 +134,7 @@ export async function handleReferral(
       }`,
     };
   } catch (error) {
-    console.error("Error handling referral:", error);
+    console.error("[Referral] Error handling referral:", error);
     return {
       success: false,
       message: "Erro ao processar referência",

@@ -11,10 +11,21 @@ import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
 import { AuthGuard } from "@/components/auth-guard";
 import { useEffect } from "react";
+import { handleReferral } from "@/app/actions/referrals";
 
 export default function DashboardPage() {
   useEffect(() => {
     localStorage.removeItem("googleLogin");
+
+    // Processa referral_id se existir
+    const processReferral = async () => {
+      const referralId = localStorage.getItem("referral_id");
+      if (referralId) {
+        await handleReferral(referralId);
+        localStorage.removeItem("referral_id");
+      }
+    };
+    processReferral();
   }, []);
 
   return (
