@@ -87,6 +87,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabaseCache } from "@/lib/supabase/cache";
+import { DynamicIcon, LucideIcon } from "./dynamic-icon";
 
 const CACHE_KEY = "transactions-data";
 const MAX_RETRIES = 3;
@@ -643,7 +644,17 @@ export function TransactionsTable() {
                         {formatDate(transaction.date)}
                       </TableCell>
                       <TableCell>{transaction.description}</TableCell>
-                      <TableCell>
+                      <TableCell className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <DynamicIcon
+                            icon={
+                              transaction.category
+                                ?.icon as unknown as LucideIcon
+                            }
+                            size={16}
+                            color={transaction.category?.color}
+                          />
+                        </div>
                         <Badge
                           variant="outline"
                           style={{
