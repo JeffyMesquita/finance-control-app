@@ -11,32 +11,16 @@ import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
 import { AuthGuard } from "@/components/auth-guard";
 import { useEffect } from "react";
+import { ReferralTrigger } from "@/components/referral-trigger";
 
 export default function DashboardPage() {
   useEffect(() => {
     localStorage.removeItem("googleLogin");
-
-    // Processa referral_id se existir
-    const processReferral = async () => {
-      const referralId = localStorage.getItem("referral_id");
-      if (referralId) {
-        try {
-          await fetch("/api/referrals", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ referralId }),
-          });
-        } catch (e) {
-          console.error("Erro ao processar referral via API:", e);
-        }
-        localStorage.removeItem("referral_id");
-      }
-    };
-    processReferral();
   }, []);
 
   return (
     <AuthGuard>
+      <ReferralTrigger />
       <div className="flex flex-col gap-4 p-4 md:p-8">
         <PixSupportAlert />
         <ShareAppAlert />
