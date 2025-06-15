@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { LandingPage } from "@/components/landing-page";
 import { SchemaOrg } from "@/components/schema-org";
 import { websiteData, organizationData } from "@/lib/schema-data";
-import { handleReferral } from "./actions/referrals";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import { useEffect } from "react";
 
 interface HomeProps {
   searchParams: {
@@ -20,18 +20,17 @@ export default async function Home({ searchParams }: HomeProps) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Se tiver um ID de referência, processa o referral
-  if (searchParams.ref) {
-    await handleReferral(searchParams.ref);
-  }
-
-  if (typeof window !== "undefined") {
-    localStorage.setItem("pixAlertDismissed", "false");
-    localStorage.setItem("shareAlertDismissed", "false");
-  }
-
+  // Não processa referral aqui! Apenas redireciona se já estiver logado
   if (session) {
     redirect("/dashboard");
+  }
+
+  // Efeito client-side para capturar o ref e salvar no localStorage
+  if (typeof window !== "undefined" && searchParams.ref) {
+    // Use setTimeout para garantir que rode no client
+    setTimeout(() => {
+      localStorage.setItem("referral_id", searchParams.ref!);
+    }, 0);
   }
 
   return (
@@ -39,7 +38,6 @@ export default async function Home({ searchParams }: HomeProps) {
       <SchemaOrg type="Organization" data={organizationData} />
       <SchemaOrg type="WebSite" data={websiteData} />
       <ServiceWorkerRegistration />
-
       <LandingPage />
     </>
   );

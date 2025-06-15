@@ -22,6 +22,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import ReCAPTCHA from "react-google-recaptcha";
+import { handleReferral } from "@/app/actions/referrals";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -84,8 +85,25 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
+  // Captura o parâmetro ref da URL e salva no localStorage
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      localStorage.setItem("referral_id", ref);
+    }
+  }, [searchParams]);
+
   const handleRecaptcha = (token: string | null) => {
     setRecaptchaToken(token);
+  };
+
+  // Função para processar referência após login/cadastro
+  const tryHandleReferral = async () => {
+    const referralId = localStorage.getItem("referral_id");
+    if (referralId) {
+      await handleReferral(referralId);
+      localStorage.removeItem("referral_id");
+    }
   };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -108,6 +126,7 @@ export default function LoginPage() {
       if (isRegister) {
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
+        await tryHandleReferral();
         router.push("/dashboard");
       }
     } catch (error: any) {
@@ -139,6 +158,8 @@ export default function LoginPage() {
         throw error;
       }
 
+      // Após login Google, processa referência
+      await tryHandleReferral();
       // O redirecionamento será tratado pelo Supabase
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
