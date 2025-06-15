@@ -97,23 +97,6 @@ export default function LoginPage() {
     setRecaptchaToken(token);
   };
 
-  // Função para processar referência após login/cadastro
-  const tryHandleReferral = async () => {
-    const referralId = localStorage.getItem("referral_id");
-    if (referralId) {
-      try {
-        await fetch("/api/referrals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ referralId }),
-        });
-      } catch (e) {
-        console.error("Erro ao processar referral via API:", e);
-      }
-      localStorage.removeItem("referral_id");
-    }
-  };
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -134,7 +117,6 @@ export default function LoginPage() {
       if (isRegister) {
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
-        await tryHandleReferral();
         router.push("/dashboard");
       }
     } catch (error: any) {
@@ -167,7 +149,6 @@ export default function LoginPage() {
       }
 
       // Após login Google, processa referência
-      await tryHandleReferral();
       // O redirecionamento será tratado pelo Supabase
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
