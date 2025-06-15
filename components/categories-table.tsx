@@ -42,13 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getCategories, deleteCategory } from "@/app/actions/categories";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/components/ui/use-mobile";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import {
@@ -60,6 +54,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabaseCache } from "@/lib/supabase/cache";
+import { DynamicIcon } from "@/components/dynamic-icon";
 
 const CACHE_KEY = "categories-data";
 const MAX_RETRIES = 3;
@@ -70,6 +65,7 @@ type Category = {
   name: string;
   type: string;
   color: string;
+  icon?: string;
 };
 
 export function CategoriesTable() {
@@ -226,7 +222,18 @@ export function CategoriesTable() {
             >
               <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                 <div>
-                  <CardTitle className="text-base">{category.name}</CardTitle>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {category.icon && (
+                      <DynamicIcon
+                        icon={
+                          category.icon as keyof typeof import("lucide-react")
+                        }
+                        size={20}
+                        color={category.color}
+                      />
+                    )}
+                    {category.name}
+                  </CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
                   <div
@@ -303,7 +310,18 @@ export function CategoriesTable() {
             <TableBody>
               {filteredCategories.map((category) => (
                 <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="font-medium flex items-center gap-2">
+                    {category.icon && (
+                      <DynamicIcon
+                        icon={
+                          category.icon as keyof typeof import("lucide-react")
+                        }
+                        size={20}
+                        color={category.color}
+                      />
+                    )}
+                    {category.name}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={
@@ -313,6 +331,7 @@ export function CategoriesTable() {
                       {translateType(category.type)}
                     </Badge>
                   </TableCell>
+
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div

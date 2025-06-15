@@ -76,6 +76,7 @@ export default function ConfiguracoesPage() {
       toast({
         title: "Configurações atualizadas",
         description: "Suas preferências foram atualizadas com sucesso.",
+        variant: "success",
       });
     } catch (error) {
       console.error("Erro ao atualizar configurações:", error);

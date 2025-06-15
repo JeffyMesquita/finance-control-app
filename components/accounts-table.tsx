@@ -52,6 +52,7 @@ export function AccountsTable({
       toast({
         title: "Sucesso",
         description: "Conta excluída com sucesso.",
+        variant: "success",
       });
     } catch (error) {
       console.error("Error deleting account:", error);

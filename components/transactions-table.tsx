@@ -197,6 +197,7 @@ export function TransactionsTable() {
       toast({
         title: "Sucesso",
         description: "Transação excluída com sucesso.",
+        variant: "success",
       });
       fetchTransactions();
     } catch (error) {
@@ -207,11 +208,6 @@ export function TransactionsTable() {
         variant: "destructive",
       });
     }
-  };
-
-  // Traduzir tipos de transação
-  const translateType = (type: string) => {
-    return type === "INCOME" ? "Receita" : "Despesa";
   };
 
   const handleSelectAll = (checked: boolean) => {

@@ -1,38 +1,44 @@
-"use server"
+"use server";
 
-import { revalidatePath } from "next/cache"
-import { createActionClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types"
+import { revalidatePath } from "next/cache";
+import { createActionClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
 export async function getCategories() {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const { data, error } = await supabase.from("categories").select("*").eq("user_id", user.id).order("name")
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name");
 
   if (error) {
-    console.error("Error fetching categories:", error)
-    return []
+    console.error("Error fetching categories:", error);
+    return [];
   }
 
-  return data
+  return data;
 }
 
-export async function createCategory(category: Omit<InsertTables<"categories">, "user_id">) {
-  const supabase = createActionClient()
+export async function createCategory(
+  category: Omit<InsertTables<"categories">, "user_id">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
@@ -41,26 +47,32 @@ export async function createCategory(category: Omit<InsertTables<"categories">, 
       ...category,
       user_id: user.id,
     })
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error creating category:", error)
-    return { success: false, error: error.message }
+    console.error("Error creating category:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/categories")
+  revalidatePath("/dashboard/categories");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
-export async function updateCategory(id: string, category: UpdateTables<"categories">) {
-  const supabase = createActionClient()
+export async function updateCategory(
+  id: string,
+  category: Omit<
+    UpdateTables<"categories">,
+    "user_id" | "created_at" | "updated_at"
+  >
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
@@ -68,36 +80,40 @@ export async function updateCategory(id: string, category: UpdateTables<"categor
     .update(category)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error updating category:", error)
-    return { success: false, error: error.message }
+    console.error("Error updating category:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/categories")
+  revalidatePath("/dashboard/categories");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
 export async function deleteCategory(id: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const { error } = await supabase.from("categories").delete().eq("id", id).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting category:", error)
-    return { success: false, error: error.message }
+    console.error("Error deleting category:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/categories")
+  revalidatePath("/dashboard/categories");
 
-  return { success: true }
+  return { success: true };
 }

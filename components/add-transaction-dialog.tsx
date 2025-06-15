@@ -249,6 +249,7 @@ export function AddTransactionDialog({
         toast({
           title: "Sucesso",
           description: `Transação parcelada em ${installments}x criada com sucesso`,
+          variant: "success",
         });
       } else {
         // Transação única (não parcelada)

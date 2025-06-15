@@ -21,6 +21,11 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { createCategory, updateCategory } from "@/app/actions/categories";
+import * as LucideIcons from "lucide-react";
+import { DynamicIcon, LucideIcon } from "./dynamic-icon";
+import React from "react";
+import { lucideIconList } from "./lucide-icon-list";
+import { cn } from "@/lib/utils";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -28,6 +33,8 @@ interface CategoryDialogProps {
   category?: any;
   onSuccess?: () => void;
 }
+
+const iconOptions: LucideIcon[] = lucideIconList;
 
 export function CategoryDialog({
   open,
@@ -39,36 +46,39 @@ export function CategoryDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    type: "EXPENSE",
+    type: "EXPENSE" as "EXPENSE" | "INCOME",
     color: "#64748b",
+    icon: null,
   });
 
   useEffect(() => {
     if (open && category) {
       setFormData({
         name: category.name || "",
-        type: category.type || "EXPENSE",
+        type: category.type || ("EXPENSE" as "EXPENSE" | "INCOME"),
         color: category.color || "#64748b",
+        icon: category.icon || null,
       });
     } else if (open) {
       setFormData({
         name: "",
-        type: "EXPENSE",
+        type: "EXPENSE" as "EXPENSE" | "INCOME",
         color: "#64748b",
+        icon: null,
       });
     }
   }, [open, category]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name, value) => {
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -88,7 +98,7 @@ export function CategoryDialog({
             "Sua nova categoria foi criada com sucesso e já está disponível para uso.",
           variant: "success",
         });
-        onSuccess();
+        onSuccess?.();
         onOpenChange(false);
       } else {
         throw new Error(result.error || "Falha ao criar categoria");
@@ -165,6 +175,37 @@ export function CategoryDialog({
                   className="flex-1"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="icon">Ícone</Label>
+              <Select
+                value={formData.icon || ""}
+                onValueChange={(value) => handleSelectChange("icon", value)}
+              >
+                <SelectTrigger id="icon">
+                  <div className="flex items-center gap-2">
+                    <SelectValue placeholder="Selecione um ícone" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {iconOptions.map((iconName) => {
+                    return (
+                      <SelectItem key={iconName} value={iconName}>
+                        <div className={cn("flex items-center gap-2")}>
+                          <DynamicIcon
+                            icon={iconName}
+                            size={18}
+                            color={formData.color}
+                          />
+                          <span className="text-sm font-bold italic">
+                            {iconName}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
