@@ -99,6 +99,7 @@ export default function LoginPage() {
 
   // Função para processar referência após login/cadastro
   const tryHandleReferral = async () => {
+    console.log("tryHandleReferral");
     const referralId = localStorage.getItem("referral_id");
     if (referralId) {
       try {
