@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerClient } from "@/lib/supabase/server";
+import { createActionClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 type ReferralResult = {
@@ -20,7 +20,7 @@ export async function handleReferral(
     };
   }
 
-  const supabase = createServerClient();
+  const supabase = createActionClient();
 
   // Get current user
   const {
@@ -143,7 +143,7 @@ export async function handleReferral(
 }
 
 export async function getReferralStats() {
-  const supabase = createServerClient();
+  const supabase = createActionClient();
 
   // Get current user
   const {
