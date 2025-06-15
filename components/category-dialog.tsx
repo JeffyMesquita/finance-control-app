@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { createCategory, updateCategory } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,12 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { createCategory, updateCategory } from "@/app/actions/categories";
-import * as LucideIcons from "lucide-react";
-import { DynamicIcon, LucideIcon } from "./dynamic-icon";
-import React from "react";
-import { lucideIconList } from "./lucide-icon-list";
 import { cn } from "@/lib/utils";
+import React, { useEffect, useState } from "react";
+import { DynamicIcon, LucideIcon } from "./dynamic-icon";
+import { lucideIconList } from "./lucide-icon-list";
 
 interface CategoryDialogProps {
   open: boolean;
