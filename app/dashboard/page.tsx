@@ -11,7 +11,6 @@ import { ShareAppAlert } from "@/components/share-app-alert";
 import { PaymentReminders } from "@/components/payment-reminders";
 import { AuthGuard } from "@/components/auth-guard";
 import { useEffect } from "react";
-import { handleReferral } from "@/app/actions/referrals";
 
 export default function DashboardPage() {
   useEffect(() => {
@@ -21,7 +20,15 @@ export default function DashboardPage() {
     const processReferral = async () => {
       const referralId = localStorage.getItem("referral_id");
       if (referralId) {
-        await handleReferral(referralId);
+        try {
+          await fetch("/api/referrals", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ referralId }),
+          });
+        } catch (e) {
+          console.error("Erro ao processar referral via API:", e);
+        }
         localStorage.removeItem("referral_id");
       }
     };
