@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,19 +29,63 @@ import {
   MapPin,
   Briefcase,
   Save,
+  Search,
 } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "@/app/actions/profile";
 import type { UserProfile } from "@/lib/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
+// Hook personalizado para debounce
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export default function PerfilPage() {
   const { user, loading: userLoading } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCepLoading, setIsCepLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [cepValue, setCepValue] = useState("");
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  // Debounce do CEP para evitar muitas requisições
+  const debouncedCep = useDebounce(cepValue, 500);
+
+  // Perfil inicial com campos em branco
+  const initialProfile = useMemo(
+    (): UserProfile => ({
+      id: user?.id || "",
+      full_name: "",
+      phone: "",
+      birth_date: "",
+      document_id: "",
+      address: "",
+      city: "",
+      state: "",
+      postal_code: "",
+      profile_image: "",
+      bio: "",
+      profession: "",
+      created_at: null,
+      updated_at: null,
+    }),
+    [user?.id]
+  );
 
   useEffect(() => {
     if (userLoading) return;
@@ -51,18 +95,94 @@ export default function PerfilPage() {
     }
     setIsLoading(true);
     getUserProfile()
-      .then((profileData) => setProfile(profileData))
+      .then((profileData) => {
+        if (profileData) {
+          setProfile(profileData);
+          setCepValue(profileData.postal_code || "");
+        } else {
+          // Se não há perfil, usa o perfil inicial
+          setProfile(initialProfile);
+        }
+      })
       .catch((error) => {
         console.error("Erro ao carregar perfil:", error);
+        // Em caso de erro, usa o perfil inicial
+        setProfile(initialProfile);
         toast({
-          title: "Erro",
+          title: "Aviso",
           description:
-            "Não foi possível carregar seu perfil. Tente novamente mais tarde.",
-          variant: "destructive",
+            "Perfil não encontrado. Você pode criar um novo preenchendo as informações abaixo.",
+          variant: "default",
         });
       })
       .finally(() => setIsLoading(false));
-  }, [user, userLoading, router, toast]);
+  }, [user, userLoading, router, toast, initialProfile]);
+
+  // Função para buscar endereço por CEP
+  const fetchAddressByCep = useCallback(
+    async (cep: string) => {
+      if (!cep || cep.length < 8) return;
+
+      // Remove caracteres não numéricos
+      const cleanCep = cep.replace(/\D/g, "");
+      if (cleanCep.length !== 8) return;
+
+      setIsCepLoading(true);
+
+      try {
+        const response = await fetch(
+          `https://viacep.com.br/ws/${cleanCep}/json/`
+        );
+        const data = await response.json();
+
+        if (data.erro) {
+          toast({
+            title: "CEP não encontrado",
+            description: "O CEP informado não foi encontrado.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Atualiza os campos de endereço
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                address: data.logradouro || prev.address,
+                city: data.localidade || prev.city,
+                state: data.uf || prev.state,
+                postal_code: cleanCep,
+              }
+            : null
+        );
+
+        toast({
+          title: "Endereço encontrado",
+          description:
+            "Os campos de endereço foram preenchidos automaticamente.",
+          variant: "success",
+        });
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+        toast({
+          title: "Erro ao buscar CEP",
+          description: "Não foi possível buscar o endereço. Tente novamente.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCepLoading(false);
+      }
+    },
+    [toast]
+  );
+
+  // Efeito para buscar CEP quando o valor mudar
+  useEffect(() => {
+    if (debouncedCep && debouncedCep !== profile?.postal_code) {
+      fetchAddressByCep(debouncedCep);
+    }
+  }, [debouncedCep, fetchAddressByCep, profile?.postal_code]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,12 +215,41 @@ export default function PerfilPage() {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
-  };
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const { name, value } = e.target;
+
+      setProfile((prev) => {
+        if (!prev) {
+          // Se não há perfil anterior, cria um novo com o campo atualizado
+          return {
+            ...initialProfile,
+            [name]: value,
+          };
+        }
+
+        return {
+          ...prev,
+          [name]: value,
+        };
+      });
+
+      // Atualiza o CEP local para o debounce
+      if (name === "postal_code") {
+        setCepValue(value);
+      }
+    },
+    [initialProfile]
+  );
+
+  const handleCepChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setCepValue(value);
+      handleInputChange(e);
+    },
+    [handleInputChange]
+  );
 
   if (isLoading) {
     return (
@@ -315,14 +464,33 @@ export default function PerfilPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">CEP</Label>
-                    <Input
-                      id="postal_code"
-                      name="postal_code"
-                      value={profile?.postal_code || ""}
-                      onChange={handleInputChange}
-                      placeholder="00000-000"
-                    />
+                    <Label
+                      htmlFor="postal_code"
+                      className="flex items-center gap-2"
+                    >
+                      CEP
+                      {isCepLoading && (
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      )}
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="postal_code"
+                        name="postal_code"
+                        value={profile?.postal_code || ""}
+                        onChange={handleCepChange}
+                        placeholder="00000-000"
+                        maxLength={9}
+                      />
+                      {isCepLoading && (
+                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                          <Search className="h-4 w-4 text-muted-foreground animate-pulse" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Digite o CEP para preenchimento automático do endereço
+                    </p>
                   </div>
                 </div>
 
