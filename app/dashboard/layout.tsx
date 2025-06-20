@@ -3,7 +3,7 @@
 import { DashboardNav } from "@/components/dashboard-nav";
 import { Logo } from "@/components/logo";
 import { MobileNav } from "@/components/mobile-nav";
-
+import { FeedbackButton } from "@/components/feedback-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserNav } from "@/components/user-nav";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -36,6 +36,7 @@ export default function DashboardLayout({
         </aside>
         <main className="flex flex-1 flex-col">{children}</main>
       </div>
+      <FeedbackButton />
     </div>
   );
 }

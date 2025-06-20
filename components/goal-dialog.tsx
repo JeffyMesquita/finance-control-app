@@ -438,8 +438,8 @@ export function GoalDialog({
                   ? "Atualizando..."
                   : "Criando..."
                 : isEditing
-                ? "Atualizar Meta"
-                : "Criar Meta"}
+                  ? "Atualizar Meta"
+                  : "Criar Meta"}
             </Button>
           </DialogFooter>
         </form>

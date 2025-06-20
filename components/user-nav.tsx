@@ -12,9 +12,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserIcon, Settings, LogOut, Sun, Moon, BellPlus } from "lucide-react";
+import {
+  UserIcon,
+  Settings,
+  LogOut,
+  Sun,
+  Moon,
+  BellPlus,
+  MessageSquare,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { AlertReminderModal } from "@/components/alert-reminder-modal";
+import { FeedbackDialog } from "@/components/feedback-dialog";
 import { useState } from "react";
 
 export function UserNav({ user }: { user?: any }) {
@@ -83,6 +92,14 @@ export function UserNav({ user }: { user?: any }) {
             <Settings className="mr-2 h-4 w-4" />
             Configurações
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+
+          <FeedbackDialog>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Enviar Feedback
+            </DropdownMenuItem>
+          </FeedbackDialog>
           <DropdownMenuSeparator />
 
           <DropdownMenuItem onClick={handleThemeChange}>
