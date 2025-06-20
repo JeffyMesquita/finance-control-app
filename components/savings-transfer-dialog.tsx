@@ -139,7 +139,7 @@ export function SavingsTransferDialog({
   const selectedDestinationBox = availableBoxes.find(
     (box) => box.id === form.watch("to_box_id")
   );
-  const currentAmount = fromSavingsBox.current_amount || 0;
+  const currentAmount = (fromSavingsBox.current_amount || 0) / 100;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -203,7 +203,7 @@ export function SavingsTransferDialog({
                   <div className="text-sm text-muted-foreground">
                     Saldo atual: R${" "}
                     {(
-                      selectedDestinationBox.current_amount || 0
+                      (selectedDestinationBox.current_amount || 0) / 100
                     ).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </div>
                 </div>
@@ -252,15 +252,16 @@ export function SavingsTransferDialog({
                                 <div className="font-medium">{box.name}</div>
                                 <div className="text-xs text-muted-foreground">
                                   R${" "}
-                                  {(box.current_amount || 0).toLocaleString(
-                                    "pt-BR",
-                                    { minimumFractionDigits: 2 }
-                                  )}
+                                  {(
+                                    (box.current_amount || 0) / 100
+                                  ).toLocaleString("pt-BR", {
+                                    minimumFractionDigits: 2,
+                                  })}
                                   {box.target_amount && (
                                     <span>
                                       {" "}
                                       / R${" "}
-                                      {box.target_amount.toLocaleString(
+                                      {(box.target_amount / 100).toLocaleString(
                                         "pt-BR",
                                         { minimumFractionDigits: 2 }
                                       )}

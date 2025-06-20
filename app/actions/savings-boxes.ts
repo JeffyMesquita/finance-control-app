@@ -15,30 +15,63 @@ export async function getSavingsBoxes() {
     redirect("/login");
   }
 
-  const { data, error } = await supabase
-    .from("savings_boxes")
-    .select(
+  try {
+    // Primeiro, tentar a query completa com relacionamentos
+    const { data, error } = await supabase
+      .from("savings_boxes")
+      .select(
+        `
+        *,
+        savings_transactions(
+          id,
+          amount,
+          type,
+          description,
+          created_at
+        )
       `
-      *,
-      savings_transactions(
-        id,
-        amount,
-        type,
-        description,
-        created_at
       )
-    `
-    )
-    .eq("user_id", user.id)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching savings boxes:", error);
+    if (error) {
+      console.error("Error fetching savings boxes with transactions:", error);
+
+      // Fallback: buscar sem relacionamentos se houver erro
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from("savings_boxes")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (fallbackError) {
+        console.error(
+          "Error fetching savings boxes (fallback):",
+          fallbackError
+        );
+        return [];
+      }
+
+      // Adicionar array vazio de transações para manter compatibilidade
+      const dataWithEmptyTransactions = fallbackData.map((box) => ({
+        ...box,
+        savings_transactions: [],
+      }));
+
+      console.log(
+        "✅ Fallback successful, returning data without transactions"
+      );
+      return dataWithEmptyTransactions;
+    }
+
+    console.log("✅ Successfully fetched savings boxes with transactions");
+    return data;
+  } catch (err) {
+    console.error("Unexpected error in getSavingsBoxes:", err);
     return [];
   }
-
-  return data;
 }
 
 export async function getSavingsBoxById(id: string) {
@@ -100,12 +133,21 @@ export async function createSavingsBox(
     return { success: false, error: "Meta deve ser maior que zero" };
   }
 
+  // Converter valores de reais para centavos
+  const savingsBoxData = {
+    ...savingsBox,
+    current_amount: savingsBox.current_amount
+      ? Math.round(savingsBox.current_amount * 100)
+      : 0,
+    target_amount: savingsBox.target_amount
+      ? Math.round(savingsBox.target_amount * 100)
+      : null,
+    user_id: user.id,
+  };
+
   const { data, error } = await supabase
     .from("savings_boxes")
-    .insert({
-      ...savingsBox,
-      user_id: user.id,
-    })
+    .insert(savingsBoxData)
     .select()
     .single();
 
@@ -149,9 +191,23 @@ export async function updateSavingsBox(
     return { success: false, error: "Meta deve ser maior que zero" };
   }
 
+  // Converter valores de reais para centavos se estiverem presentes
+  const updateData = { ...savingsBox };
+  if (updateData.current_amount !== undefined) {
+    updateData.current_amount = updateData.current_amount
+      ? Math.round(updateData.current_amount * 100)
+      : 0;
+  }
+  if (
+    updateData.target_amount !== undefined &&
+    updateData.target_amount !== null
+  ) {
+    updateData.target_amount = Math.round(updateData.target_amount * 100);
+  }
+
   const { data, error } = await supabase
     .from("savings_boxes")
-    .update(savingsBox)
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id)
     .select()

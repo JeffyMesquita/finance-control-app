@@ -1,152 +1,193 @@
-"use server"
+"use server";
 
-import { revalidatePath } from "next/cache"
-import { createActionClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types"
+import { revalidatePath } from "next/cache";
+import { createActionClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
 export async function getGoals() {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
     .from("financial_goals")
-    .select(`
+    .select(
+      `
       *,
       category:categories(*),
-      account:financial_accounts(*)
-    `)
+      account:financial_accounts(*),
+      savings_box:savings_boxes(
+        id,
+        name,
+        color,
+        current_amount
+      )
+    `
+    )
     .eq("user_id", user.id)
-    .order("target_date", { ascending: true })
+    .order("target_date", { ascending: true });
 
   if (error) {
-    console.error("Error fetching goals:", error)
-    return []
+    console.error("Error fetching goals:", error);
+    return [];
   }
 
-  return data
+  return data;
 }
 
 export async function getGoalById(id: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
     .from("financial_goals")
-    .select(`
+    .select(
+      `
       *,
       category:categories(*),
-      account:financial_accounts(*)
-    `)
+      account:financial_accounts(*),
+      savings_box:savings_boxes(
+        id,
+        name,
+        color,
+        current_amount
+      )
+    `
+    )
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (error) {
-    console.error("Error fetching goal:", error)
-    return null
+    console.error("Error fetching goal:", error);
+    return null;
   }
 
-  return data
+  return data;
 }
 
-export async function createGoal(goal: Omit<InsertTables<"financial_goals">, "user_id">) {
-  const supabase = createActionClient()
+export async function createGoal(
+  goal: Omit<InsertTables<"financial_goals">, "user_id">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
+  }
+
+  // Converter valores de reais para centavos
+  const goalData = {
+    ...goal,
+    target_amount: Math.round(goal.target_amount * 100),
+    current_amount: goal.current_amount
+      ? Math.round(goal.current_amount * 100)
+      : 0,
+    user_id: user.id,
+  };
+
+  const { data, error } = await supabase
+    .from("financial_goals")
+    .insert(goalData)
+    .select();
+
+  if (error) {
+    console.error("Error creating goal:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/goals");
+
+  return { success: true, data };
+}
+
+export async function updateGoal(
+  id: string,
+  goal: UpdateTables<"financial_goals">
+) {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Converter valores de reais para centavos se estiverem presentes
+  const updateData = { ...goal };
+  if (updateData.target_amount !== undefined) {
+    updateData.target_amount = Math.round(updateData.target_amount * 100);
+  }
+  if (updateData.current_amount !== undefined) {
+    updateData.current_amount = Math.round(updateData.current_amount * 100);
   }
 
   const { data, error } = await supabase
     .from("financial_goals")
-    .insert({
-      ...goal,
-      user_id: user.id,
-    })
-    .select()
-
-  if (error) {
-    console.error("Error creating goal:", error)
-    return { success: false, error: error.message }
-  }
-
-  revalidatePath("/dashboard/goals")
-
-  return { success: true, data }
-}
-
-export async function updateGoal(id: string, goal: UpdateTables<"financial_goals">) {
-  const supabase = createActionClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    redirect("/login")
-  }
-
-  const { data, error } = await supabase
-    .from("financial_goals")
-    .update(goal)
+    .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error updating goal:", error)
-    return { success: false, error: error.message }
+    console.error("Error updating goal:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/goals")
+  revalidatePath("/dashboard/goals");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
 export async function deleteGoal(id: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const { error } = await supabase.from("financial_goals").delete().eq("id", id).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("financial_goals")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting goal:", error)
-    return { success: false, error: error.message }
+    console.error("Error deleting goal:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/goals")
+  revalidatePath("/dashboard/goals");
 
-  return { success: true }
+  return { success: true };
 }
 
 export async function updateGoalProgress(id: string, amount: number) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   // Get the current goal
@@ -155,16 +196,19 @@ export async function updateGoalProgress(id: string, amount: number) {
     .select("current_amount, target_amount")
     .eq("id", id)
     .eq("user_id", user.id)
-    .single()
+    .single();
 
   if (fetchError) {
-    console.error("Error fetching goal:", fetchError)
-    return { success: false, error: fetchError.message }
+    console.error("Error fetching goal:", fetchError);
+    return { success: false, error: fetchError.message };
   }
 
-  // Calculate new amount
-  const newAmount = goal.current_amount + amount
-  const isCompleted = newAmount >= goal.target_amount
+  // Convert contribution amount to cents
+  const amountInCents = Math.round(amount * 100);
+
+  // Calculate new amount (both values are already in cents)
+  const newAmount = goal.current_amount + amountInCents;
+  const isCompleted = newAmount >= goal.target_amount;
 
   // Update the goal
   const { data, error } = await supabase
@@ -175,14 +219,14 @@ export async function updateGoalProgress(id: string, amount: number) {
     })
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error updating goal progress:", error)
-    return { success: false, error: error.message }
+    console.error("Error updating goal progress:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/goals")
+  revalidatePath("/dashboard/goals");
 
-  return { success: true, data }
+  return { success: true, data };
 }

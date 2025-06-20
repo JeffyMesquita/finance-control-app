@@ -152,7 +152,7 @@ export function SavingsTransactionDialog({
   const selectedAccount = accounts.find(
     (acc) => acc.id === form.watch("source_account_id")
   );
-  const currentAmount = savingsBox.current_amount || 0;
+  const currentAmount = (savingsBox.current_amount || 0) / 100;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -258,9 +258,12 @@ export function SavingsTransactionDialog({
                               <div className="font-medium">{account.name}</div>
                               <div className="text-xs text-muted-foreground">
                                 Saldo: R${" "}
-                                {account.balance?.toLocaleString("pt-BR", {
-                                  minimumFractionDigits: 2,
-                                }) || "0,00"}
+                                {((account.balance || 0) / 100)?.toLocaleString(
+                                  "pt-BR",
+                                  {
+                                    minimumFractionDigits: 2,
+                                  }
+                                ) || "0,00"}
                               </div>
                             </div>
                           </div>
@@ -281,7 +284,7 @@ export function SavingsTransactionDialog({
             {/* Validação de saldo para depósito */}
             {isDeposit && selectedAccount && form.watch("amount") && (
               <div className="text-sm">
-                {selectedAccount.balance < form.watch("amount") ? (
+                {selectedAccount.balance / 100 < form.watch("amount") ? (
                   <div className="text-red-600 bg-red-50 p-2 rounded">
                     ⚠️ Saldo insuficiente na conta selecionada
                   </div>

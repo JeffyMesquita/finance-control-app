@@ -20,17 +20,100 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
 import { createGoal, updateGoal } from "@/app/actions/goals";
 import { getAccounts } from "@/app/actions/accounts";
 import { getCategories } from "@/app/actions/categories";
+import { getSavingsBoxes } from "@/app/actions/savings-boxes";
+
+type Category = {
+  id: string;
+  name: string;
+  type: string;
+  icon: string;
+  color: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type Account = {
+  id: string;
+  name: string;
+  type: string;
+  balance: number;
+  currency: string;
+};
+
+type SavingsBox = {
+  id: string;
+  name: string;
+  current_amount: number;
+  color: string;
+  icon: string;
+};
+
+type Goal = {
+  id: string;
+  name: string;
+  target_amount: number;
+  current_amount: number;
+  start_date: string;
+  target_date: string;
+  category_id: string | null;
+  account_id: string;
+  savings_box_id: string | null;
+  is_completed: boolean;
+  user_id: string;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+type FormData = {
+  name: string;
+  target_amount: string;
+  current_amount: string;
+  start_date: string;
+  target_date: string;
+  category_id: string;
+  savings_box_id: string;
+};
 
 interface GoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goal?: any;
+  goal?: Goal;
   onSuccess?: () => void;
 }
+
+// Função utilitária para obter a data atual local
+const getCurrentLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// Função para obter data 90 dias no futuro
+const getFutureDate = (days: number = 90) => {
+  const future = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  const year = future.getFullYear();
+  const month = String(future.getMonth() + 1).padStart(2, "0");
+  const day = String(future.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const INITIAL_FORM_DATA: FormData = {
+  name: "",
+  target_amount: "",
+  current_amount: "0",
+  start_date: getCurrentLocalDate(),
+  target_date: getFutureDate(),
+  category_id: "",
+  savings_box_id: "",
+};
 
 export function GoalDialog({
   open,
@@ -40,26 +123,19 @@ export function GoalDialog({
 }: GoalDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [accounts, setAccounts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    target_amount: "",
-    current_amount: "0",
-    start_date: new Date().toISOString().split("T")[0],
-    target_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-    category_id: "",
-    account_id: "",
-  });
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBox[]>([]);
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+
+  const isEditing = !!goal;
 
   useEffect(() => {
     if (open) {
       fetchData();
 
       if (goal) {
-        // Format dates for input
+        // Formato das datas para input
         const startDate = new Date(goal.start_date).toISOString().split("T")[0];
         const targetDate = new Date(goal.target_date)
           .toISOString()
@@ -67,49 +143,33 @@ export function GoalDialog({
 
         setFormData({
           name: goal.name,
-          target_amount: goal.target_amount.toString(),
-          current_amount: goal.current_amount.toString(),
+          target_amount: (goal.target_amount / 100).toString(),
+          current_amount: (goal.current_amount / 100).toString(),
           start_date: startDate,
           target_date: targetDate,
           category_id: goal.category_id || "",
-          account_id: goal.account_id,
+          savings_box_id: goal.savings_box_id || "",
         });
       } else {
-        // Reset form for new goal
-        setFormData({
-          name: "",
-          target_amount: "",
-          current_amount: "0",
-          start_date: new Date().toISOString().split("T")[0],
-          target_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0],
-          category_id: "",
-          account_id: "",
-        });
+        // Reset form para nova meta
+        setFormData(INITIAL_FORM_DATA);
       }
     }
   }, [open, goal]);
 
   async function fetchData() {
     try {
-      const [accountsData, categoriesData] = await Promise.all([
-        getAccounts(),
-        getCategories(),
-      ]);
+      const [accountsData, categoriesData, savingsBoxesData] =
+        await Promise.all([getAccounts(), getCategories(), getSavingsBoxes()]);
       setAccounts(accountsData);
       setCategories(categoriesData.filter((c) => c.type === "EXPENSE"));
-
-      // Set default account if available
-      if (accountsData.length > 0 && !formData.account_id) {
-        setFormData((prev) => ({ ...prev, account_id: accountsData[0].id }));
-      }
+      setSavingsBoxes(savingsBoxesData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Erro ao carregar dados:", error);
       toast({
         title: "Erro ao Carregar",
         description:
-          "Não foi possível carregar as contas e categorias. Tente novamente mais tarde.",
+          "Não foi possível carregar as contas, categorias e cofrinhos. Tente novamente mais tarde.",
         variant: "destructive",
       });
     }
@@ -124,48 +184,77 @@ export function GoalDialog({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCurrencyChange =
+    (field: "target_amount" | "current_amount") => (value: number | null) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value?.toString() || "",
+      }));
+    };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Format the data
+      // Validações
+      if (!formData.name.trim()) {
+        throw new Error("O nome da meta é obrigatório");
+      }
+
+      if (!formData.target_amount || Number(formData.target_amount) <= 0) {
+        throw new Error("O valor da meta deve ser maior que zero");
+      }
+
+      if (!accounts[0]?.id) {
+        throw new Error("Nenhuma conta disponível");
+      }
+
+      if (new Date(formData.target_date) <= new Date(formData.start_date)) {
+        throw new Error("A data alvo deve ser posterior à data de início");
+      }
+
+      // Formatar os dados
       const goalData = {
-        ...formData,
+        name: formData.name.trim(),
         target_amount: Number.parseFloat(formData.target_amount),
         current_amount: Number.parseFloat(formData.current_amount),
         start_date: new Date(formData.start_date).toISOString(),
         target_date: new Date(formData.target_date).toISOString(),
+        category_id: formData.category_id || null,
+        account_id: accounts[0].id, // Sempre usa a primeira conta
+        savings_box_id: formData.savings_box_id || null,
       };
 
       let result;
 
-      if (goal) {
-        // Update existing goal
+      if (isEditing) {
         result = await updateGoal(goal.id, goalData);
       } else {
-        // Create new goal
         result = await createGoal(goalData);
       }
 
       if (result.success) {
         toast({
-          title: "Meta Criada",
-          description:
-            "Sua meta financeira foi criada com sucesso e já está disponível no dashboard.",
+          title: isEditing ? "Meta Atualizada" : "Meta Criada",
+          description: isEditing
+            ? "Sua meta financeira foi atualizada com sucesso."
+            : "Sua meta financeira foi criada com sucesso e já está disponível no dashboard.",
           variant: "success",
         });
-        onSuccess();
+        onSuccess?.();
         onOpenChange(false);
       } else {
-        throw new Error(result.error || "Falha ao criar meta");
+        throw new Error(result.error || "Falha ao processar meta");
       }
     } catch (error) {
-      console.error("Erro ao criar meta:", error);
+      console.error("Erro ao processar meta:", error);
       toast({
-        title: "Erro ao Criar",
+        title: isEditing ? "Erro ao Atualizar" : "Erro ao Criar",
         description:
-          "Não foi possível criar sua meta financeira. Tente novamente mais tarde.",
+          error instanceof Error
+            ? error.message
+            : "Não foi possível processar sua meta financeira. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {
@@ -178,55 +267,66 @@ export function GoalDialog({
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{goal ? "Edit" : "Create"} Financial Goal</DialogTitle>
+            <DialogTitle>
+              {isEditing ? "Editar Meta Financeira" : "Nova Meta Financeira"}
+            </DialogTitle>
             <DialogDescription>
-              {goal
-                ? "Update your financial goal details."
-                : "Set a new financial goal to track your savings progress."}
+              {isEditing
+                ? "Atualize os detalhes da sua meta financeira."
+                : "Defina uma nova meta financeira para acompanhar o progresso das suas economias."}
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-4 py-4">
+            {/* Nome da Meta */}
             <div className="space-y-2">
-              <Label htmlFor="name">Goal Name</Label>
+              <Label htmlFor="name">Nome da Meta</Label>
               <Input
                 id="name"
                 name="name"
+                placeholder="Ex: Viagem para Europa"
                 value={formData.name}
                 onChange={handleChange}
                 required
               />
             </div>
+
+            {/* Valores */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="target_amount">Target Amount</Label>
-                <Input
+                <Label htmlFor="target_amount">Valor Alvo</Label>
+                <CurrencyInput
                   id="target_amount"
                   name="target_amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.target_amount}
-                  onChange={handleChange}
+                  placeholder="R$ 0,00"
+                  value={
+                    formData.target_amount ? Number(formData.target_amount) : 0
+                  }
+                  onValueChange={handleCurrencyChange("target_amount")}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="current_amount">Current Amount</Label>
-                <Input
+                <Label htmlFor="current_amount">Valor Atual</Label>
+                <CurrencyInput
                   id="current_amount"
                   name="current_amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.current_amount}
-                  onChange={handleChange}
+                  placeholder="R$ 0,00"
+                  value={
+                    formData.current_amount
+                      ? Number(formData.current_amount)
+                      : 0
+                  }
+                  onValueChange={handleCurrencyChange("current_amount")}
                   required
                 />
               </div>
             </div>
+
+            {/* Datas */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date</Label>
+                <Label htmlFor="start_date">Data de Início</Label>
                 <Input
                   id="start_date"
                   name="start_date"
@@ -237,7 +337,7 @@ export function GoalDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="target_date">Target Date</Label>
+                <Label htmlFor="target_date">Data Alvo</Label>
                 <Input
                   id="target_date"
                   name="target_date"
@@ -248,17 +348,17 @@ export function GoalDialog({
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="account">Account</Label>
+
+            {/* Conta */}
+            <div className="space-y-2 hidden">
+              <Label htmlFor="account">Conta</Label>
               <Select
-                value={formData.account_id}
-                onValueChange={(value) =>
-                  handleSelectChange("account_id", value)
-                }
+                value={accounts[0]?.id || ""}
+                onValueChange={() => {}} // Select está oculto, não precisa fazer nada
                 required
               >
                 <SelectTrigger id="account">
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder="Selecione uma conta" />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((account) => (
@@ -269,19 +369,24 @@ export function GoalDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Categoria */}
             <div className="space-y-2">
-              <Label htmlFor="category">Category (Optional)</Label>
+              <Label htmlFor="category">Categoria (Opcional)</Label>
               <Select
-                value={formData.category_id}
+                value={formData.category_id || "none"}
                 onValueChange={(value) =>
-                  handleSelectChange("category_id", value)
+                  handleSelectChange(
+                    "category_id",
+                    value === "none" ? "" : value
+                  )
                 }
               >
                 <SelectTrigger id="category">
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="none">Nenhuma</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.name}
@@ -290,23 +395,51 @@ export function GoalDialog({
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Cofrinho */}
+            <div className="space-y-2">
+              <Label htmlFor="savings_box">Cofrinho (Opcional)</Label>
+              <Select
+                value={formData.savings_box_id || "none"}
+                onValueChange={(value) =>
+                  handleSelectChange(
+                    "savings_box_id",
+                    value === "none" ? "" : value
+                  )
+                }
+              >
+                <SelectTrigger id="savings_box">
+                  <SelectValue placeholder="Selecione um cofrinho" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhum</SelectItem>
+                  {savingsBoxes.map((box) => (
+                    <SelectItem key={box.id} value={box.id}>
+                      {box.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
             >
-              Cancel
+              Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
-                ? goal
-                  ? "Updating..."
-                  : "Creating..."
-                : goal
-                ? "Update"
-                : "Create"}
+                ? isEditing
+                  ? "Atualizando..."
+                  : "Criando..."
+                : isEditing
+                ? "Atualizar Meta"
+                : "Criar Meta"}
             </Button>
           </DialogFooter>
         </form>

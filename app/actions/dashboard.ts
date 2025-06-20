@@ -388,3 +388,122 @@ export async function getExpenseBreakdown(
 
   return Array.from(categoryMap.values());
 }
+
+export async function getGoalsStats() {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: goals, error } = await supabase
+    .from("financial_goals")
+    .select(
+      `
+      id,
+      name,
+      current_amount,
+      target_amount,
+      target_date,
+      is_completed,
+      savings_box_id,
+      created_at,
+      savings_box:savings_boxes(id, name, color)
+    `
+    )
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error fetching goals stats:", error);
+    return {
+      total_goals: 0,
+      completed_goals: 0,
+      overdue_goals: 0,
+      linked_to_savings_boxes: 0,
+      average_progress: 0,
+      total_target_amount: 0,
+      total_current_amount: 0,
+      goals_by_month: [],
+    };
+  }
+
+  const now = new Date();
+  const completedGoals = goals.filter((goal) => goal.is_completed).length;
+  const overdueGoals = goals.filter(
+    (goal) => !goal.is_completed && new Date(goal.target_date) < now
+  ).length;
+  const linkedToSavingsBoxes = goals.filter(
+    (goal) => goal.savings_box_id
+  ).length;
+
+  const totalTargetAmount = goals.reduce(
+    (sum, goal) => sum + (goal.target_amount || 0),
+    0
+  );
+  const totalCurrentAmount = goals.reduce(
+    (sum, goal) => sum + (goal.current_amount || 0),
+    0
+  );
+
+  const averageProgress =
+    goals.length > 0
+      ? goals.reduce((sum, goal) => {
+          const progress = goal.target_amount
+            ? Math.min(
+                ((goal.current_amount || 0) / goal.target_amount) * 100,
+                100
+              )
+            : 0;
+          return sum + progress;
+        }, 0) / goals.length
+      : 0;
+
+  // Agrupar metas por mês de criação (últimos 6 meses)
+  const goalsByMonth = [];
+  for (let i = 5; i >= 0; i--) {
+    const month = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthName = month.toLocaleString("default", { month: "short" });
+    const firstDay = new Date(
+      month.getFullYear(),
+      month.getMonth(),
+      1
+    ).toISOString();
+    const lastDay = new Date(
+      month.getFullYear(),
+      month.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999
+    ).toISOString();
+
+    const monthGoals = goals.filter(
+      (goal) => goal.created_at >= firstDay && goal.created_at <= lastDay
+    );
+
+    goalsByMonth.push({
+      name: monthName,
+      goals_created: monthGoals.length,
+      goals_completed: monthGoals.filter((goal) => goal.is_completed).length,
+      target_amount: monthGoals.reduce(
+        (sum, goal) => sum + (goal.target_amount || 0),
+        0
+      ),
+    });
+  }
+
+  return {
+    total_goals: goals.length,
+    completed_goals: completedGoals,
+    overdue_goals: overdueGoals,
+    linked_to_savings_boxes: linkedToSavingsBoxes,
+    average_progress: Math.round(averageProgress),
+    total_target_amount: totalTargetAmount,
+    total_current_amount: totalCurrentAmount,
+    goals_by_month: goalsByMonth,
+  };
+}

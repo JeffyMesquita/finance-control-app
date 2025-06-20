@@ -1,7 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  getSavingsBoxes,
+  getSavingsBoxesStats,
+} from "@/app/actions/savings-boxes";
+import { SavingsBoxCard } from "@/components/savings-box-card";
+import { SavingsBoxDialog } from "@/components/savings-box-dialog";
+import { SavingsHistoryList } from "@/components/savings-history-list";
+import { SavingsSummary } from "@/components/savings-summary";
+import { CofrinhosDashboardSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,28 +19,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { SavingsBoxCard } from "@/components/savings-box-card";
-import { SavingsBoxDialog } from "@/components/savings-box-dialog";
-import { SavingsHistoryList } from "@/components/savings-history-list";
-import { SavingsSummary } from "@/components/savings-summary";
+import type { SavingsBoxWithRelations } from "@/lib/types/savings-boxes";
 import {
-  getSavingsBoxes,
-  getSavingsBoxesStats,
-} from "@/app/actions/savings-boxes";
-import {
-  Plus,
-  Search,
+  AlertCircle,
   Filter,
   Grid3X3,
   List,
   PiggyBank,
-  TrendingUp,
-  Target,
-  AlertCircle,
+  Plus,
+  Search,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { SavingsBoxWithRelations } from "@/lib/types/savings-boxes";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "amount" | "progress" | "created";
@@ -135,36 +134,14 @@ export default function CofrinhosDashboard() {
 
   // Estado de carregamento
   if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2"></div>
-            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 w-3/4 bg-gray-200 rounded mb-4"></div>
-                <div className="h-8 w-full bg-gray-200 rounded mb-2"></div>
-                <div className="h-2 w-full bg-gray-200 rounded"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <CofrinhosDashboardSkeleton />;
   }
 
   // Estado de erro
   if (error) {
     return (
       <div className="container mx-auto p-6">
-        <Card className="text-center py-12">
+        <Card className="text-center py-12 bg-stone-100 dark:bg-stone-900">
           <CardContent>
             <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold mb-2">
@@ -231,7 +208,7 @@ export default function CofrinhosDashboard() {
           <p className="text-muted-foreground">
             {savingsBoxes.length}{" "}
             {savingsBoxes.length === 1 ? "cofrinho" : "cofrinhos"} • R${" "}
-            {(stats?.total_amount || 0).toLocaleString("pt-BR", {
+            {((stats?.total_amount || 0) / 100).toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
             })}{" "}
             guardados
@@ -245,8 +222,8 @@ export default function CofrinhosDashboard() {
 
       {/* Estatísticas Rápidas */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-stone-100 dark:bg-stone-900">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-blue-700">
                 {stats.total_boxes}
@@ -254,11 +231,11 @@ export default function CofrinhosDashboard() {
               <div className="text-sm text-muted-foreground">Cofrinhos</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-stone-100 dark:bg-stone-900">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-700">
                 R${" "}
-                {stats.total_amount.toLocaleString("pt-BR", {
+                {(stats.total_amount / 100).toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
                 })}
               </div>
@@ -267,7 +244,7 @@ export default function CofrinhosDashboard() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-stone-100 dark:bg-stone-900">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-purple-700">
                 {stats.total_with_goals}
@@ -275,7 +252,7 @@ export default function CofrinhosDashboard() {
               <div className="text-sm text-muted-foreground">Com Metas</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="bg-stone-100 dark:bg-stone-900">
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-amber-700">
                 {stats.average_completion}%
@@ -289,8 +266,9 @@ export default function CofrinhosDashboard() {
       )}
 
       {/* Filtros e Controles */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="space-y-4">
+        {/* Linha superior: Busca */}
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar cofrinhos..."
@@ -300,51 +278,62 @@ export default function CofrinhosDashboard() {
           />
         </div>
 
-        <Select
-          value={sortBy}
-          onValueChange={(value) => setSortBy(value as SortBy)}
-        >
-          <SelectTrigger className="w-[160px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="amount">Maior Saldo</SelectItem>
-            <SelectItem value="name">Nome A-Z</SelectItem>
-            <SelectItem value="progress">Maior Progresso</SelectItem>
-            <SelectItem value="created">Mais Recente</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Linha inferior: Filtros e visualização */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          {/* Filtros */}
+          <div className="flex flex-1 gap-3">
+            <Select
+              value={sortBy}
+              onValueChange={(value) => setSortBy(value as SortBy)}
+            >
+              <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="amount">Maior Saldo</SelectItem>
+                <SelectItem value="name">Nome A-Z</SelectItem>
+                <SelectItem value="progress">Maior Progresso</SelectItem>
+                <SelectItem value="created">Mais Recente</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="with-goal">Com Meta</SelectItem>
-            <SelectItem value="without-goal">Sem Meta</SelectItem>
-            <SelectItem value="completed">Completos</SelectItem>
-            <SelectItem value="empty">Vazios</SelectItem>
-          </SelectContent>
-        </Select>
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="flex-1 sm:w-[140px] sm:flex-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="with-goal">Com Meta</SelectItem>
+                <SelectItem value="without-goal">Sem Meta</SelectItem>
+                <SelectItem value="completed">Completos</SelectItem>
+                <SelectItem value="empty">Vazios</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="flex rounded-lg border">
-          <Button
-            variant={viewMode === "grid" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode("grid")}
-            className="rounded-r-none"
-          >
-            <Grid3X3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "list" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setViewMode("list")}
-            className="rounded-l-none"
-          >
-            <List className="h-4 w-4" />
-          </Button>
+          {/* Controles de visualização */}
+          <div className="flex justify-center sm:justify-end">
+            <div className="flex rounded-lg border">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="rounded-r-none px-3"
+              >
+                <Grid3X3 className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">Grid</span>
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="rounded-l-none px-3"
+              >
+                <List className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">Lista</span>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -385,12 +374,12 @@ export default function CofrinhosDashboard() {
 
       {/* Histórico Recente */}
       {savingsBoxes.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-2">
             <SavingsHistoryList limit={8} showFilters={false} />
           </div>
-          <div>
-            <SavingsSummary />
+          <div className="lg:col-span-2">
+            <SavingsSummary onCreateClick={() => setIsCreateDialogOpen(true)} />
           </div>
         </div>
       )}

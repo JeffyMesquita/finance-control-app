@@ -42,8 +42,10 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const currentAmount = savingsBox.current_amount || 0;
-  const targetAmount = savingsBox.target_amount;
+  const currentAmount = (savingsBox.current_amount || 0) / 100;
+  const targetAmount = savingsBox.target_amount
+    ? savingsBox.target_amount / 100
+    : null;
   const progressPercentage = targetAmount
     ? Math.min(Math.round((currentAmount / targetAmount) * 100), 100)
     : 0;
@@ -95,7 +97,7 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
 
   return (
     <>
-      <Card className="group relative overflow-hidden transition-all hover:shadow-lg">
+      <Card className="group relative overflow-hidden transition-all hover:shadow-lg bg-stone-100 dark:bg-stone-900">
         {/* Header com ícone e menu */}
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">

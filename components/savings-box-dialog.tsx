@@ -121,7 +121,9 @@ export function SavingsBoxDialog({
     defaultValues: {
       name: savingsBox?.name || "",
       description: savingsBox?.description || "",
-      target_amount: savingsBox?.target_amount || undefined,
+      target_amount: savingsBox?.target_amount
+        ? savingsBox.target_amount / 100
+        : undefined,
       color: savingsBox?.color || SAVINGS_BOX_COLORS[0],
       icon: savingsBox?.icon || SAVINGS_BOX_ICONS[0],
     },

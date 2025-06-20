@@ -185,7 +185,7 @@ export function SavingsHistoryList({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-stone-100 dark:bg-stone-900">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -214,7 +214,7 @@ export function SavingsHistoryList({
   }
 
   return (
-    <Card>
+    <Card className="bg-stone-100 dark:bg-stone-900">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">

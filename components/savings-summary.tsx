@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
-  getSavingsBoxesSummary,
   getSavingsBoxesStats,
+  getSavingsBoxesSummary,
   getSavingsBoxesTotal,
 } from "@/app/actions/savings-boxes";
-import { PiggyBank, Plus, TrendingUp, Target, Coins } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Coins, PiggyBank, Plus, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface SavingsBoxSummaryItem {
   id: string;
@@ -33,11 +34,19 @@ interface SavingsStats {
   average_completion: number;
 }
 
-export function SavingsSummary() {
+interface SavingsSummaryProps {
+  onCreateClick?: () => void; // Prop opcional para abrir modal diretamente
+}
+
+export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
   const [summary, setSummary] = useState<SavingsBoxSummaryItem[]>([]);
   const [stats, setStats] = useState<SavingsStats | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+
+  // Verifica se estamos na página de cofrinhos
+  const isOnCofrinhoPage = pathname === "/dashboard/cofrinhos";
 
   useEffect(() => {
     loadData();
@@ -96,12 +105,19 @@ export function SavingsSummary() {
           <p className="text-muted-foreground mb-4">
             Você ainda não tem nenhum cofrinho digital.
           </p>
-          <Link href="/dashboard/cofrinhos">
-            <Button>
+          {isOnCofrinhoPage && onCreateClick ? (
+            <Button onClick={onCreateClick}>
               <Plus className="mr-2 h-4 w-4" />
               Criar Primeiro Cofrinho
             </Button>
-          </Link>
+          ) : (
+            <Link href="/dashboard/cofrinhos">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Primeiro Cofrinho
+              </Button>
+            </Link>
+          )}
         </CardContent>
       </Card>
     );
@@ -115,31 +131,35 @@ export function SavingsSummary() {
             <PiggyBank className="h-5 w-5" />
             Cofrinhos Digitais
           </CardTitle>
-          <Link href="/dashboard/cofrinhos">
-            <Button variant="outline" size="sm">
-              Ver Todos
-            </Button>
-          </Link>
+          {!isOnCofrinhoPage && (
+            <Link href="/dashboard/cofrinhos">
+              <Button variant="outline" size="sm">
+                Ver Todos
+              </Button>
+            </Link>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {/* Estatísticas Gerais */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-700">
+          <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
               R${" "}
-              {totalAmount.toLocaleString("pt-BR", {
+              {(totalAmount / 100).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
               })}
             </div>
-            <div className="text-sm text-blue-600">Total Guardado</div>
+            <div className="text-sm text-blue-700 dark:text-blue-300">
+              Total Guardado
+            </div>
           </div>
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-700">
+          <div className="text-center p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
+            <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
               {stats.total_boxes}
             </div>
-            <div className="text-sm text-green-600">
+            <div className="text-sm text-emerald-700 dark:text-emerald-300">
               {stats.total_boxes === 1 ? "Cofrinho" : "Cofrinhos"}
             </div>
           </div>
@@ -183,7 +203,7 @@ export function SavingsSummary() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>
                     R${" "}
-                    {box.current_amount.toLocaleString("pt-BR", {
+                    {(box.current_amount / 100).toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}
                   </span>
@@ -192,7 +212,7 @@ export function SavingsSummary() {
                       <span>/</span>
                       <span>
                         R${" "}
-                        {box.target_amount.toLocaleString("pt-BR", {
+                        {(box.target_amount / 100).toLocaleString("pt-BR", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
@@ -213,7 +233,7 @@ export function SavingsSummary() {
                 {box.progress_percentage >= 100 && (
                   <Badge
                     variant="secondary"
-                    className="text-xs bg-green-50 text-green-700 border-green-200"
+                    className="text-xs bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700"
                   >
                     ✓ Completo
                   </Badge>
@@ -246,12 +266,26 @@ export function SavingsSummary() {
 
         {/* Ação rápida */}
         <div className="pt-2 border-t">
-          <Link href="/dashboard/cofrinhos">
-            <Button className="w-full" size="sm">
+          {isOnCofrinhoPage && onCreateClick ? (
+            <Button
+              onClick={onCreateClick}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+              size="sm"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Novo Cofrinho
             </Button>
-          </Link>
+          ) : (
+            <Link href="/dashboard/cofrinhos">
+              <Button
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+                size="sm"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Cofrinho
+              </Button>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>

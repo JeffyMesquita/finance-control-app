@@ -32,6 +32,9 @@ export async function depositToSavingsBox(
     };
   }
 
+  // Converter valor de reais para centavos
+  const amountInCents = Math.round(amount * 100);
+
   // Verificar se o cofrinho existe e pertence ao usuário
   const { data: savingsBox, error: boxError } = await supabase
     .from("savings_boxes")
@@ -61,13 +64,13 @@ export async function depositToSavingsBox(
       return { success: false, error: "Conta não encontrada" };
     }
 
-    // Verificar se a conta tem saldo suficiente
-    if (account.balance < amount) {
+    // Verificar se a conta tem saldo suficiente (account.balance já está em centavos)
+    if (account.balance < amountInCents) {
       return {
         success: false,
         error: `Saldo insuficiente na conta ${
           account.name
-        }. Saldo disponível: R$ ${account.balance.toFixed(2)}`,
+        }. Saldo disponível: R$ ${(account.balance / 100).toFixed(2)}`,
       };
     }
   }
@@ -78,7 +81,7 @@ export async function depositToSavingsBox(
       .from("savings_transactions")
       .insert({
         savings_box_id: boxId,
-        amount: amount,
+        amount: amountInCents,
         type: "DEPOSIT",
         description: description || `Depósito no cofrinho ${savingsBox.name}`,
         source_account_id: accountId,
@@ -103,7 +106,7 @@ export async function depositToSavingsBox(
         .single();
 
       if (currentAccount) {
-        const newBalance = currentAccount.balance - amount;
+        const newBalance = currentAccount.balance - amountInCents;
         const { error: updateAccountError } = await supabase
           .from("financial_accounts")
           .update({ balance: newBalance })
@@ -125,6 +128,9 @@ export async function depositToSavingsBox(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/cofrinhos");
+
+    // Sincronizar metas vinculadas ao cofrinho
+    await syncGoalWithSavingsBox(boxId);
 
     return { success: true, data: transaction };
   } catch (error) {
@@ -157,6 +163,9 @@ export async function withdrawFromSavingsBox(
     return { success: false, error: "Valor do saque deve ser maior que zero" };
   }
 
+  // Converter valor de reais para centavos
+  const amountInCents = Math.round(amount * 100);
+
   // Verificar se o cofrinho existe e tem saldo suficiente
   const { data: savingsBox, error: boxError } = await supabase
     .from("savings_boxes")
@@ -173,12 +182,12 @@ export async function withdrawFromSavingsBox(
     return { success: false, error: "Cofrinho está inativo" };
   }
 
-  if (savingsBox.current_amount < amount) {
+  if (savingsBox.current_amount < amountInCents) {
     return {
       success: false,
-      error: `Saldo insuficiente no cofrinho. Saldo disponível: R$ ${savingsBox.current_amount.toFixed(
-        2
-      )}`,
+      error: `Saldo insuficiente no cofrinho. Saldo disponível: R$ ${(
+        savingsBox.current_amount / 100
+      ).toFixed(2)}`,
     };
   }
 
@@ -202,7 +211,7 @@ export async function withdrawFromSavingsBox(
       .from("savings_transactions")
       .insert({
         savings_box_id: boxId,
-        amount: amount,
+        amount: amountInCents,
         type: "WITHDRAW",
         description: description || `Saque do cofrinho ${savingsBox.name}`,
         source_account_id: accountId,
@@ -227,7 +236,7 @@ export async function withdrawFromSavingsBox(
         .single();
 
       if (currentAccount) {
-        const newBalance = currentAccount.balance + amount;
+        const newBalance = currentAccount.balance + amountInCents;
         const { error: updateAccountError } = await supabase
           .from("financial_accounts")
           .update({ balance: newBalance })
@@ -249,6 +258,9 @@ export async function withdrawFromSavingsBox(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/cofrinhos");
+
+    // Sincronizar metas vinculadas ao cofrinho
+    await syncGoalWithSavingsBox(boxId);
 
     return { success: true, data: transaction };
   } catch (error) {
@@ -291,6 +303,9 @@ export async function transferBetweenBoxes(
     };
   }
 
+  // Converter valor de reais para centavos
+  const amountInCents = Math.round(amount * 100);
+
   // Verificar se ambos os cofrinhos existem e pertencem ao usuário
   const { data: boxes, error: boxesError } = await supabase
     .from("savings_boxes")
@@ -316,12 +331,12 @@ export async function transferBetweenBoxes(
     return { success: false, error: "Um dos cofrinhos está inativo" };
   }
 
-  if (fromBox.current_amount < amount) {
+  if (fromBox.current_amount < amountInCents) {
     return {
       success: false,
       error: `Saldo insuficiente no cofrinho "${
         fromBox.name
-      }". Saldo disponível: R$ ${fromBox.current_amount.toFixed(2)}`,
+      }". Saldo disponível: R$ ${(fromBox.current_amount / 100).toFixed(2)}`,
     };
   }
 
@@ -331,7 +346,7 @@ export async function transferBetweenBoxes(
       .from("savings_transactions")
       .insert({
         savings_box_id: fromBoxId,
-        amount: amount,
+        amount: amountInCents,
         type: "TRANSFER",
         description:
           description ||
@@ -349,6 +364,12 @@ export async function transferBetweenBoxes(
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/cofrinhos");
+
+    // Sincronizar metas vinculadas aos cofrinhos (origem e destino)
+    await Promise.all([
+      syncGoalWithSavingsBox(fromBoxId),
+      syncGoalWithSavingsBox(toBoxId),
+    ]);
 
     return { success: true, data: transaction };
   } catch (error) {
@@ -507,44 +528,132 @@ export async function getSavingsTransactionsStats(boxId?: string) {
     redirect("/login");
   }
 
-  let query = supabase
-    .from("savings_transactions")
-    .select("amount, type, created_at")
-    .eq("user_id", user.id);
+  try {
+    let query = supabase
+      .from("savings_transactions")
+      .select("amount, type, created_at")
+      .eq("user_id", user.id);
 
-  if (boxId) {
-    query = query.or(
-      `savings_box_id.eq.${boxId},target_savings_box_id.eq.${boxId}`
-    );
-  }
+    if (boxId) {
+      query = query.or(
+        `savings_box_id.eq.${boxId},target_savings_box_id.eq.${boxId}`
+      );
+    }
 
-  const { data, error } = await query;
+    const { data: transactions, error } = await query;
 
-  if (error) {
-    console.error("Error fetching savings transactions stats:", error);
-    return {
-      total_transactions: 0,
-      total_deposits: 0,
-      total_withdraws: 0,
-      total_transfers: 0,
-      deposits_amount: 0,
-      withdraws_amount: 0,
-      transfers_amount: 0,
+    if (error) {
+      console.error("Error fetching savings transactions stats:", error);
+      return null;
+    }
+
+    const stats = {
+      total_transactions: transactions.length,
+      total_deposits: transactions.filter((t) => t.type === "DEPOSIT").length,
+      total_withdraws: transactions.filter((t) => t.type === "WITHDRAW").length,
+      total_transfers: transactions.filter((t) => t.type === "TRANSFER").length,
+      total_deposited: transactions
+        .filter((t) => t.type === "DEPOSIT")
+        .reduce((sum, t) => sum + t.amount, 0),
+      total_withdrawn: transactions
+        .filter((t) => t.type === "WITHDRAW")
+        .reduce((sum, t) => sum + t.amount, 0),
+      total_transferred: transactions
+        .filter((t) => t.type === "TRANSFER")
+        .reduce((sum, t) => sum + t.amount, 0),
     };
+
+    return stats;
+  } catch (error) {
+    console.error("Error calculating savings transactions stats:", error);
+    return null;
+  }
+}
+
+// Função para sincronizar o valor da meta com o cofrinho
+export async function syncGoalWithSavingsBox(savingsBoxId: string) {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
   }
 
-  const totalTransactions = data.length;
-  const deposits = data.filter((t) => t.type === "DEPOSIT");
-  const withdraws = data.filter((t) => t.type === "WITHDRAW");
-  const transfers = data.filter((t) => t.type === "TRANSFER");
+  try {
+    // Buscar o cofrinho atual
+    const { data: savingsBox, error: boxError } = await supabase
+      .from("savings_boxes")
+      .select("id, current_amount")
+      .eq("id", savingsBoxId)
+      .eq("user_id", user.id)
+      .single();
 
-  return {
-    total_transactions: totalTransactions,
-    total_deposits: deposits.length,
-    total_withdraws: withdraws.length,
-    total_transfers: transfers.length,
-    deposits_amount: deposits.reduce((sum, t) => sum + t.amount, 0),
-    withdraws_amount: withdraws.reduce((sum, t) => sum + t.amount, 0),
-    transfers_amount: transfers.reduce((sum, t) => sum + t.amount, 0),
-  };
+    if (boxError || !savingsBox) {
+      console.error("Savings box not found:", boxError);
+      return { success: false, error: "Cofrinho não encontrado" };
+    }
+
+    // Buscar metas vinculadas a este cofrinho
+    const { data: goals, error: goalsError } = await supabase
+      .from("financial_goals")
+      .select("id, current_amount")
+      .eq("savings_box_id", savingsBoxId)
+      .eq("user_id", user.id);
+
+    if (goalsError) {
+      console.error("Error fetching linked goals:", goalsError);
+      return { success: false, error: "Erro ao buscar metas vinculadas" };
+    }
+
+    if (!goals || goals.length === 0) {
+      // Não há metas vinculadas, isso é normal
+      return { success: true, message: "Nenhuma meta vinculada encontrada" };
+    }
+
+    // Atualizar cada meta vinculada com o valor atual do cofrinho
+    const updatePromises = goals.map(async (goal) => {
+      if (goal.current_amount !== savingsBox.current_amount) {
+        const { error: updateError } = await supabase
+          .from("financial_goals")
+          .update({ current_amount: savingsBox.current_amount })
+          .eq("id", goal.id)
+          .eq("user_id", user.id);
+
+        if (updateError) {
+          console.error(`Error updating goal ${goal.id}:`, updateError);
+          return {
+            success: false,
+            goalId: goal.id,
+            error: updateError.message,
+          };
+        }
+        return { success: true, goalId: goal.id };
+      }
+      return { success: true, goalId: goal.id, skipped: true };
+    });
+
+    const results = await Promise.all(updatePromises);
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
+
+    console.log(
+      `Sync completed: ${successful.length} successful, ${failed.length} failed`
+    );
+
+    // Revalidar páginas relacionadas
+    revalidatePath("/dashboard/goals");
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      synchronized: successful.length,
+      failed: failed.length,
+      details: results,
+    };
+  } catch (error) {
+    console.error("Error syncing goal with savings box:", error);
+    return { success: false, error: "Erro interno ao sincronizar" };
+  }
 }

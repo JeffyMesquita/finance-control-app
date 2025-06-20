@@ -42,12 +42,12 @@ export function ShareAppAlert() {
     try {
       const stats = await getReferralStats();
       const formattedStats = {
-        totalReferrals: stats.referralCount,
-        activeReferrals: stats.badges.length,
-        referrer: stats.referrer,
+        totalReferrals: stats?.referralCount,
+        activeReferrals: stats?.badges.length,
+        referrer: stats?.referrer,
       };
       setReferralStats(formattedStats);
-      setInviteCount(stats.referralCount);
+      setInviteCount(stats?.referralCount);
     } catch (error) {
       console.error("Error fetching referral stats:", error);
       toast({
