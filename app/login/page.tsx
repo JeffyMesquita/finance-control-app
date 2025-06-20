@@ -85,11 +85,28 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
-  // Captura o parâmetro ref da URL e salva no localStorage
+  // Captura o parâmetro ref da URL e salva no localStorage (first-touch attribution)
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) {
-      localStorage.setItem("referral_id", ref);
+      const existingRef = localStorage.getItem("referral_id");
+
+      if (!existingRef) {
+        // Primeiro referral - salvar
+        console.log("🔗 First referral captured in login page:", ref);
+        localStorage.setItem("referral_id", ref);
+      } else if (existingRef !== ref) {
+        // Referral diferente já existe - manter o primeiro (first-touch)
+        console.log(
+          "⚠️ Keeping first referral:",
+          existingRef,
+          "ignoring:",
+          ref
+        );
+      } else {
+        // Mesmo referral - OK
+        console.log("✅ Same referral confirmed:", ref);
+      }
     }
   }, [searchParams]);
 

@@ -24,8 +24,23 @@ export function LandingPage() {
   const params = useSearchParams();
   const referralId = params.get("ref");
 
+  // First-touch attribution - manter o primeiro referral
   if (referralId) {
-    localStorage.setItem("referral_id", referralId);
+    const existingRef = localStorage.getItem("referral_id");
+
+    if (!existingRef) {
+      console.log("🔗 First referral captured in landing page:", referralId);
+      localStorage.setItem("referral_id", referralId);
+    } else if (existingRef !== referralId) {
+      console.log(
+        "⚠️ Keeping first referral:",
+        existingRef,
+        "ignoring:",
+        referralId
+      );
+    } else {
+      console.log("✅ Same referral confirmed:", referralId);
+    }
   }
 
   const fadeInUp = {

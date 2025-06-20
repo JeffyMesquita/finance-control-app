@@ -81,16 +81,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Handle referral if exists
-    const referralId = localStorage.getItem("referralId");
-    if (referralId) {
-      try {
-        await handleReferral(referralId);
-      } catch (referralError) {
-        console.error("Referral error:", referralError);
-        // Continue with login even if referral fails
-      }
-    }
+    // Referral processing will be handled on the client side after dashboard loads
 
     // Redirect to dashboard after successful login
     return NextResponse.redirect(new URL("/dashboard", request.url));

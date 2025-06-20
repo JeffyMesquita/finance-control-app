@@ -73,7 +73,7 @@ export function ShareAppAlert() {
 
   const getShareUrl = useCallback(() => {
     if (!user) return BASE_URL;
-    return `${BASE_URL}?ref=${user.id}`;
+    return `${BASE_URL}/login?ref=${user.id}`;
   }, [user]);
 
   const handleCopy = useCallback(async () => {
