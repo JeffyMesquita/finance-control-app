@@ -59,6 +59,26 @@ export default function PerfilPage() {
     cancelSearch: cancelCepSearch,
   } = useCepSearch(800);
 
+  // Funções para formatação do CEP
+  const formatCep = useCallback((value: string): string => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, "");
+
+    // Limita a 8 dígitos
+    const limitedNumbers = numbers.slice(0, 8);
+
+    // Aplica a máscara 00000-000
+    if (limitedNumbers.length <= 5) {
+      return limitedNumbers;
+    } else {
+      return `${limitedNumbers.slice(0, 5)}-${limitedNumbers.slice(5)}`;
+    }
+  }, []);
+
+  const getNumericCep = useCallback((value: string): string => {
+    return value.replace(/\D/g, "");
+  }, []);
+
   // Perfil inicial com campos em branco
   const initialProfile = useMemo(
     (): UserProfile => ({
@@ -121,7 +141,7 @@ export default function PerfilPage() {
               address: cepData.logradouro || prev.address,
               city: cepData.localidade || prev.city,
               state: cepData.uf || prev.state,
-              postal_code: cepData.cep.replace(/\D/g, ""),
+              postal_code: formatCep(cepData.cep), // Aplica formatação
             }
           : null
       );
@@ -132,7 +152,7 @@ export default function PerfilPage() {
         variant: "default",
       });
     }
-  }, [cepData, cepError, toast]);
+  }, [cepData, cepError, toast, formatCep]);
 
   // Efeito para mostrar erros do CEP
   useEffect(() => {
@@ -179,34 +199,49 @@ export default function PerfilPage() {
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const { name, value } = e.target;
+      let processedValue = value;
+
+      // Tratamento especial para CEP
+      if (name === "postal_code") {
+        // Aplica máscara de formatação
+        processedValue = formatCep(value);
+
+        // Obtém apenas números para busca
+        const numericCep = getNumericCep(processedValue);
+
+        // Dispara a busca
+        if (!numericCep || numericCep.length === 0) {
+          // Se o campo for limpo, cancela a busca
+          cancelCepSearch();
+        } else {
+          searchCep(numericCep);
+          clearCepError(); // Limpa erros anteriores quando o usuário digita
+        }
+      }
 
       setProfile((prev) => {
         if (!prev) {
           // Se não há perfil anterior, cria um novo com o campo atualizado
           return {
             ...initialProfile,
-            [name]: value,
+            [name]: processedValue,
           };
         }
 
         return {
           ...prev,
-          [name]: value,
+          [name]: processedValue,
         };
       });
-
-      // Se for CEP, dispara a busca
-      if (name === "postal_code") {
-        if (!value || value.trim() === "") {
-          // Se o campo for limpo, cancela a busca
-          cancelCepSearch();
-        } else {
-          searchCep(value);
-          clearCepError(); // Limpa erros anteriores quando o usuário digita
-        }
-      }
     },
-    [initialProfile, searchCep, clearCepError, cancelCepSearch]
+    [
+      initialProfile,
+      searchCep,
+      clearCepError,
+      cancelCepSearch,
+      formatCep,
+      getNumericCep,
+    ]
   );
 
   if (isLoading) {
@@ -448,7 +483,10 @@ export default function PerfilPage() {
                         onChange={handleInputChange}
                         placeholder="00000-000"
                         maxLength={9}
-                        className={`pr-10 ${
+                        inputMode="numeric"
+                        pattern="[0-9-]*"
+                        title="Digite apenas números - a máscara será aplicada automaticamente"
+                        className={`pr-10 font-mono ${
                           cepError && !isCepLoading && !isCepSearching
                             ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                             : cepData &&
@@ -489,7 +527,8 @@ export default function PerfilPage() {
                     <div className="text-xs space-y-1">
                       {!cepError && !cepData && (
                         <p className="text-muted-foreground">
-                          Digite o CEP para preenchimento automático do endereço
+                          Digite apenas números - a máscara será aplicada
+                          automaticamente
                         </p>
                       )}
                       {(isCepLoading || isCepSearching) && (

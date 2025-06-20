@@ -12,6 +12,7 @@ import {
   Download,
   User,
   Sliders,
+  PiggyBank,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -40,6 +41,11 @@ const navItems = [
     title: "Metas",
     href: "/dashboard/goals",
     icon: Goal,
+  },
+  {
+    title: "Cofrinhos",
+    href: "/dashboard/cofrinhos",
+    icon: PiggyBank,
   },
   {
     title: "Exportar",

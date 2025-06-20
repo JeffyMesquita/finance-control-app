@@ -240,6 +240,7 @@ export interface Database {
           target_date: string;
           category_id: string | null;
           account_id: string;
+          savings_box_id: string | null;
           is_completed: boolean;
           user_id: string;
           created_at: string | null;
@@ -254,6 +255,7 @@ export interface Database {
           target_date: string;
           category_id?: string | null;
           account_id: string;
+          savings_box_id?: string | null;
           is_completed?: boolean;
           user_id: string;
           created_at?: string | null;
@@ -268,6 +270,7 @@ export interface Database {
           target_date?: string;
           category_id?: string | null;
           account_id?: string;
+          savings_box_id?: string | null;
           is_completed?: boolean;
           user_id?: string;
           created_at?: string | null;
@@ -328,6 +331,82 @@ export interface Database {
           updated_at?: string | null;
           installment_number?: number | null;
           total_installments?: number | null;
+        };
+      };
+      savings_boxes: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          current_amount: number;
+          target_amount: number | null;
+          color: string;
+          icon: string;
+          is_active: boolean;
+          user_id: string;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          current_amount?: number;
+          target_amount?: number | null;
+          color?: string;
+          icon?: string;
+          is_active?: boolean;
+          user_id: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          current_amount?: number;
+          target_amount?: number | null;
+          color?: string;
+          icon?: string;
+          is_active?: boolean;
+          user_id?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      savings_transactions: {
+        Row: {
+          id: string;
+          savings_box_id: string;
+          amount: number;
+          type: "DEPOSIT" | "WITHDRAW" | "TRANSFER";
+          description: string | null;
+          source_account_id: string | null;
+          target_savings_box_id: string | null;
+          user_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          savings_box_id: string;
+          amount: number;
+          type: "DEPOSIT" | "WITHDRAW" | "TRANSFER";
+          description?: string | null;
+          source_account_id?: string | null;
+          target_savings_box_id?: string | null;
+          user_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          savings_box_id?: string;
+          amount?: number;
+          type?: "DEPOSIT" | "WITHDRAW" | "TRANSFER";
+          description?: string | null;
+          source_account_id?: string | null;
+          target_savings_box_id?: string | null;
+          user_id?: string;
+          created_at?: string | null;
         };
       };
     };

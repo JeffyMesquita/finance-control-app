@@ -14,14 +14,21 @@ import { Progress } from "@/components/ui/progress";
 import { getGoals } from "@/app/actions/goals";
 import { cn, formatCurrency } from "@/lib/utils";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Target } from "lucide-react";
+import type { Tables } from "@/lib/supabase/database.types";
+
+// Tipo para Goal com relações
+interface Goal extends Tables<"financial_goals"> {
+  category: Tables<"categories"> | null;
+  account: Tables<"financial_accounts"> | null;
+}
 
 interface GoalsSummaryProps {
   className?: string;
 }
 
 export function GoalsSummary({ className }: GoalsSummaryProps) {
-  const [goals, setGoals] = useState([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,12 +51,14 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
 
     fetchGoals();
   }, []);
-
   if (isLoading) {
     return (
       <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
         <CardHeader>
-          <CardTitle>Metas Financeiras</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Metas Financeiras
+          </CardTitle>
           <CardDescription>
             Acompanhe o progresso das suas metas financeiras
           </CardDescription>
@@ -74,7 +83,10 @@ export function GoalsSummary({ className }: GoalsSummaryProps) {
   return (
     <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
       <CardHeader>
-        <CardTitle>Metas Financeiras</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Target className="h-5 w-5" />
+          Metas Financeiras
+        </CardTitle>
         <CardDescription>
           Acompanhe o progresso das suas metas financeiras
         </CardDescription>

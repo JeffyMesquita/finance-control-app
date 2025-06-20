@@ -2,6 +2,7 @@
 
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { getSavingsBoxesTotal } from "./savings-boxes";
 
 export type Category = {
   id: string;
@@ -229,6 +230,16 @@ export async function getDashboardData() {
 
   const monthlySavings = monthlyIncome - monthlyExpenses;
 
+  // Buscar total dos cofrinhos
+  let savingsBoxesTotal = 0;
+  try {
+    const savingsBoxesTotalResult = await getSavingsBoxesTotal();
+    savingsBoxesTotal = savingsBoxesTotalResult || 0;
+  } catch (error) {
+    console.error("Erro ao buscar total dos cofrinhos:", error);
+    savingsBoxesTotal = 0;
+  }
+
   return {
     totalBalance,
     monthlyIncome,
@@ -239,7 +250,7 @@ export async function getDashboardData() {
     maxIncome,
     expenseCount,
     maxExpense,
-    savings: 0, // Placeholder para poupança
+    savings: savingsBoxesTotal, // Total dos cofrinhos digitais
     nextMonthExpenses,
     nextMonthIncome,
   };

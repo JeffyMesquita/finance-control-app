@@ -554,12 +554,13 @@ export function DashboardCards() {
       <Card className="relative overflow-hidden bg-yellow-100 dark:bg-yellow-900 shadow-sm col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-yellow-800 dark:text-yellow-100">
-            Poupança
+            Cofrinhos
           </CardTitle>
           <span className="text-yellow-100 dark:text-yellow-700 bg-yellow-400 dark:bg-yellow-200 rounded-full p-2">
             <PiggyBank className="h-4 w-4" />
           </span>
         </CardHeader>
+
         <CardContent>
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
@@ -598,7 +599,7 @@ export function DashboardCards() {
             </div>
           </div>
           <p className="text-xs text-yellow-600 dark:text-yellow-300">
-            Dinheiro guardado na poupança
+            Total guardado nos cofrinhos digitais
           </p>
         </CardContent>
       </Card>
