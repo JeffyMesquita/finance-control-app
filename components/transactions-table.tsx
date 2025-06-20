@@ -257,11 +257,11 @@ export function TransactionsTable() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 justify-between">
         <div className="flex w-full sm:w-auto flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
-          <div className="flex items-center gap-2 w-full">
-            <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar transações..."
-              className="w-full sm:w-[300px]"
+              className="pl-9 w-full sm:w-[300px]"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
