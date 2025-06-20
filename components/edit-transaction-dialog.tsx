@@ -57,6 +57,15 @@ interface Account {
   updated_at: string;
 }
 
+// Função utilitária para converter data para formato local sem problemas de timezone
+const formatDateToLocal = (dateString: string) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export function EditTransactionDialog({
   open,
   onOpenChange,
@@ -73,7 +82,9 @@ export function EditTransactionDialog({
     description: transaction.description || "",
     category_id: transaction.category_id || "",
     account_id: transaction.account_id || "",
-    date: transaction.date || "",
+    date: transaction.date
+      ? formatDateToLocal(transaction.date)
+      : new Date().toISOString().split("T")[0],
     notes: transaction.notes || "",
     is_recurring: transaction.is_recurring || false,
     recurring_interval: transaction.recurring_interval || null,
@@ -89,21 +100,15 @@ export function EditTransactionDialog({
 
   useEffect(() => {
     if (transaction && open) {
-      // Converter a data para o formato local
-      const date = new Date(transaction.date);
-      const localDate = new Date(
-        date.getTime() - date.getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .split("T")[0];
-
       setFormData({
         type: transaction.type || "EXPENSE",
         amount: (transaction.amount / 100)?.toString() || "",
         description: transaction.description || "",
         category_id: transaction.category_id || "",
         account_id: transaction.account_id || "",
-        date: localDate,
+        date: transaction.date
+          ? formatDateToLocal(transaction.date)
+          : new Date().toISOString().split("T")[0],
         notes: transaction.notes || "",
         is_recurring: transaction.is_recurring || false,
         recurring_interval: transaction.recurring_interval || null,

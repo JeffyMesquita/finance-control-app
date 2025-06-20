@@ -67,13 +67,22 @@ type FormData = {
   total_installments: number | null;
 };
 
+// Função utilitária para obter a data atual local sem problemas de timezone
+const getCurrentLocalDate = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const INITIAL_FORM_DATA: FormData = {
   type: "EXPENSE",
   amount: "",
   description: "",
   category_id: "",
   account_id: "",
-  date: new Date().toISOString().split("T")[0],
+  date: getCurrentLocalDate(),
   notes: "",
   is_recurring: false,
   recurring_interval: null,
@@ -107,7 +116,7 @@ export function AddTransactionDialog({
         description: "",
         category_id: categories[0]?.id,
         account_id: accounts[0]?.id,
-        date: new Date().toISOString().split("T")[0],
+        date: getCurrentLocalDate(),
         notes: "",
         is_recurring: false,
         recurring_interval: null,
