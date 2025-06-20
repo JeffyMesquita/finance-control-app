@@ -111,6 +111,12 @@ export async function getRecentTransactions(limit = 5) {
     redirect("/login");
   }
 
+  // Get current date in UTC (end of today)
+  const now = new Date();
+  const endOfToday = new Date(
+    Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
+  ).toISOString();
+
   const { data, error } = await supabase
     .from("transactions")
     .select(
@@ -121,6 +127,7 @@ export async function getRecentTransactions(limit = 5) {
     `
     )
     .eq("user_id", user.id)
+    .lte("date", endOfToday) // Only transactions up to today
     .order("date", { ascending: false })
     .limit(limit);
 

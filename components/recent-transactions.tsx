@@ -84,7 +84,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
       <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
         <CardHeader>
           <CardTitle>Transações Recentes</CardTitle>
-          <CardDescription>Suas últimas atividades financeiras</CardDescription>
+          <CardDescription>Suas últimas transações até hoje</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -109,7 +109,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
       <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
         <CardHeader>
           <CardTitle>Transações Recentes</CardTitle>
-          <CardDescription>Suas últimas atividades financeiras</CardDescription>
+          <CardDescription>Suas últimas transações até hoje</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex h-[200px] items-center justify-center">
@@ -126,7 +126,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
       <CardHeader>
         <CardTitle>Transações Recentes</CardTitle>
-        <CardDescription>Suas últimas atividades financeiras</CardDescription>
+        <CardDescription>Suas últimas transações até hoje</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
