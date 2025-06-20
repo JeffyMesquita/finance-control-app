@@ -77,10 +77,11 @@ export const metadata: Metadata = {
     siteName: "FinanceTrack",
     images: [
       {
-        url: "/opengraph-image.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
         alt: "FinanceTrack - Controle Financeiro",
+        type: "image/png",
       },
     ],
   },
@@ -89,7 +90,7 @@ export const metadata: Metadata = {
     title: "FinanceTrack - Controle Financeiro",
     description:
       "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
-    images: ["/twitter-image.png"],
+    images: ["/twitter-image"],
     creator: "@_Jeferson___",
   },
   robots: {
@@ -119,6 +120,20 @@ export default function RootLayout({
         <meta
           name="google-site-verification"
           content="zpAWDLeUMoSZEiQWPVTibvM5lSBM2TeArXwRmbd9IvI"
+        />
+        {/* Additional WhatsApp/Social Media compatibility */}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/png" />
+        <meta name="twitter:image:width" content="1200" />
+        <meta name="twitter:image:height" content="630" />
+        {/* Canonical URL */}
+        <link
+          rel="canonical"
+          href={
+            process.env.NEXT_PUBLIC_BASE_URL ||
+            "https://financetrack.jeffymesquita.dev"
+          }
         />
       </head>
       <body className={inter.className}>
