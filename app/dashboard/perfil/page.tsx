@@ -30,41 +30,34 @@ import {
   Briefcase,
   Save,
   Search,
+  CheckCircle,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "@/app/actions/profile";
 import type { UserProfile } from "@/lib/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
-
-// Hook personalizado para debounce
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+import { useCepSearch } from "@/hooks/use-cep-search";
 
 export default function PerfilPage() {
   const { user, loading: userLoading } = useCurrentUser();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isCepLoading, setIsCepLoading] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [cepValue, setCepValue] = useState("");
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  // Debounce do CEP para evitar muitas requisições
-  const debouncedCep = useDebounce(cepValue, 500);
+  // Hook para busca de CEP com debounce
+  const {
+    isLoading: isCepLoading,
+    isSearching: isCepSearching,
+    error: cepError,
+    data: cepData,
+    searchCep,
+    clearError: clearCepError,
+    cancelSearch: cancelCepSearch,
+  } = useCepSearch(800);
 
   // Perfil inicial com campos em branco
   const initialProfile = useMemo(
@@ -98,7 +91,6 @@ export default function PerfilPage() {
       .then((profileData) => {
         if (profileData) {
           setProfile(profileData);
-          setCepValue(profileData.postal_code || "");
         } else {
           // Se não há perfil, usa o perfil inicial
           setProfile(initialProfile);
@@ -118,71 +110,40 @@ export default function PerfilPage() {
       .finally(() => setIsLoading(false));
   }, [user, userLoading, router, toast, initialProfile]);
 
-  // Função para buscar endereço por CEP
-  const fetchAddressByCep = useCallback(
-    async (cep: string) => {
-      if (!cep || cep.length < 8) return;
-
-      // Remove caracteres não numéricos
-      const cleanCep = cep.replace(/\D/g, "");
-      if (cleanCep.length !== 8) return;
-
-      setIsCepLoading(true);
-
-      try {
-        const response = await fetch(
-          `https://viacep.com.br/ws/${cleanCep}/json/`
-        );
-        const data = await response.json();
-
-        if (data.erro) {
-          toast({
-            title: "CEP não encontrado",
-            description: "O CEP informado não foi encontrado.",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Atualiza os campos de endereço
-        setProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                address: data.logradouro || prev.address,
-                city: data.localidade || prev.city,
-                state: data.uf || prev.state,
-                postal_code: cleanCep,
-              }
-            : null
-        );
-
-        toast({
-          title: "Endereço encontrado",
-          description:
-            "Os campos de endereço foram preenchidos automaticamente.",
-          variant: "success",
-        });
-      } catch (error) {
-        console.error("Erro ao buscar CEP:", error);
-        toast({
-          title: "Erro ao buscar CEP",
-          description: "Não foi possível buscar o endereço. Tente novamente.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsCepLoading(false);
-      }
-    },
-    [toast]
-  );
-
-  // Efeito para buscar CEP quando o valor mudar
+  // Efeito para tratar dados do CEP quando obtidos
   useEffect(() => {
-    if (debouncedCep && debouncedCep !== profile?.postal_code) {
-      fetchAddressByCep(debouncedCep);
+    if (cepData && !cepError) {
+      // Atualiza os campos de endereço com os dados do CEP
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              address: cepData.logradouro || prev.address,
+              city: cepData.localidade || prev.city,
+              state: cepData.uf || prev.state,
+              postal_code: cepData.cep.replace(/\D/g, ""),
+            }
+          : null
+      );
+
+      toast({
+        title: "Endereço encontrado",
+        description: "Os campos de endereço foram preenchidos automaticamente.",
+        variant: "default",
+      });
     }
-  }, [debouncedCep, fetchAddressByCep, profile?.postal_code]);
+  }, [cepData, cepError, toast]);
+
+  // Efeito para mostrar erros do CEP
+  useEffect(() => {
+    if (cepError) {
+      toast({
+        title: "Erro ao buscar CEP",
+        description: cepError,
+        variant: "destructive",
+      });
+    }
+  }, [cepError, toast]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,21 +195,18 @@ export default function PerfilPage() {
         };
       });
 
-      // Atualiza o CEP local para o debounce
+      // Se for CEP, dispara a busca
       if (name === "postal_code") {
-        setCepValue(value);
+        if (!value || value.trim() === "") {
+          // Se o campo for limpo, cancela a busca
+          cancelCepSearch();
+        } else {
+          searchCep(value);
+          clearCepError(); // Limpa erros anteriores quando o usuário digita
+        }
       }
     },
-    [initialProfile]
-  );
-
-  const handleCepChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setCepValue(value);
-      handleInputChange(e);
-    },
-    [handleInputChange]
+    [initialProfile, searchCep, clearCepError, cancelCepSearch]
   );
 
   if (isLoading) {
@@ -469,8 +427,17 @@ export default function PerfilPage() {
                       className="flex items-center gap-2"
                     >
                       CEP
-                      {isCepLoading && (
-                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      {(isCepLoading || isCepSearching) && (
+                        <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                      )}
+                      {cepData &&
+                        !cepError &&
+                        !isCepLoading &&
+                        !isCepSearching && (
+                          <CheckCircle className="h-3 w-3 text-green-500" />
+                        )}
+                      {cepError && !isCepLoading && !isCepSearching && (
+                        <AlertCircle className="h-3 w-3 text-red-500" />
                       )}
                     </Label>
                     <div className="relative">
@@ -478,19 +445,76 @@ export default function PerfilPage() {
                         id="postal_code"
                         name="postal_code"
                         value={profile?.postal_code || ""}
-                        onChange={handleCepChange}
+                        onChange={handleInputChange}
                         placeholder="00000-000"
                         maxLength={9}
+                        className={`pr-10 ${
+                          cepError && !isCepLoading && !isCepSearching
+                            ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+                            : cepData &&
+                              !cepError &&
+                              !isCepLoading &&
+                              !isCepSearching
+                            ? "border-green-300 focus:border-green-500 focus:ring-green-500"
+                            : ""
+                        }`}
                       />
-                      {isCepLoading && (
-                        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                          <Search className="h-4 w-4 text-muted-foreground animate-pulse" />
-                        </div>
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                        {(isCepLoading || isCepSearching) && (
+                          <Search className="h-4 w-4 text-blue-500 animate-pulse" />
+                        )}
+                        {cepData &&
+                          !cepError &&
+                          !isCepLoading &&
+                          !isCepSearching && (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          )}
+                        {cepError && !isCepLoading && !isCepSearching && (
+                          <div className="flex items-center gap-1">
+                            <AlertCircle className="h-4 w-4 text-red-500" />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-transparent"
+                              onClick={clearCepError}
+                              title="Limpar erro"
+                            >
+                              <X className="h-3 w-3 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-xs space-y-1">
+                      {!cepError && !cepData && (
+                        <p className="text-muted-foreground">
+                          Digite o CEP para preenchimento automático do endereço
+                        </p>
+                      )}
+                      {(isCepLoading || isCepSearching) && (
+                        <p className="text-blue-600 flex items-center gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Buscando endereço...
+                        </p>
+                      )}
+                      {cepData &&
+                        !cepError &&
+                        !isCepLoading &&
+                        !isCepSearching && (
+                          <p className="text-green-600 flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            Endereço encontrado: {cepData.localidade},{" "}
+                            {cepData.uf}
+                          </p>
+                        )}
+                      {cepError && !isCepLoading && !isCepSearching && (
+                        <p className="text-red-600 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {cepError}
+                        </p>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Digite o CEP para preenchimento automático do endereço
-                    </p>
                   </div>
                 </div>
 
