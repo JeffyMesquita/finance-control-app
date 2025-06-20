@@ -161,6 +161,7 @@ export default function LoginPage() {
     if (typeof window !== "undefined") {
       localStorage.setItem("pixAlertDismissed", "false");
       localStorage.setItem("shareAlertDismissed", "false");
+      localStorage.setItem("welcomeCardDismissed", "false");
     }
   }, []);
 
