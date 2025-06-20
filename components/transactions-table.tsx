@@ -77,6 +77,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -540,16 +545,34 @@ export function TransactionsTable() {
                       <span className="text-xs text-muted-foreground">
                         Notas:
                       </span>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{transaction.notes}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      {transaction.notes && transaction.notes.trim() !== "" ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-muted/50"
+                            >
+                              <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                              <span className="sr-only">Ver notas</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-3" align="end">
+                            <div className="space-y-2">
+                              <h4 className="font-medium text-sm">
+                                Notas da Transação
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                {transaction.notes}
+                              </p>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">
+                          Sem notas
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-2 mt-2">
                       <Button
@@ -677,16 +700,35 @@ export function TransactionsTable() {
                         {transaction.is_recurring ? "Sim" : "Não"}
                       </TableCell>
                       <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{transaction.notes}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {transaction.notes &&
+                        transaction.notes.trim() !== "" ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-muted/50"
+                              >
+                                <Info className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                                <span className="sr-only">Ver notas</span>
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-3" align="center">
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-sm">
+                                  Notas da Transação
+                                </h4>
+                                <p className="text-sm text-muted-foreground break-words">
+                                  {transaction.notes}
+                                </p>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">
+                            -
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <span
