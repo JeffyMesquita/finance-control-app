@@ -122,11 +122,6 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     );
   }
 
-  // Traduzir tipos de transação
-  const translateType = (type: string) => {
-    return type === "INCOME" ? "Receita" : "Despesa";
-  };
-
   return (
     <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
       <CardHeader>
