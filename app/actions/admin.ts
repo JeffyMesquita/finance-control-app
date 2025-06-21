@@ -2,6 +2,7 @@
 
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 
 // Types para dados administrativos
 export interface AdminStats {
@@ -56,18 +57,26 @@ export interface AdminStats {
 
 // Verificar se usuário é admin
 async function verifyAdmin() {
-  const supabase = createServerComponentClient({ cookies });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = createServerComponentClient({ cookies });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  const adminId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+    const adminId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
-  if (!user || user.id !== adminId) {
-    throw new Error("Unauthorized: Admin access required");
+    if (!user) {
+      throw new Error("User not authenticated");
+    }
+
+    if (user.id !== adminId) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    return user;
+  } catch (error) {
+    throw error;
   }
-
-  return user;
 }
 
 // Buscar estatísticas gerais
@@ -315,16 +324,16 @@ export async function getAdminUsers(page = 1, limit = 20) {
           stats: {
             transactionsCount: transactions?.length || 0,
             totalTransactionAmount:
-              transactions?.reduce((sum, t) => sum + (t.amount || 0), 0) /
-                100 || 0,
+              (transactions?.reduce((sum, t) => sum + (t.amount || 0), 0) ||
+                0) / 100,
             goalsCount: goals?.length || 0,
             completedGoals: goals?.filter((g) => g.is_completed).length || 0,
             savingsBoxesCount: savingsBoxes?.length || 0,
             totalSaved:
-              savingsBoxes?.reduce(
+              (savingsBoxes?.reduce(
                 (sum, b) => sum + (b.current_amount || 0),
                 0
-              ) / 100 || 0,
+              ) || 0) / 100,
             feedbacksCount: feedbacks?.length || 0,
           },
         };
@@ -367,7 +376,18 @@ export async function getAdminFeedbacks(filters?: {
 }) {
   try {
     await verifyAdmin();
-    const supabase = createServerComponentClient({ cookies });
+
+    // Usar service role para contornar RLS temporariamente
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
 
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
@@ -375,12 +395,7 @@ export async function getAdminFeedbacks(filters?: {
 
     let query = supabase
       .from("feedbacks")
-      .select(
-        `
-        *,
-        users(email, full_name)
-      `
-      )
+      .select("*")
       .order("created_at", { ascending: false });
 
     // Apply filters
@@ -394,12 +409,41 @@ export async function getAdminFeedbacks(filters?: {
       query = query.eq("priority", filters.priority);
     }
 
-    const { data: feedbacks, error } = await query.range(
-      offset,
-      offset + limit - 1
-    );
+    const {
+      data: feedbacks,
+      error,
+      status,
+      statusText,
+    } = await query.range(offset, offset + limit - 1);
 
-    if (error) throw error;
+    if (error) {
+      throw error;
+    }
+
+    // Buscar dados dos usuários separadamente se houver feedbacks
+    if (feedbacks && feedbacks.length > 0) {
+      const userIds = feedbacks
+        .map((f) => f.user_id)
+        .filter(Boolean)
+        .filter((value, index, self) => self.indexOf(value) === index); // unique
+
+      if (userIds.length > 0) {
+        const { data: users } = await supabase
+          .from("users")
+          .select("id, email, full_name")
+          .in("id", userIds);
+
+        // Merge user data with feedbacks
+        feedbacks.forEach((feedback) => {
+          if (feedback.user_id) {
+            const user = users?.find((u) => u.id === feedback.user_id);
+            if (user) {
+              feedback.user = user;
+            }
+          }
+        });
+      }
+    }
 
     // Total count for pagination
     let countQuery = supabase
@@ -411,9 +455,13 @@ export async function getAdminFeedbacks(filters?: {
     if (filters?.priority)
       countQuery = countQuery.eq("priority", filters.priority);
 
-    const { count } = await countQuery;
+    const { count, error: countError } = await countQuery;
 
-    return {
+    if (countError) {
+      throw countError;
+    }
+
+    const result = {
       success: true,
       data: {
         feedbacks,
@@ -425,8 +473,9 @@ export async function getAdminFeedbacks(filters?: {
         },
       },
     };
+
+    return result;
   } catch (error) {
-    console.error("Error fetching admin feedbacks:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

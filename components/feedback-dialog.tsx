@@ -211,9 +211,9 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
                     <SelectContent>
                       {feedbackTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 justify-start">
                             <type.icon className="h-4 w-4" />
-                            <div>
+                            <div className="flex flex-col items-start">
                               <div className="font-medium">{type.label}</div>
                               <div className="text-xs text-muted-foreground">
                                 {type.description}

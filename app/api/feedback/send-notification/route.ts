@@ -47,25 +47,78 @@ export async function POST(request: NextRequest) {
 
     const subject = `${priorityEmoji[feedback.priority]} ${typeLabels[feedback.type]}: ${feedback.title}`;
 
+    // Determinar a URL base correta (priorizar variável de servidor)
+    const baseUrl =
+      process.env.APP_URL ||
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://financetrack.jeffymesquita.dev");
+
     // Enviar email
     const { data, error } = await resend.emails.send({
       from: process.env.FROM_EMAIL || "noreply@financetrack.com",
       to: adminEmails,
       subject,
-      react: FeedbackNotificationEmail({ feedback }),
-      // Fallback HTML para caso o React template falhe
+      // Usar HTML diretamente (mais confiável)
       html: `
-        <h2>Novo Feedback Recebido</h2>
-        <p><strong>Tipo:</strong> ${typeLabels[feedback.type]}</p>
-        <p><strong>Prioridade:</strong> ${feedback.priority}</p>
-        <p><strong>Título:</strong> ${feedback.title}</p>
-        <p><strong>Descrição:</strong></p>
-        <div style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
-          ${feedback.description.replace(/\n/g, "<br>")}
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; border: 1px solid #ccc; border-radius: 8px;">
+          <!-- Header -->
+          <div style="background: #1f2937; color: white; padding: 24px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">Novo Feedback Recebido</h1>
+            <p style="margin: 8px 0 0; opacity: 0.9;">FinanceTrack - Sistema de Controle Financeiro</p>
+          </div>
+          
+          <!-- Content -->
+          <div style="padding: 32px 24px;">
+            <!-- Badges -->
+            <div style="margin-bottom: 24px;">
+              <span style="background: #3b82f6; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; margin-right: 8px;">
+                ${typeLabels[feedback.type]}
+              </span>
+              <span style="background: #f59e0b; color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">
+                Prioridade: ${feedback.priority}
+              </span>
+            </div>
+            
+            <!-- Título -->
+            <h2 style="margin: 0 0 16px; font-size: 20px; color: #111827;">${feedback.title}</h2>
+            
+            <!-- Descrição -->
+            <h3 style="margin: 0 0 12px; font-size: 16px; color: #374151;">Descrição:</h3>
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 24px; line-height: 1.6;">
+              ${feedback.description.replace(/\n/g, "<br>")}
+            </div>
+            
+            <!-- Informações do usuário -->
+            <div style="background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
+              <h3 style="margin: 0 0 12px; font-size: 16px; color: #374151;">Informações do Usuário:</h3>
+              <p style="margin: 4px 0; font-size: 14px; color: #6b7280;"><strong>ID:</strong> ${feedback.user_id || "Usuário anônimo"}</p>
+              ${feedback.email ? `<p style="margin: 4px 0; font-size: 14px; color: #6b7280;"><strong>Email:</strong> ${feedback.email}</p>` : ""}
+              ${feedback.page_url ? `<p style="margin: 4px 0; font-size: 14px; color: #6b7280;"><strong>Página:</strong> ${feedback.page_url}</p>` : ""}
+              <p style="margin: 4px 0; font-size: 14px; color: #6b7280;"><strong>Data:</strong> ${new Date(feedback.created_at).toLocaleString("pt-BR")}</p>
+            </div>
+            
+            <!-- Call to Action -->
+            <div style="text-align: center; border-top: 1px solid #e5e7eb; padding-top: 24px;">
+              <p style="margin: 0 0 16px; font-size: 14px; color: #6b7280;">
+                Acesse o painel administrativo para gerenciar este feedback:
+              </p>
+              <a href="${baseUrl}/dashboard/admin/feedbacks/${feedback.id}" 
+                 style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500;">
+                Ver Feedback
+              </a>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 16px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+            <p style="margin: 0; font-size: 12px; color: #6b7280;">
+              Este email foi enviado automaticamente pelo sistema FinanceTrack.<br>
+              Não responda a este email.
+            </p>
+          </div>
         </div>
-        ${feedback.email ? `<p><strong>Email:</strong> ${feedback.email}</p>` : ""}
-        ${feedback.page_url ? `<p><strong>Página:</strong> ${feedback.page_url}</p>` : ""}
-        <p><strong>Data:</strong> ${new Date(feedback.created_at).toLocaleString("pt-BR")}</p>
       `,
       // Headers adicionais para melhor deliverabilidade
       headers: {

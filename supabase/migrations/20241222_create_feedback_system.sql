@@ -39,9 +39,13 @@ CREATE POLICY "Users can view own feedbacks" ON feedbacks
 CREATE POLICY "Authenticated users can create feedbacks" ON feedbacks
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
--- Apenas administradores podem atualizar feedbacks (adicionar ao final se necessário)
--- CREATE POLICY "Admins can update feedbacks" ON feedbacks
---   FOR UPDATE USING (auth.jwt() ->> 'email' = 'admin@financecontrol.com');
+-- Admin pode ver todos os feedbacks
+CREATE POLICY "Admin can view all feedbacks" ON feedbacks
+  FOR SELECT USING (auth.uid()::text = '5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4');
+
+-- Admin pode atualizar feedbacks
+CREATE POLICY "Admin can update feedbacks" ON feedbacks
+  FOR UPDATE USING (auth.uid()::text = '5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4');
 
 -- 5. Criar função para atualizar updated_at automaticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()

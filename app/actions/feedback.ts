@@ -43,11 +43,28 @@ export async function createFeedback(data: CreateFeedbackData) {
 
     // Enviar notificação por email
     try {
-      await fetch("/api/feedback/send-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ feedback: feedback }),
-      });
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        "http://localhost:3000";
+      const response = await fetch(
+        `${baseUrl}/api/feedback/send-notification`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ feedback: feedback }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error(
+          "Erro na resposta do email:",
+          response.status,
+          response.statusText
+        );
+      } else {
+        console.log("Email de notificação enviado com sucesso");
+      }
     } catch (emailError) {
       console.error("Erro ao enviar email:", emailError);
       // Não falha a operação se o email não for enviado
