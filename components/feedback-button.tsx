@@ -6,14 +6,16 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 
 export function FeedbackButton() {
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-12 right-6 z-50">
       <FeedbackDialog>
         <Button
           size="lg"
-          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
+          className="rounded-full shadow-lg hover:shadow-xl transition-all duration-200 px-4 py-3 bg-green-600/50 hover:bg-green-700 dark:bg-green-600/50 dark:hover:bg-green-700 group"
         >
-          <MessageSquare className="h-5 w-5 mr-2" />
-          <span className="hidden sm:inline">Feedback</span>
+          <MessageSquare className="h-5 w-5 group-hover:mr-2 group-hover:text-white transition-all duration-200" />
+          <span className="hidden group-hover:inline text-white transition-all duration-200">
+            Feedback
+          </span>
         </Button>
       </FeedbackDialog>
     </div>
