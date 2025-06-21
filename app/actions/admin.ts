@@ -295,46 +295,326 @@ export async function getAdminUsers(page = 1, limit = 20) {
     // Para cada usuário, buscar estatísticas adicionais
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
-        // Transações
+        // Transações detalhadas (usando mesma lógica do dashboard.ts)
         const { data: transactions } = await supabase
           .from("transactions")
-          .select("amount, type")
+          .select("amount, type, date, category_id")
           .eq("user_id", user.id);
 
-        // Metas
+        // Datas seguindo mesma lógica do dashboard.ts
+        const now = new Date();
+
+        // Calcular primeiro dia do próximo mês (para separar futuras)
+        const nextMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          1,
+          0,
+          0,
+          0,
+          0
+        ).toISOString();
+
+        // Mês atual (primeiro ao último dia)
+        const firstDayOfMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          1
+        ).toISOString();
+        const lastDayOfMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          0,
+          23,
+          59,
+          59,
+          999
+        ).toISOString();
+
+        // Separar transações seguindo lógica do dashboard
+        const incomeTransactions =
+          transactions?.filter((t) => t.type === "INCOME") || [];
+
+        // Despesas passadas (até hoje)
+        const pastExpenseTransactions =
+          transactions?.filter(
+            (t) => t.type === "EXPENSE" && t.date < nextMonth
+          ) || [];
+
+        // Despesas futuras (a partir do próximo mês)
+        const futureExpenseTransactions =
+          transactions?.filter(
+            (t) => t.type === "EXPENSE" && t.date >= nextMonth
+          ) || [];
+
+        // Todas as despesas
+        const allExpenseTransactions =
+          transactions?.filter((t) => t.type === "EXPENSE") || [];
+
+        // Calcular totais (seguindo dashboard.ts)
+        const totalIncome = incomeTransactions.reduce(
+          (sum, t) => sum + (t.amount || 0),
+          0
+        );
+        const totalPastExpenses = pastExpenseTransactions.reduce(
+          (sum, t) => sum + (t.amount || 0),
+          0
+        );
+        const totalFutureExpenses = futureExpenseTransactions.reduce(
+          (sum, t) => sum + (t.amount || 0),
+          0
+        );
+        const totalAllExpenses = allExpenseTransactions.reduce(
+          (sum, t) => sum + (t.amount || 0),
+          0
+        );
+
+        // Saldo líquido real (receitas - despesas passadas, convertendo de centavos)
+        const netBalance = (totalIncome - totalPastExpenses) / 100;
+
+        // Transações deste mês (seguindo dashboard.ts)
+        const thisMonthTransactions =
+          transactions?.filter(
+            (t) => t.date >= firstDayOfMonth && t.date <= lastDayOfMonth
+          ) || [];
+
+        const thisMonthIncome = thisMonthTransactions
+          .filter((t) => t.type === "INCOME")
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        const thisMonthPastExpenses = thisMonthTransactions
+          .filter((t) => t.type === "EXPENSE")
+          .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        // Despesas futuras deste mês (próximo mês)
+        const nextMonthFirstDay = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          1
+        ).toISOString();
+        const nextMonthLastDay = new Date(
+          now.getFullYear(),
+          now.getMonth() + 2,
+          0,
+          23,
+          59,
+          59,
+          999
+        ).toISOString();
+
+        const thisMonthFutureExpenses =
+          transactions
+            ?.filter(
+              (t) =>
+                t.type === "EXPENSE" &&
+                t.date >= nextMonthFirstDay &&
+                t.date <= nextMonthLastDay
+            )
+            .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+
+        // Frequência de transações (últimos 30 dias)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const thirtyDaysAgoIso = thirtyDaysAgo.toISOString();
+
+        const recentTransactions =
+          transactions?.filter((t) => t.date >= thirtyDaysAgoIso) || [];
+
+        // Metas detalhadas
         const { data: goals } = await supabase
           .from("financial_goals")
-          .select("is_completed")
+          .select("is_completed, current_amount, target_amount, created_at")
           .eq("user_id", user.id);
 
-        // Cofrinhos
+        const totalGoalTarget =
+          (goals?.reduce((sum, g) => sum + (g.target_amount || 0), 0) || 0) /
+          100;
+        const totalGoalCurrent =
+          (goals?.reduce((sum, g) => sum + (g.current_amount || 0), 0) || 0) /
+          100;
+        const goalProgress =
+          totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
+
+        // Cofrinhos detalhados
         const { data: savingsBoxes } = await supabase
           .from("savings_boxes")
-          .select("current_amount")
+          .select("current_amount, target_amount, is_active, created_at")
           .eq("user_id", user.id);
 
-        // Feedbacks
+        const activeSavingsBoxes =
+          savingsBoxes?.filter((b) => b.is_active) || [];
+        const totalSavingsTarget =
+          (savingsBoxes?.reduce((sum, b) => sum + (b.target_amount || 0), 0) ||
+            0) / 100;
+
+        // Feedbacks detalhados
         const { data: feedbacks } = await supabase
           .from("feedbacks")
-          .select("id")
+          .select("id, type, status, created_at")
           .eq("user_id", user.id);
+
+        // Calcular dias desde última atividade (considerando múltiplas ações)
+        const activityDates = [];
+
+        // Última transação
+        if (transactions && transactions.length > 0) {
+          const lastTransactionDate = Math.max(
+            ...transactions.map((t) => new Date(t.date).getTime())
+          );
+          activityDates.push(lastTransactionDate);
+        }
+
+        // Última meta criada/atualizada
+        if (goals && goals.length > 0) {
+          const lastGoalDate = Math.max(
+            ...goals.map((g) => new Date(g.created_at).getTime())
+          );
+          activityDates.push(lastGoalDate);
+        }
+
+        // Último cofrinho criado/atualizado
+        if (savingsBoxes && savingsBoxes.length > 0) {
+          const lastSavingsDate = Math.max(
+            ...savingsBoxes.map((s) => new Date(s.created_at).getTime())
+          );
+          activityDates.push(lastSavingsDate);
+        }
+
+        // Último feedback enviado
+        if (feedbacks && feedbacks.length > 0) {
+          const lastFeedbackDate = Math.max(
+            ...feedbacks.map((f) => new Date(f.created_at).getTime())
+          );
+          activityDates.push(lastFeedbackDate);
+        }
+
+        // Se não houver nenhuma atividade, usar data de criação da conta
+        const lastActivityDate =
+          activityDates.length > 0
+            ? new Date(Math.max(...activityDates))
+            : new Date(user.created_at);
+
+        const daysSinceLastActivity = Math.floor(
+          (Date.now() - lastActivityDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // Categorizar usuário
+        let userCategory = "NOVO";
+        if (transactions && transactions.length > 50) userCategory = "EXPERT";
+        else if (transactions && transactions.length > 20)
+          userCategory = "AVANCADO";
+        else if (transactions && transactions.length > 5)
+          userCategory = "ATIVO";
+
+        // Calcular categoria principal (onde mais gasta) - versão corrigida
+        let mainCategory = { name: "Nenhuma", total: 0, count: 0 };
+        if (allExpenseTransactions.length > 0) {
+          // Agrupar despesas por categoria_id
+          const categoryTotals: Record<
+            string,
+            { total: number; count: number }
+          > = {};
+
+          allExpenseTransactions.forEach((transaction) => {
+            const categoryId = transaction.category_id || "sem_categoria";
+            if (!categoryTotals[categoryId]) {
+              categoryTotals[categoryId] = { total: 0, count: 0 };
+            }
+            categoryTotals[categoryId].total += transaction.amount || 0;
+            categoryTotals[categoryId].count += 1;
+          });
+
+          // Encontrar categoria com maior valor total
+          const topCategoryId = Object.entries(categoryTotals).sort(
+            ([, a], [, b]) => b.total - a.total
+          )[0];
+
+          if (topCategoryId) {
+            // Buscar nome da categoria
+            const { data: categoryInfo } = await supabase
+              .from("categories")
+              .select("name")
+              .eq("id", topCategoryId[0])
+              .single();
+
+            mainCategory = {
+              name: categoryInfo?.name || "Categoria Desconhecida",
+              total: topCategoryId[1].total / 100,
+              count: topCategoryId[1].count,
+            };
+          }
+        }
 
         return {
           ...user,
           stats: {
+            // Transações gerais
             transactionsCount: transactions?.length || 0,
-            totalTransactionAmount:
-              (transactions?.reduce((sum, t) => sum + (t.amount || 0), 0) ||
-                0) / 100,
+            totalTransactionAmount: (totalIncome + totalAllExpenses) / 100,
+
+            // Receitas e despesas (convertendo de centavos)
+            income: {
+              count: incomeTransactions.length,
+              total: totalIncome / 100,
+              thisMonth: thisMonthIncome / 100,
+              average:
+                incomeTransactions.length > 0
+                  ? totalIncome / incomeTransactions.length / 100
+                  : 0,
+            },
+            expenses: {
+              count: pastExpenseTransactions.length,
+              total: totalPastExpenses / 100,
+              thisMonth: thisMonthPastExpenses / 100,
+              average:
+                pastExpenseTransactions.length > 0
+                  ? totalPastExpenses / pastExpenseTransactions.length / 100
+                  : 0,
+            },
+            futureExpenses: {
+              count: futureExpenseTransactions.length,
+              total: totalFutureExpenses / 100,
+              thisMonth: thisMonthFutureExpenses / 100,
+              average:
+                futureExpenseTransactions.length > 0
+                  ? totalFutureExpenses / futureExpenseTransactions.length / 100
+                  : 0,
+            },
+
+            // Balanço e performance
+            netBalance,
+            thisMonthNet: (thisMonthIncome - thisMonthPastExpenses) / 100,
+            thisMonthBalance: (thisMonthIncome - thisMonthPastExpenses) / 100,
+            recentActivityCount: recentTransactions.length,
+            daysSinceLastActivity,
+
+            // Metas
             goalsCount: goals?.length || 0,
             completedGoals: goals?.filter((g) => g.is_completed).length || 0,
+            goalProgress: Math.round(goalProgress),
+            totalGoalTarget,
+            totalGoalCurrent,
+
+            // Cofrinhos
             savingsBoxesCount: savingsBoxes?.length || 0,
+            activeSavingsBoxes: activeSavingsBoxes.length,
             totalSaved:
               (savingsBoxes?.reduce(
                 (sum, b) => sum + (b.current_amount || 0),
                 0
               ) || 0) / 100,
+            totalSavingsTarget,
+
+            // Engajamento
             feedbacksCount: feedbacks?.length || 0,
+            userCategory,
+            mainCategory,
+
+            // Datas importantes
+            accountAge: Math.floor(
+              (Date.now() - new Date(user.created_at).getTime()) /
+                (1000 * 60 * 60 * 24)
+            ),
           },
         };
       })
