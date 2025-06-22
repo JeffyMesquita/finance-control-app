@@ -36,7 +36,7 @@ export function NotificationsList() {
       setNotifications(data || []);
       supabaseCache.set(CACHE_KEY, data || []);
     } catch (error) {
-      logger.error("Error fetching notifications:", error );
+      logger.error("Error fetching notifications:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
@@ -107,4 +107,5 @@ export function NotificationsList() {
     </Card>
   );
 }
+
 

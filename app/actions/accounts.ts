@@ -24,7 +24,7 @@ export async function getAccounts() {
     .order("name");
 
   if (error) {
-    logger.error("Error fetching accounts:", error);
+    logger.error("Error fetching accounts:", error as Error);
     return [];
   }
 
@@ -52,7 +52,7 @@ export async function createAccount(
     .select();
 
   if (error) {
-    logger.error("Error creating account:", error);
+    logger.error("Error creating account:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -82,7 +82,7 @@ export async function updateAccount(
     .select();
 
   if (error) {
-    logger.error("Error updating account:", error);
+    logger.error("Error updating account:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -108,7 +108,7 @@ export async function deleteAccount(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting account:", error);
+    logger.error("Error deleting account:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -116,3 +116,4 @@ export async function deleteAccount(id: string) {
 
   return { success: true };
 }
+

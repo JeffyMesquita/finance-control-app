@@ -59,7 +59,7 @@ export function WelcomeCard() {
           setUserName("usuário");
         }
       } catch (error) {
-        logger.error("Erro ao buscar perfil:", error);
+        logger.error("Erro ao buscar perfil:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -150,3 +150,4 @@ export function WelcomeCard() {
     </AnimatePresence>
   );
 }
+

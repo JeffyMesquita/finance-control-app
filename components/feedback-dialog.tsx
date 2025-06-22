@@ -167,7 +167,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
         });
       }
     } catch (error) {
-      logger.error("Erro ao enviar feedback:", error);
+      logger.error("Erro ao enviar feedback:", error as Error);
       toast.error("Erro inesperado", {
         description: "Não foi possível enviar o feedback. Tente novamente.",
       });
@@ -386,3 +386,4 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
     </Dialog>
   );
 }
+

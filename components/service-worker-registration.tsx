@@ -25,7 +25,7 @@ export function ServiceWorkerRegistration() {
             }
           })
           .catch((error) => {
-            logger.error("Falha ao registrar ServiceWorker:", error);
+            logger.error("Falha ao registrar ServiceWorker:", error as Error);
           });
       });
     }
@@ -33,3 +33,4 @@ export function ServiceWorkerRegistration() {
 
   return null;
 }
+

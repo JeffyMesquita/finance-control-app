@@ -84,7 +84,7 @@ export function SavingsHistoryList({
       const data = await getSavingsTransactionsByUser(limit);
       setTransactions(data || []);
     } catch (error) {
-      logger.error("Erro ao carregar transações:", error);
+      logger.error("Erro ao carregar transações:", error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +95,7 @@ export function SavingsHistoryList({
       const data = await getSavingsBoxes();
       setAllBoxes(data || []);
     } catch (error) {
-      logger.error("Erro ao carregar cofrinhos:", error);
+      logger.error("Erro ao carregar cofrinhos:", error as Error);
     }
   };
 
@@ -371,3 +371,4 @@ export function SavingsHistoryList({
     </Card>
   );
 }
+

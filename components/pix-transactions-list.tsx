@@ -27,7 +27,7 @@ export function PixTransactionsList() {
 
       setTransactions(data || []);
     } catch (error) {
-      logger.error("Error fetching PIX transactions:", error );
+      logger.error("Error fetching PIX transactions:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as transações PIX.",
@@ -99,4 +99,5 @@ export function PixTransactionsList() {
     </Card>
   );
 }
+
 

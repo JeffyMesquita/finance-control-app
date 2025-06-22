@@ -878,3 +878,4 @@ export function LandingPage() {
     </div>
   );
 }
+

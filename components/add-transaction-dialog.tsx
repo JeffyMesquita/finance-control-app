@@ -146,7 +146,7 @@ export function AddTransactionDialog({
         }));
       }
     } catch (error) {
-      logger.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error as Error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias e contas",
@@ -288,7 +288,7 @@ export function AddTransactionDialog({
         }
       }
     } catch (error) {
-      logger.error("Erro ao criar transação:", error);
+      logger.error("Erro ao criar transação:", error as Error);
       toast({
         title: "Erro ao Criar",
         description:
@@ -506,3 +506,4 @@ export function AddTransactionDialog({
     </Dialog>
   );
 }
+

@@ -94,7 +94,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
 
       setStats(stats);
     } catch (error) {
-      logger.error("Erro ao carregar dados das metas:", error);
+      logger.error("Erro ao carregar dados das metas:", error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -342,3 +342,4 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
     </Card>
   );
 }
+

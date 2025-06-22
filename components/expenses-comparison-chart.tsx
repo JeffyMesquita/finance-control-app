@@ -70,7 +70,7 @@ export function ExpensesComparisonChart() {
           previousMonth: previousMonthData,
         });
       } catch (error) {
-        logger.error("Error fetching expense data:", error);
+        logger.error("Error fetching expense data:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -202,3 +202,4 @@ const YAxisCustomTick = (props: any) => {
     </g>
   );
 };
+

@@ -283,3 +283,4 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
     </>
   );
 }
+

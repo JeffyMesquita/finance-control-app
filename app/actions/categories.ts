@@ -24,7 +24,7 @@ export async function getCategories() {
     .order("name");
 
   if (error) {
-    logger.error("Error fetching categories:", error);
+    logger.error("Error fetching categories:", error as Error);
     return [];
   }
 
@@ -52,7 +52,7 @@ export async function createCategory(
     .select();
 
   if (error) {
-    logger.error("Error creating category:", error);
+    logger.error("Error creating category:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -85,7 +85,7 @@ export async function updateCategory(
     .select();
 
   if (error) {
-    logger.error("Error updating category:", error);
+    logger.error("Error updating category:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -111,7 +111,7 @@ export async function deleteCategory(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting category:", error);
+    logger.error("Error deleting category:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -119,3 +119,4 @@ export async function deleteCategory(id: string) {
 
   return { success: true };
 }
+

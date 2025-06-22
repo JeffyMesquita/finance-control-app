@@ -28,7 +28,7 @@ export function ReferralTrigger() {
         localStorage.removeItem("referral_id");
         setProcessed(true);
       } catch (error) {
-        logger.error("Erro ao processar referral:", error);
+        logger.error("Erro ao processar referral:", error as Error);
       }
     };
 
@@ -39,3 +39,4 @@ export function ReferralTrigger() {
 
   return null; // Componente invisível
 }
+

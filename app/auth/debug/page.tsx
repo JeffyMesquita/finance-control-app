@@ -1,66 +1,79 @@
-import { logger } from "@/lib/utils/logger";
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { InfoIcon, CheckCircle, XCircle, RefreshCw, UserPlus } from "lucide-react"
+import { logger } from "@/lib/utils/logger";
+import { useState, useEffect } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  InfoIcon,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  UserPlus,
+} from "lucide-react";
 
 export default function AuthDebugPage() {
-  const [authUser, setAuthUser] = useState<any>(null)
-  const [publicUser, setPublicUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const supabase = createClientComponentClient()
+  const [authUser, setAuthUser] = useState<any>(null);
+  const [publicUser, setPublicUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
-    checkAuth()
-  }, [])
+    checkAuth();
+  }, []);
 
   const checkAuth = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
     try {
       // Verificar sessão atual
       const {
         data: { session },
-      } = await supabase.auth.getSession()
+      } = await supabase.auth.getSession();
 
       if (session?.user) {
-        setAuthUser(session.user)
+        setAuthUser(session.user);
 
         // Verificar se o usuário existe na tabela public.users
         const { data: userData, error: userError } = await supabase
           .from("users")
           .select("*")
           .eq("id", session.user.id)
-          .single()
+          .single();
 
         if (userError && userError.code !== "PGRST116") {
-          logger.error("Erro ao buscar usuário:", userError )
-          setError(`Erro ao buscar usuário: ${userError.message}`)
+          logger.error("Erro ao buscar usuário:", userError);
+          setError(`Erro ao buscar usuário: ${userError.message}`);
         } else {
-          setPublicUser(userData || null)
+          setPublicUser(userData || null);
         }
       } else {
-        setAuthUser(null)
-        setPublicUser(null)
+        setAuthUser(null);
+        setPublicUser(null);
       }
     } catch (err: any) {
-      logger.error("Erro ao verificar autenticação:", err )
-      setError(`Erro ao verificar autenticação: ${err.message}`)
+      logger.error("Erro ao verificar autenticação:", err);
+      setError(`Erro ao verificar autenticação: ${err.message}`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleLogin = async () => {
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -71,44 +84,44 @@ export default function AuthDebugPage() {
             prompt: "consent",
           },
         },
-      })
+      });
 
       if (error) {
-        throw error
+        throw error;
       }
 
       // O redirecionamento será tratado pelo Supabase
     } catch (err: any) {
-      logger.error("Erro ao fazer login:", err )
-      setError(`Erro ao fazer login: ${err.message}`)
-      setIsLoading(false)
+      logger.error("Erro ao fazer login:", err);
+      setError(`Erro ao fazer login: ${err.message}`);
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSignOut = async () => {
     try {
-      setIsLoading(true)
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      setAuthUser(null)
-      setPublicUser(null)
+      setIsLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setAuthUser(null);
+      setPublicUser(null);
     } catch (err: any) {
-      logger.error("Erro ao fazer logout:", err )
-      setError(`Erro ao fazer logout: ${err.message}`)
+      logger.error("Erro ao fazer logout:", err);
+      setError(`Erro ao fazer logout: ${err.message}`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleManualInsert = async () => {
     if (!authUser) {
-      setError("Você precisa estar autenticado para inserir manualmente")
-      return
+      setError("Você precisa estar autenticado para inserir manualmente");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError(null)
+      setIsLoading(true);
+      setError(null);
 
       // Inserir manualmente na tabela users
       const { data, error } = await supabase
@@ -121,23 +134,25 @@ export default function AuthDebugPage() {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .select()
+        .select();
 
-      if (error) throw error
+      if (error) throw error;
 
       // Atualizar o estado
-      await checkAuth()
+      await checkAuth();
     } catch (err: any) {
-      logger.error("Erro ao inserir usuário manualmente:", err )
-      setError(`Erro ao inserir usuário manualmente: ${err.message}`)
+      logger.error("Erro ao inserir usuário manualmente:", err);
+      setError(`Erro ao inserir usuário manualmente: ${err.message}`);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6 text-center">Depuração de Autenticação</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">
+        Depuração de Autenticação
+      </h1>
 
       {error && (
         <Alert variant="destructive" className="mb-6">
@@ -151,7 +166,9 @@ export default function AuthDebugPage() {
         <Card>
           <CardHeader>
             <CardTitle>Status da Autenticação</CardTitle>
-            <CardDescription>Verifique o status atual da sua autenticação</CardDescription>
+            <CardDescription>
+              Verifique o status atual da sua autenticação
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -176,16 +193,20 @@ export default function AuthDebugPage() {
                 {authUser && (
                   <>
                     <div>
-                      <span className="font-medium">Email:</span> {authUser.email}
+                      <span className="font-medium">Email:</span>{" "}
+                      {authUser.email}
                     </div>
                     <div>
                       <span className="font-medium">ID:</span> {authUser.id}
                     </div>
                     <div>
-                      <span className="font-medium">Provedor:</span> {authUser.app_metadata?.provider || "N/A"}
+                      <span className="font-medium">Provedor:</span>{" "}
+                      {authUser.app_metadata?.provider || "N/A"}
                     </div>
                     <div className="pt-2">
-                      <span className="font-medium">Usuário na tabela public.users:</span>{" "}
+                      <span className="font-medium">
+                        Usuário na tabela public.users:
+                      </span>{" "}
                       {publicUser ? (
                         <span className="flex items-center text-green-600">
                           <CheckCircle className="h-4 w-4 mr-1" /> Encontrado
@@ -204,22 +225,40 @@ export default function AuthDebugPage() {
           <CardFooter className="flex flex-col gap-2">
             {authUser ? (
               <div className="flex gap-2 w-full">
-                <Button onClick={checkAuth} disabled={isLoading} variant="outline" className="flex-1">
+                <Button
+                  onClick={checkAuth}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="flex-1"
+                >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Atualizar
                 </Button>
-                <Button onClick={handleSignOut} disabled={isLoading} variant="destructive" className="flex-1">
+                <Button
+                  onClick={handleSignOut}
+                  disabled={isLoading}
+                  variant="destructive"
+                  className="flex-1"
+                >
                   Sair
                 </Button>
               </div>
             ) : (
-              <Button onClick={handleGoogleLogin} disabled={isLoading} className="w-full">
+              <Button
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                className="w-full"
+              >
                 Entrar com Google
               </Button>
             )}
 
             {authUser && !publicUser && (
-              <Button onClick={handleManualInsert} disabled={isLoading} className="w-full mt-2">
+              <Button
+                onClick={handleManualInsert}
+                disabled={isLoading}
+                className="w-full mt-2"
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Inserir Usuário Manualmente
               </Button>
@@ -237,7 +276,9 @@ export default function AuthDebugPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Dados de Autenticação</CardTitle>
-                  <CardDescription>Informações completas do usuário autenticado</CardDescription>
+                  <CardDescription>
+                    Informações completas do usuário autenticado
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <pre className="bg-muted p-4 rounded-md overflow-auto text-xs">
@@ -250,7 +291,9 @@ export default function AuthDebugPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Dados da Tabela Users</CardTitle>
-                  <CardDescription>Informações do usuário na tabela public.users</CardDescription>
+                  <CardDescription>
+                    Informações do usuário na tabela public.users
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {publicUser ? (
@@ -271,26 +314,44 @@ export default function AuthDebugPage() {
         <Card>
           <CardHeader>
             <CardTitle>Solução de Problemas</CardTitle>
-            <CardDescription>Dicas para resolver problemas comuns</CardDescription>
+            <CardDescription>
+              Dicas para resolver problemas comuns
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-1">Se o trigger não estiver funcionando:</h3>
+                <h3 className="font-medium mb-1">
+                  Se o trigger não estiver funcionando:
+                </h3>
                 <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>Verifique se o trigger e a função estão criados corretamente</li>
+                  <li>
+                    Verifique se o trigger e a função estão criados corretamente
+                  </li>
                   <li>Verifique se a tabela users tem a estrutura correta</li>
                   <li>Verifique se há erros nos logs do Supabase</li>
-                  <li>Use o botão "Inserir Usuário Manualmente" como solução temporária</li>
+                  <li>
+                    Use o botão "Inserir Usuário Manualmente" como solução
+                    temporária
+                  </li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="font-medium mb-1">Se o login com Google não funcionar:</h3>
+                <h3 className="font-medium mb-1">
+                  Se o login com Google não funcionar:
+                </h3>
                 <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>Verifique se o provedor Google está habilitado no Supabase</li>
-                  <li>Verifique se as URLs de redirecionamento estão configuradas corretamente</li>
-                  <li>Verifique se as credenciais do Google Cloud estão corretas</li>
+                  <li>
+                    Verifique se o provedor Google está habilitado no Supabase
+                  </li>
+                  <li>
+                    Verifique se as URLs de redirecionamento estão configuradas
+                    corretamente
+                  </li>
+                  <li>
+                    Verifique se as credenciais do Google Cloud estão corretas
+                  </li>
                   <li>Limpe os cookies e o cache do navegador</li>
                 </ul>
               </div>
@@ -299,6 +360,5 @@ export default function AuthDebugPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

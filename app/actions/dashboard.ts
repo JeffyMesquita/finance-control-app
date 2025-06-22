@@ -363,7 +363,7 @@ export async function getExpenseBreakdown(
     .lte("date", lastDayOfMonth);
 
   if (error) {
-    logger.error("Error fetching expense breakdown:", error);
+    logger.error("Error fetching expense breakdown:", error as Error);
     return [];
   }
 
@@ -418,7 +418,7 @@ export async function getGoalsStats() {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error fetching goals stats:", error);
+    logger.error("Error fetching goals stats:", error as Error);
     return {
       total_goals: 0,
       completed_goals: 0,
@@ -508,3 +508,4 @@ export async function getGoalsStats() {
     goals_by_month: goalsByMonth,
   };
 }
+

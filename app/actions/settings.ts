@@ -24,7 +24,7 @@ export async function getUserSettings(): Promise<UserSettings | null> {
     .single();
 
   if (error && error.code !== "PGRST116") {
-    logger.error("Erro ao buscar configurações do usuário:", error);
+    logger.error("Erro ao buscar configurações do usuário:", error as Error);
     return null;
   }
 
@@ -48,7 +48,7 @@ export async function updateUserSettings(settings: UserSettings) {
   });
 
   if (error) {
-    logger.error("Erro ao atualizar configurações do usuário:", error);
+    logger.error("Erro ao atualizar configurações do usuário:", error as Error);
     throw new Error(error.message);
   }
 
@@ -72,10 +72,11 @@ export async function updateTheme(theme: string) {
     .eq("id", user.id);
 
   if (error) {
-    logger.error("Erro ao atualizar tema:", error);
+    logger.error("Erro ao atualizar tema:", error as Error);
     throw new Error(error.message);
   }
 
   revalidatePath("/dashboard");
   return { success: true };
 }
+

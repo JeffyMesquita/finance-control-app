@@ -27,7 +27,7 @@ export function ReferralList() {
 
       setReferrals(data || []);
     } catch (error) {
-      logger.error("Error fetching referrals:", error );
+      logger.error("Error fetching referrals:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as indicações.",
@@ -98,4 +98,5 @@ export function ReferralList() {
     </Card>
   );
 }
+
 

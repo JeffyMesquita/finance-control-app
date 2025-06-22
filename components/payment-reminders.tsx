@@ -39,7 +39,7 @@ export function PaymentReminders() {
       .order("due_date", { ascending: true });
 
     if (error) {
-      logger.error("Error fetching reminders:", error);
+      logger.error("Error fetching reminders:", error as Error);
       return;
     }
 
@@ -78,7 +78,7 @@ export function PaymentReminders() {
       .eq("id", id);
 
     if (error) {
-      logger.error("Error updating status:", error);
+      logger.error("Error updating status:", error as Error);
     }
   };
 
@@ -164,3 +164,4 @@ export function PaymentReminders() {
     </Card>
   );
 }
+

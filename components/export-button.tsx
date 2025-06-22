@@ -41,7 +41,7 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
       setCategories(categoriesData);
       setAccounts(accountsData);
     } catch (error) {
-      logger.error("Erro ao carregar dados para exportação:", error);
+      logger.error("Erro ao carregar dados para exportação:", error as Error);
     } finally {
       setIsLoading(false);
     }
@@ -62,3 +62,4 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
     </>
   );
 }
+

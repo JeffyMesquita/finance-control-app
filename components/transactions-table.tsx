@@ -167,7 +167,7 @@ export function TransactionsTable() {
       setTotalTransactions(result.total);
       supabaseCache.set(CACHE_KEY, result.data);
     } catch (error) {
-      logger.error("Erro ao carregar transações:", error);
+      logger.error("Erro ao carregar transações:", error as Error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -184,7 +184,7 @@ export function TransactionsTable() {
       const data = await getCategories();
       setCategories(data);
     } catch (error) {
-      logger.error("Erro ao carregar categorias:", error);
+      logger.error("Erro ao carregar categorias:", error as Error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -209,7 +209,7 @@ export function TransactionsTable() {
       });
       fetchTransactions();
     } catch (error) {
-      logger.error("Error deleting transaction:", error);
+      logger.error("Error deleting transaction:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a transação.",
@@ -246,7 +246,7 @@ export function TransactionsTable() {
       });
       fetchTransactions();
     } catch (error) {
-      logger.error("Error deleting transactions:", error);
+      logger.error("Error deleting transactions:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir as transações.",
@@ -888,3 +888,4 @@ export function TransactionsTable() {
     </div>
   );
 }
+

@@ -104,7 +104,7 @@ export function CategoryDialog({
         throw new Error(result.error || "Falha ao criar categoria");
       }
     } catch (error) {
-      logger.error("Erro ao criar categoria:", error);
+      logger.error("Erro ao criar categoria:", error as Error);
       toast({
         title: "Erro ao Criar",
         description:
@@ -231,3 +231,4 @@ export function CategoryDialog({
     </Dialog>
   );
 }
+

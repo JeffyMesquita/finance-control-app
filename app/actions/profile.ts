@@ -24,7 +24,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     .single();
 
   if (error && error.code !== "PGRST116") {
-    logger.error("Erro ao buscar perfil do usuário:", error);
+    logger.error("Erro ao buscar perfil do usuário:", error as Error);
     return null;
   }
 
@@ -48,7 +48,7 @@ export async function updateUserProfile(profile: UserProfile) {
   });
 
   if (error) {
-    logger.error("Erro ao atualizar perfil do usuário:", error);
+    logger.error("Erro ao atualizar perfil do usuário:", error as Error);
     throw new Error(error.message);
   }
 
@@ -72,10 +72,11 @@ export async function updateProfileImage(imageUrl: string) {
     .eq("id", user.id);
 
   if (error) {
-    logger.error("Erro ao atualizar imagem de perfil:", error);
+    logger.error("Erro ao atualizar imagem de perfil:", error as Error);
     throw new Error(error.message);
   }
 
   revalidatePath("/dashboard/perfil");
   return { success: true };
 }
+

@@ -219,7 +219,7 @@ export function ReportsOverview() {
         setGoalsStats(goalsResult);
         setSavingsBoxStats(savingsResult);
       } catch (error) {
-        logger.error("Error fetching report data:", error);
+        logger.error("Error fetching report data:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -778,3 +778,4 @@ const PieCustomTooltip = ({
     </div>
   );
 };
+

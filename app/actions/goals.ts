@@ -36,7 +36,7 @@ export async function getGoals() {
     .order("target_date", { ascending: true });
 
   if (error) {
-    logger.error("Error fetching goals:", error);
+    logger.error("Error fetching goals:", error as Error);
     return [];
   }
 
@@ -73,7 +73,7 @@ export async function getGoalById(id: string) {
     .single();
 
   if (error) {
-    logger.error("Error fetching goal:", error);
+    logger.error("Error fetching goal:", error as Error);
     return null;
   }
 
@@ -108,7 +108,7 @@ export async function createGoal(
     .select();
 
   if (error) {
-    logger.error("Error creating goal:", error);
+    logger.error("Error creating goal:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -147,7 +147,7 @@ export async function updateGoal(
     .select();
 
   if (error) {
-    logger.error("Error updating goal:", error);
+    logger.error("Error updating goal:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -173,7 +173,7 @@ export async function deleteGoal(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting goal:", error);
+    logger.error("Error deleting goal:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -224,7 +224,7 @@ export async function updateGoalProgress(id: string, amount: number) {
     .select();
 
   if (error) {
-    logger.error("Error updating goal progress:", error);
+    logger.error("Error updating goal progress:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -232,3 +232,4 @@ export async function updateGoalProgress(id: string, amount: number) {
 
   return { success: true, data };
 }
+

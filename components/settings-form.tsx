@@ -78,7 +78,7 @@ export function SettingsForm() {
         supabaseCache.set(CACHE_KEY, settingsData);
       }
     } catch (error) {
-      logger.error("Error fetching settings:", error);
+      logger.error("Error fetching settings:", error as Error);
       // Em caso de erro, usa configurações padrão
       setSettings(defaultSettings);
       toast({
@@ -123,7 +123,7 @@ export function SettingsForm() {
           variant: "success",
         });
       } catch (error) {
-        logger.error("Error updating settings:", error);
+        logger.error("Error updating settings:", error as Error);
         toast({
           title: "Erro",
           description: "Não foi possível atualizar a configuração.",
@@ -340,4 +340,5 @@ export function SettingsForm() {
     </div>
   );
 }
+
 

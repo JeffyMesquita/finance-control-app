@@ -116,7 +116,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
         const monthlyData = await getMonthlyData();
         setData(monthlyData);
       } catch (error) {
-        logger.error("Erro ao carregar dados mensais:", error);
+        logger.error("Erro ao carregar dados mensais:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -253,3 +253,4 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
     </Card>
   );
 }
+

@@ -51,7 +51,7 @@ export function ShareAppAlert() {
       setReferralStats(formattedStats);
       setInviteCount(stats?.referralCount);
     } catch (error) {
-      logger.error("Error fetching referral stats:", error);
+      logger.error("Error fetching referral stats:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as estatísticas de indicação.",
@@ -89,7 +89,7 @@ export function ShareAppAlert() {
         variant: "info",
       });
     } catch (error) {
-      logger.error("Erro ao copiar link:", error);
+      logger.error("Erro ao copiar link:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível copiar o link",
@@ -262,3 +262,4 @@ export function ShareAppAlert() {
     </AnimatePresence>
   );
 }
+

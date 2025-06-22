@@ -14,3 +14,4 @@ export function CanonicalUrl({ path }: CanonicalUrlProps) {
     </Head>
   );
 }
+

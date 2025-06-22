@@ -42,7 +42,7 @@ export function PixSupportAlert() {
         variant: "info",
       });
     } catch (error) {
-      logger.error("Erro ao copiar chave PIX:", error);
+      logger.error("Erro ao copiar chave PIX:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível copiar a chave PIX",
@@ -111,3 +111,4 @@ export function PixSupportAlert() {
     </AnimatePresence>
   );
 }
+

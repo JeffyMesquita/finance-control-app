@@ -27,7 +27,7 @@ export function BadgesList() {
 
       setBadges(data || []);
     } catch (error) {
-      logger.error("Error fetching badges:", error );
+      logger.error("Error fetching badges:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as badges.",
@@ -96,4 +96,5 @@ export function BadgesList() {
     </Card>
   );
 }
+
 

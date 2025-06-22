@@ -1,5 +1,6 @@
-import { logger } from "@/lib/utils/logger";
 "use client";
+
+import { logger } from "@/lib/utils/logger";
 
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
@@ -62,7 +63,7 @@ export default function LoginPage() {
           router.push("/dashboard");
         }
       } catch (error) {
-        logger.error("Erro ao verificar sessão:", error );
+        logger.error("Erro ao verificar sessão:", error as Error);
       } finally {
         setIsCheckingSession(false);
       }
@@ -98,7 +99,9 @@ export default function LoginPage() {
         localStorage.setItem("referral_id", ref);
       } else if (existingRef !== ref) {
         // Referral diferente já existe - manter o primeiro (first-touch)
-        logger.info("⚠️ Keeping first referral:", { data: [existingRef, "ignoring:", ref] });
+        logger.info("⚠️ Keeping first referral:", {
+          data: [existingRef, "ignoring:", ref],
+        });
       } else {
         // Mesmo referral - OK
         logger.info("✅ Same referral confirmed:", { data: ref });
@@ -133,7 +136,7 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (error: any) {
-      logger.error("Erro na autenticação:", error );
+      logger.error("Erro na autenticação:", error);
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -164,7 +167,7 @@ export default function LoginPage() {
       // Após login Google, processa referência
       // O redirecionamento será tratado pelo Supabase
     } catch (error: any) {
-      logger.error("Erro ao fazer login:", error );
+      logger.error("Erro ao fazer login:", error);
       setError("Falha ao fazer login com Google. Por favor, tente novamente.");
       setIsLoading(false);
     }
@@ -353,4 +356,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

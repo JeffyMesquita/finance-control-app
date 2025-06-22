@@ -189,7 +189,7 @@ export function ExportDialog({
 
       onOpenChange(false);
     } catch (error) {
-      logger.error("Erro ao exportar dados:", error);
+      logger.error("Erro ao exportar dados:", error as Error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao exportar dados",
@@ -385,3 +385,4 @@ export function ExportDialog({
     </Dialog>
   );
 }
+

@@ -136,7 +136,7 @@ export async function depositToSavingsBox(
 
     return { success: true, data: transaction };
   } catch (error) {
-    logger.error("Error in deposit operation:", error);
+    logger.error("Error in deposit operation:", error as Error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -266,7 +266,7 @@ export async function withdrawFromSavingsBox(
 
     return { success: true, data: transaction };
   } catch (error) {
-    logger.error("Error in withdraw operation:", error);
+    logger.error("Error in withdraw operation:", error as Error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -375,7 +375,7 @@ export async function transferBetweenBoxes(
 
     return { success: true, data: transaction };
   } catch (error) {
-    logger.error("Error in transfer operation:", error);
+    logger.error("Error in transfer operation:", error as Error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -430,7 +430,7 @@ export async function getSavingsTransactions(boxId?: string, limit?: number) {
   const { data, error } = await query;
 
   if (error) {
-    logger.error("Error fetching savings transactions:", error);
+    logger.error("Error fetching savings transactions:", error as Error);
     return [];
   }
 
@@ -481,7 +481,7 @@ export async function getSavingsTransactionsByUser(limit?: number) {
   const { data, error } = await query;
 
   if (error) {
-    logger.error("Error fetching user savings transactions:", error);
+    logger.error("Error fetching user savings transactions:", error as Error);
     return [];
   }
 
@@ -545,7 +545,7 @@ export async function getSavingsTransactionsStats(boxId?: string) {
     const { data: transactions, error } = await query;
 
     if (error) {
-      logger.error("Error fetching savings transactions stats:", error);
+      logger.error("Error fetching savings transactions stats:", error as Error);
       return null;
     }
 
@@ -567,7 +567,7 @@ export async function getSavingsTransactionsStats(boxId?: string) {
 
     return stats;
   } catch (error) {
-    logger.error("Error calculating savings transactions stats:", error);
+    logger.error("Error calculating savings transactions stats:", error as Error);
     return null;
   }
 }
@@ -657,7 +657,8 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
       details: results,
     };
   } catch (error) {
-    logger.error("Error syncing goal with savings box:", error);
+    logger.error("Error syncing goal with savings box:", error as Error);
     return { success: false, error: "Erro interno ao sincronizar" };
   }
 }
+

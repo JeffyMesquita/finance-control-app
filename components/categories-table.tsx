@@ -118,7 +118,7 @@ export function CategoriesTable() {
       setCategories(data);
       setFilteredCategories(data);
     } catch (error) {
-      logger.error("Erro ao carregar categorias:", error);
+      logger.error("Erro ao carregar categorias:", error as Error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias",
@@ -157,7 +157,7 @@ export function CategoriesTable() {
         description: "Categoria excluída com sucesso.",
       });
     } catch (error) {
-      logger.error("Error deleting category:", error);
+      logger.error("Error deleting category:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a categoria.",
@@ -429,3 +429,4 @@ export function CategoriesTable() {
     </div>
   );
 }
+

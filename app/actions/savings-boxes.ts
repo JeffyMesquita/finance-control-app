@@ -38,7 +38,7 @@ export async function getSavingsBoxes() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      logger.error("Error fetching savings boxes with transactions:", error);
+      logger.error("Error fetching savings boxes with transactions:", error as Error);
 
       // Fallback: buscar sem relacionamentos se houver erro
       const { data: fallbackData, error: fallbackError } = await supabase
@@ -104,7 +104,7 @@ export async function getSavingsBoxById(id: string) {
     .single();
 
   if (error) {
-    logger.error("Error fetching savings box:", error);
+    logger.error("Error fetching savings box:", error as Error);
     return null;
   }
 
@@ -151,7 +151,7 @@ export async function createSavingsBox(
     .single();
 
   if (error) {
-    logger.error("Error creating savings box:", error);
+    logger.error("Error creating savings box:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -213,7 +213,7 @@ export async function updateSavingsBox(
     .single();
 
   if (error) {
-    logger.error("Error updating savings box:", error);
+    logger.error("Error updating savings box:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -272,7 +272,7 @@ export async function deleteSavingsBox(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting savings box:", error);
+    logger.error("Error deleting savings box:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -299,7 +299,7 @@ export async function getSavingsBoxesTotal() {
     .eq("is_active", true);
 
   if (error) {
-    logger.error("Error fetching savings boxes total:", error);
+    logger.error("Error fetching savings boxes total:", error as Error);
     return 0;
   }
 
@@ -341,7 +341,7 @@ export async function getSavingsBoxesSummary() {
     .limit(5);
 
   if (error) {
-    logger.error("Error fetching savings boxes summary:", error);
+    logger.error("Error fetching savings boxes summary:", error as Error);
     return [];
   }
 
@@ -393,7 +393,7 @@ export async function getSavingsBoxesStats() {
     .eq("is_active", true);
 
   if (error) {
-    logger.error("Error fetching savings boxes stats:", error);
+    logger.error("Error fetching savings boxes stats:", error as Error);
     return {
       total_boxes: 0,
       total_amount: 0,
@@ -458,7 +458,7 @@ export async function restoreSavingsBox(id: string) {
     .single();
 
   if (error) {
-    logger.error("Error restoring savings box:", error);
+    logger.error("Error restoring savings box:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -467,3 +467,4 @@ export async function restoreSavingsBox(id: string) {
 
   return { success: true, data };
 }
+

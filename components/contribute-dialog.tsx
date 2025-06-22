@@ -134,7 +134,7 @@ export function ContributeDialog({
       setAmount(0);
       onSuccess?.();
     } catch (error) {
-      logger.error("Erro ao realizar contribuição:", error);
+      logger.error("Erro ao realizar contribuição:", error as Error);
       toast({
         title: "Erro na Contribuição",
         description:
@@ -395,3 +395,4 @@ export function ContributeDialog({
     </Dialog>
   );
 }
+

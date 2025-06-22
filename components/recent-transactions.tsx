@@ -72,7 +72,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
         const data = await getRecentTransactions(7);
         setTransactions(data);
       } catch (error) {
-        logger.error("Erro ao carregar transações:", error);
+        logger.error("Erro ao carregar transações:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -154,3 +154,4 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     </Card>
   );
 }
+

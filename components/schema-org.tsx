@@ -17,3 +17,4 @@ export function SchemaOrg({ type, data }: SchemaOrgProps) {
     />
   );
 }
+

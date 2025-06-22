@@ -167,7 +167,7 @@ export function GoalDialog({
       setCategories(categoriesData.filter((c) => c.type === "EXPENSE"));
       setSavingsBoxes(savingsBoxesData);
     } catch (error) {
-      logger.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error as Error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -250,7 +250,7 @@ export function GoalDialog({
         throw new Error(result.error || "Falha ao processar meta");
       }
     } catch (error) {
-      logger.error("Erro ao processar meta:", error);
+      logger.error("Erro ao processar meta:", error as Error);
       toast({
         title: isEditing ? "Erro ao Atualizar" : "Erro ao Criar",
         description:
@@ -449,3 +449,4 @@ export function GoalDialog({
     </Dialog>
   );
 }
+

@@ -62,7 +62,7 @@ export async function getTransactionsForExport(
   const { data, error } = await query;
 
   if (error) {
-    logger.error("Error fetching transactions for export:", error);
+    logger.error("Error fetching transactions for export:", error as Error);
     return [];
   }
 
@@ -87,7 +87,7 @@ export async function getAccountsForExport() {
     .order("name");
 
   if (error) {
-    logger.error("Error fetching accounts for export:", error);
+    logger.error("Error fetching accounts for export:", error as Error);
     return [];
   }
 
@@ -112,7 +112,7 @@ export async function getCategoriesForExport() {
     .order("name");
 
   if (error) {
-    logger.error("Error fetching categories for export:", error);
+    logger.error("Error fetching categories for export:", error as Error);
     return [];
   }
 
@@ -143,7 +143,7 @@ export async function getGoalsForExport() {
     .order("target_date");
 
   if (error) {
-    logger.error("Error fetching goals for export:", error);
+    logger.error("Error fetching goals for export:", error as Error);
     return [];
   }
 
@@ -173,7 +173,7 @@ export async function getMonthlySummaryForExport(year?: number) {
     .lte("date", endDate);
 
   if (error) {
-    logger.error("Error fetching monthly summary for export:", error);
+    logger.error("Error fetching monthly summary for export:", error as Error);
     return [];
   }
 
@@ -209,3 +209,4 @@ export async function getMonthlySummaryForExport(year?: number) {
 
   return monthlyData;
 }
+

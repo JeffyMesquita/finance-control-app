@@ -96,7 +96,7 @@ export async function getTransactions(
   const { data, error } = await dataQuery.range(offset, offset + pageSize - 1);
 
   if (error) {
-    logger.error("Error fetching transactions:", error);
+    logger.error("Error fetching transactions:", error as Error);
     return { data: [], total: 0 };
   }
 
@@ -134,7 +134,7 @@ export async function getRecentTransactions(limit = 5) {
     .limit(limit);
 
   if (error) {
-    logger.error("Error fetching recent transactions:", error);
+    logger.error("Error fetching recent transactions:", error as Error);
     return [];
   }
 
@@ -162,7 +162,7 @@ export async function createTransaction(
     .select();
 
   if (error) {
-    logger.error("Error creating transaction:", error);
+    logger.error("Error creating transaction:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -204,7 +204,7 @@ export async function updateTransaction(
     .select();
 
   if (error) {
-    logger.error("Error updating transaction:", error);
+    logger.error("Error updating transaction:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -252,7 +252,7 @@ export async function deleteTransaction(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting transaction:", error);
+    logger.error("Error deleting transaction:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -292,7 +292,7 @@ export async function deleteTransactions(ids: string[]) {
     .eq("user_id", user.id);
 
   if (error) {
-    logger.error("Error deleting transactions:", error);
+    logger.error("Error deleting transactions:", error as Error);
     return { success: false, error: error.message };
   }
 
@@ -353,3 +353,4 @@ async function updateAccountBalance(accountId: string) {
     logger.error("Error updating account balance:", updateError);
   }
 }
+

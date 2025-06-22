@@ -120,7 +120,7 @@ export async function handleReferral(
       }`,
     };
   } catch (error) {
-    logger.error("Error handling referral:", error);
+    logger.error("Error handling referral:", error as Error);
     return {
       success: false,
       message: "Erro ao processar referência",
@@ -174,7 +174,8 @@ export async function getReferralStats() {
       referrer,
     };
   } catch (error) {
-    logger.error("Error getting referral stats:", error);
+    logger.error("Error getting referral stats:", error as Error);
     return { referralCount: 0, badges: [], referrer: null };
   }
 }
+

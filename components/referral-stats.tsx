@@ -47,7 +47,7 @@ export function ReferralStats() {
       // Cache the stats
       supabaseCache.set(CACHE_KEY, data);
     } catch (error) {
-      logger.error("Error fetching referral stats:", error );
+      logger.error("Error fetching referral stats:", error as Error);
     } finally {
       setLoading(false);
     }
@@ -107,4 +107,5 @@ export function ReferralStats() {
     </div>
   );
 }
+
 

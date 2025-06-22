@@ -93,7 +93,7 @@ export function LinkSavingsBoxDialog({
       const data = await getSavingsBoxes();
       setSavingsBoxes(data || []);
     } catch (error) {
-      logger.error("Erro ao carregar cofrinhos:", error);
+      logger.error("Erro ao carregar cofrinhos:", error as Error);
       toast({
         title: "Erro ao Carregar",
         description: "Não foi possível carregar os cofrinhos disponíveis.",
@@ -160,7 +160,7 @@ export function LinkSavingsBoxDialog({
         throw new Error(result.error || "Falha ao atualizar vinculação");
       }
     } catch (error) {
-      logger.error("Erro ao atualizar vinculação:", error);
+      logger.error("Erro ao atualizar vinculação:", error as Error);
       toast({
         title: "Erro",
         description:
@@ -398,3 +398,4 @@ export function LinkSavingsBoxDialog({
     </Dialog>
   );
 }
+

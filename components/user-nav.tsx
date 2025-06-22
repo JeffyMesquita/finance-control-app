@@ -45,7 +45,7 @@ export function UserNav({ user }: { user?: any }) {
       router.push("/login");
       router.refresh();
     } catch (error) {
-      logger.error("Erro ao fazer logout:", error);
+      logger.error("Erro ao fazer logout:", error as Error);
     }
   };
 
@@ -127,3 +127,4 @@ export function UserNav({ user }: { user?: any }) {
     </>
   );
 }
+

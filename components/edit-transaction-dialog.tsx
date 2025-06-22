@@ -130,7 +130,7 @@ export function EditTransactionDialog({
       setCategories(categoriesData);
       setAccounts(accountsData);
     } catch (error) {
-      logger.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error as Error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias e contas",
@@ -219,7 +219,7 @@ export function EditTransactionDialog({
         throw new Error(result.error || "Falha ao atualizar transação");
       }
     } catch (error) {
-      logger.error("Erro ao atualizar transação:", error);
+      logger.error("Erro ao atualizar transação:", error as Error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao atualizar transação",
@@ -395,3 +395,4 @@ export function EditTransactionDialog({
     </Dialog>
   );
 }
+

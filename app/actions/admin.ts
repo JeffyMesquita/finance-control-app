@@ -262,7 +262,7 @@ export async function getAdminStats(): Promise<{
 
     return { success: true, data: stats };
   } catch (error) {
-    logger.error("Error fetching admin stats:", error);
+    logger.error("Error fetching admin stats:", error as Error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -640,7 +640,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
       },
     };
   } catch (error) {
-    logger.error("Error fetching admin users:", error);
+    logger.error("Error fetching admin users:", error as Error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -790,7 +790,7 @@ export async function updateFeedbackStatus(
 
     return { success: true, data };
   } catch (error) {
-    logger.error("Error updating feedback:", error);
+    logger.error("Error updating feedback:", error as Error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -953,10 +953,12 @@ export async function getReferralsData() {
       },
     };
   } catch (error) {
-    logger.error("Error fetching referrals data:", error);
+    logger.error("Error fetching referrals data:", error as Error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
+
+

@@ -61,3 +61,4 @@ export function HeroVisual({ className = "" }: { className?: string }) {
     </motion.div>
   );
 }
+

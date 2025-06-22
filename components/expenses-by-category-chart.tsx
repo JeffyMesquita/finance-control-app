@@ -81,7 +81,7 @@ export function ExpensesByCategoryChart({
         const data = await getExpenseBreakdown();
         setExpenseData(data);
       } catch (error) {
-        logger.error("Error fetching expense data:", error);
+        logger.error("Error fetching expense data:", error as Error);
       } finally {
         setIsLoading(false);
       }
@@ -146,3 +146,4 @@ export function ExpensesByCategoryChart({
     </Card>
   );
 }
+

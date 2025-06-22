@@ -64,7 +64,7 @@ export function DashboardCards() {
       // Cache the data
       supabaseCache.set(CACHE_KEY, dashboardData);
     } catch (error) {
-      logger.error("Error fetching dashboard data:", error);
+      logger.error("Error fetching dashboard data:", error as Error);
     } finally {
       setLoading(false);
     }
@@ -573,3 +573,4 @@ export function DashboardCards() {
     </div>
   );
 }
+
