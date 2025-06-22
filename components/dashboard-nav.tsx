@@ -102,7 +102,17 @@ export function DashboardNav() {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:text-primary",
-                pathname === item.href || pathname.startsWith(item.href + "/")
+                (() => {
+                  // Para a página raiz do dashboard, só ativa se for exatamente essa página
+                  if (item.href === "/dashboard") {
+                    return pathname === "/dashboard";
+                  }
+                  // Para outras páginas, verifica se é exata ou uma subpágina
+                  return (
+                    pathname === item.href ||
+                    pathname.startsWith(item.href + "/")
+                  );
+                })()
                   ? "bg-primary/10 font-medium text-primary"
                   : "text-muted-foreground hover:bg-muted",
                 isAdminItem &&

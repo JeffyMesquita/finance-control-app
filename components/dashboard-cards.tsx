@@ -17,6 +17,7 @@ import {
 import { getDashboardData } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { supabaseCache } from "@/lib/supabase/cache";
+import { DashboardCardsSkeleton } from "@/components/skeletons";
 
 const CACHE_KEY = "dashboard-data";
 const MAX_RETRIES = 3;
@@ -73,49 +74,14 @@ export function DashboardCards() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-gray-200 rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {[...Array(2)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 col-span-2">
-              <div className="h-4 w-24 bg-gray-200 rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
-
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-gray-200 rounded"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-16 bg-gray-200 rounded"></div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+    return <DashboardCardsSkeleton />;
   }
 
   if (!data) return null;
 
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-4">
-      <Card className="relative bg-stone-100 dark:bg-stone-900 shadow-sm max-sm:col-span-1 col-span-2 lg:col-span-1">
+      <Card className="relative border-orange-500 bg-orange-300/50 dark:bg-orange-200/20 shadow-sm max-sm:col-span-1 col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-orange-800 dark:text-orange-100">
             Saldo Total
@@ -169,7 +135,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
+      <Card className="relative overflow-hidden border-green-500 bg-green-300/50 dark:bg-green-200/20 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-green-800 dark:text-green-100">
             Receitas
@@ -223,7 +189,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
+      <Card className="relative overflow-hidden border-red-500 bg-red-300/50 dark:bg-red-200/20 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-red-800 dark:text-red-100">
             Despesas
@@ -277,7 +243,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-stone-100 dark:bg-stone-900 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
+      <Card className="relative overflow-hidden border-blue-500 bg-blue-300/50 dark:bg-blue-200/20 shadow-sm col-span-1 w-full sm:col-span-2 lg:col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-100">
             Economia
@@ -333,7 +299,7 @@ export function DashboardCards() {
 
       {/* Novos cards */}
 
-      <Card className="relative overflow-hidden bg-red-100 dark:bg-red-900 shadow-sm col-span-2">
+      <Card className="relative overflow-hidden border-red-500 bg-red-300/50 dark:bg-red-200/20 shadow-sm col-span-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-red-800 dark:text-red-100">
             Despesas do Próximo Mês
@@ -387,7 +353,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-emerald-100 dark:bg-emerald-900 shadow-sm col-span-2">
+      <Card className="relative overflow-hidden border-emerald-500 bg-emerald-300/50 dark:bg-emerald-200/20 shadow-sm col-span-2">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-100">
             Receitas do Próximo Mês
@@ -441,7 +407,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-purple-100 dark:bg-purple-900 shadow-sm col-span-1">
+      <Card className="relative overflow-hidden border-purple-500 bg-purple-300/50 dark:bg-purple-200/20 shadow-sm col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-purple-800 dark:text-purple-100">
             Gastos Futuros
@@ -495,7 +461,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="bg-emerald-100 dark:bg-emerald-900 shadow-sm col-span-1">
+      <Card className="border-emerald-500 bg-emerald-300/50 dark:bg-emerald-200/20 shadow-sm col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-emerald-800 dark:text-emerald-100">
             Entradas
@@ -523,7 +489,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="bg-rose-100 dark:bg-rose-900 shadow-sm col-span-1">
+      <Card className="border-rose-500 bg-rose-300/50 dark:bg-rose-200/20 shadow-sm col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-rose-800 dark:text-rose-100">
             Despesas
@@ -551,7 +517,7 @@ export function DashboardCards() {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden bg-yellow-100 dark:bg-yellow-900 shadow-sm col-span-1">
+      <Card className="relative overflow-hidden border-yellow-500 bg-yellow-300/50 dark:bg-yellow-200/20 shadow-sm col-span-1">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-yellow-800 dark:text-yellow-100">
             Cofrinhos

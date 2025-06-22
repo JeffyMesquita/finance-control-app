@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { getRecentTransactions } from "@/app/actions/transactions";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { RecentTransactionsSkeleton } from "@/components/skeletons";
 
 type Category = {
   id: string;
@@ -67,7 +68,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        const data = await getRecentTransactions(5);
+        const data = await getRecentTransactions(7);
         setTransactions(data);
       } catch (error) {
         console.error("Erro ao carregar transações:", error);
@@ -80,28 +81,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
   }, []);
 
   if (isLoading) {
-    return (
-      <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
-        <CardHeader>
-          <CardTitle>Transações Recentes</CardTitle>
-          <CardDescription>Suas últimas transações até hoje</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex items-center">
-                <div className="h-10 w-10 animate-pulse rounded-full bg-muted mr-4"></div>
-                <div className="flex-1 space-y-1">
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted"></div>
-                  <div className="h-3 w-16 animate-pulse rounded bg-muted"></div>
-                </div>
-                <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <RecentTransactionsSkeleton className={className} />;
   }
 
   if (transactions.length === 0) {
