@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { logger } from "@/lib/utils/logger";
 import {
   Select,
   SelectContent,
@@ -77,7 +78,7 @@ export function SettingsForm() {
         supabaseCache.set(CACHE_KEY, settingsData);
       }
     } catch (error) {
-      console.error("Error fetching settings:", error);
+      logger.error("Error fetching settings:", error);
       // Em caso de erro, usa configurações padrão
       setSettings(defaultSettings);
       toast({
@@ -122,7 +123,7 @@ export function SettingsForm() {
           variant: "success",
         });
       } catch (error) {
-        console.error("Error updating settings:", error);
+        logger.error("Error updating settings:", error);
         toast({
           title: "Erro",
           description: "Não foi possível atualizar a configuração.",
@@ -339,3 +340,4 @@ export function SettingsForm() {
     </div>
   );
 }
+

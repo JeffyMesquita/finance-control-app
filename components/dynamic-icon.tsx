@@ -1,5 +1,6 @@
 import * as LucideIcons from "lucide-react";
 import React from "react";
+import { logger } from "@/lib/utils/logger";
 
 export type LucideIcon = keyof typeof LucideIcons;
 
@@ -20,7 +21,7 @@ export function DynamicIcon({
 
   const renderIcon = () => {
     if (!IconComponent) {
-      console.warn(`Icon "${icon}" not found in LucideIcons`);
+      logger.warn(`Icon "${icon}" not found in LucideIcons`);
       return null;
     }
     const Icon = IconComponent as React.ComponentType<{

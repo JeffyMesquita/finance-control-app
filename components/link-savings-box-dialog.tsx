@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -91,7 +93,7 @@ export function LinkSavingsBoxDialog({
       const data = await getSavingsBoxes();
       setSavingsBoxes(data || []);
     } catch (error) {
-      console.error("Erro ao carregar cofrinhos:", error);
+      logger.error("Erro ao carregar cofrinhos:", error);
       toast({
         title: "Erro ao Carregar",
         description: "Não foi possível carregar os cofrinhos disponíveis.",
@@ -158,7 +160,7 @@ export function LinkSavingsBoxDialog({
         throw new Error(result.error || "Falha ao atualizar vinculação");
       }
     } catch (error) {
-      console.error("Erro ao atualizar vinculação:", error);
+      logger.error("Erro ao atualizar vinculação:", error);
       toast({
         title: "Erro",
         description:
@@ -385,8 +387,8 @@ export function LinkSavingsBoxDialog({
                   {selectedBoxId === "none"
                     ? "Desvincular"
                     : isCurrentlyLinked
-                    ? "Alterar Vinculação"
-                    : "Vincular Meta"}
+                      ? "Alterar Vinculação"
+                      : "Vincular Meta"}
                 </>
               )}
             </Button>

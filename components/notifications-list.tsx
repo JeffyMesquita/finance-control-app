@@ -5,6 +5,7 @@ import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
 import { supabaseCache } from "@/lib/supabase/cache";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { logger } from "@/lib/utils/logger";
 
 const CACHE_KEY = "notifications-list";
 const MAX_RETRIES = 3;
@@ -35,7 +36,7 @@ export function NotificationsList() {
       setNotifications(data || []);
       supabaseCache.set(CACHE_KEY, data || []);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      logger.error("Error fetching notifications:", error );
       toast({
         title: "Erro",
         description: "Não foi possível carregar as notificações.",
@@ -106,3 +107,4 @@ export function NotificationsList() {
     </Card>
   );
 }
+

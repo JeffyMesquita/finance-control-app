@@ -1,3 +1,4 @@
+import { logger } from "@/lib/utils/logger";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -32,7 +33,7 @@ export function DataSummary() {
         setDashboardData(dashboardResult);
         setExpenseData(expenseResult);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        logger.error("Error fetching data:", error );
       } finally {
         setIsLoading(false);
       }
@@ -133,3 +134,4 @@ export function DataSummary() {
     </div>
   );
 }
+

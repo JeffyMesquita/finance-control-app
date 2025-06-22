@@ -1,5 +1,6 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getSavingsBoxesTotal } from "./savings-boxes";
@@ -58,7 +59,7 @@ export async function getDashboardData() {
     .eq("user_id", user.id);
 
   if (accountsError) {
-    console.error("Error fetching accounts:", accountsError);
+    logger.error("Error fetching accounts:", accountsError);
     return {
       totalBalance: 0,
       monthlyIncome: 0,
@@ -236,7 +237,7 @@ export async function getDashboardData() {
     const savingsBoxesTotalResult = await getSavingsBoxesTotal();
     savingsBoxesTotal = savingsBoxesTotalResult || 0;
   } catch (error) {
-    console.error("Erro ao buscar total dos cofrinhos:", error);
+    logger.error("Erro ao buscar total dos cofrinhos:", error as Error);
     savingsBoxesTotal = 0;
   }
 
@@ -292,7 +293,7 @@ export async function getMonthlyData() {
       .lte("date", lastDay);
 
     if (error) {
-      console.error(`Error fetching transactions for ${monthName}:`, error);
+      logger.error(`Error fetching transactions for ${monthName}:`, error);
       months.push({
         name: monthName,
         income: 0,
@@ -362,7 +363,7 @@ export async function getExpenseBreakdown(
     .lte("date", lastDayOfMonth);
 
   if (error) {
-    console.error("Error fetching expense breakdown:", error);
+    logger.error("Error fetching expense breakdown:", error);
     return [];
   }
 
@@ -417,7 +418,7 @@ export async function getGoalsStats() {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error fetching goals stats:", error);
+    logger.error("Error fetching goals stats:", error);
     return {
       total_goals: 0,
       completed_goals: 0,

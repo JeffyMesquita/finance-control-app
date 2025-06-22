@@ -1,3 +1,4 @@
+import { logger } from "@/lib/utils/logger";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -39,7 +40,7 @@ export default function AuthDebugPage() {
           .single()
 
         if (userError && userError.code !== "PGRST116") {
-          console.error("Erro ao buscar usuário:", userError)
+          logger.error("Erro ao buscar usuário:", userError )
           setError(`Erro ao buscar usuário: ${userError.message}`)
         } else {
           setPublicUser(userData || null)
@@ -49,7 +50,7 @@ export default function AuthDebugPage() {
         setPublicUser(null)
       }
     } catch (err: any) {
-      console.error("Erro ao verificar autenticação:", err)
+      logger.error("Erro ao verificar autenticação:", err )
       setError(`Erro ao verificar autenticação: ${err.message}`)
     } finally {
       setIsLoading(false)
@@ -78,7 +79,7 @@ export default function AuthDebugPage() {
 
       // O redirecionamento será tratado pelo Supabase
     } catch (err: any) {
-      console.error("Erro ao fazer login:", err)
+      logger.error("Erro ao fazer login:", err )
       setError(`Erro ao fazer login: ${err.message}`)
       setIsLoading(false)
     }
@@ -92,7 +93,7 @@ export default function AuthDebugPage() {
       setAuthUser(null)
       setPublicUser(null)
     } catch (err: any) {
-      console.error("Erro ao fazer logout:", err)
+      logger.error("Erro ao fazer logout:", err )
       setError(`Erro ao fazer logout: ${err.message}`)
     } finally {
       setIsLoading(false)
@@ -127,7 +128,7 @@ export default function AuthDebugPage() {
       // Atualizar o estado
       await checkAuth()
     } catch (err: any) {
-      console.error("Erro ao inserir usuário manualmente:", err)
+      logger.error("Erro ao inserir usuário manualmente:", err )
       setError(`Erro ao inserir usuário manualmente: ${err.message}`)
     } finally {
       setIsLoading(false)
@@ -300,3 +301,4 @@ export default function AuthDebugPage() {
     </div>
   )
 }
+

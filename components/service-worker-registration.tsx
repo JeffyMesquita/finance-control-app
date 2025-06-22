@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useEffect } from "react";
 
 export function ServiceWorkerRegistration() {
@@ -9,19 +11,21 @@ export function ServiceWorkerRegistration() {
         navigator.serviceWorker
           .register("/sw.js")
           .then((registration) => {
-            console.log("ServiceWorker registrado com sucesso:", registration);
+            logger.info("ServiceWorker registrado com sucesso:", {
+              data: registration,
+            });
 
             // Solicitar permissão para notificações
             if ("Notification" in window) {
               Notification.requestPermission().then((permission) => {
                 if (permission === "granted") {
-                  console.log("Permissão para notificações concedida");
+                  logger.info("Permissão para notificações concedida");
                 }
               });
             }
           })
           .catch((error) => {
-            console.error("Falha ao registrar ServiceWorker:", error);
+            logger.error("Falha ao registrar ServiceWorker:", error);
           });
       });
     }

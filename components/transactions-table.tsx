@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -165,7 +167,7 @@ export function TransactionsTable() {
       setTotalTransactions(result.total);
       supabaseCache.set(CACHE_KEY, result.data);
     } catch (error) {
-      console.error("Erro ao carregar transações:", error);
+      logger.error("Erro ao carregar transações:", error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -182,7 +184,7 @@ export function TransactionsTable() {
       const data = await getCategories();
       setCategories(data);
     } catch (error) {
-      console.error("Erro ao carregar categorias:", error);
+      logger.error("Erro ao carregar categorias:", error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -207,7 +209,7 @@ export function TransactionsTable() {
       });
       fetchTransactions();
     } catch (error) {
-      console.error("Error deleting transaction:", error);
+      logger.error("Error deleting transaction:", error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a transação.",
@@ -244,7 +246,7 @@ export function TransactionsTable() {
       });
       fetchTransactions();
     } catch (error) {
-      console.error("Error deleting transactions:", error);
+      logger.error("Error deleting transactions:", error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir as transações.",

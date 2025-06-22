@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -34,7 +36,7 @@ export async function getGoals() {
     .order("target_date", { ascending: true });
 
   if (error) {
-    console.error("Error fetching goals:", error);
+    logger.error("Error fetching goals:", error);
     return [];
   }
 
@@ -71,7 +73,7 @@ export async function getGoalById(id: string) {
     .single();
 
   if (error) {
-    console.error("Error fetching goal:", error);
+    logger.error("Error fetching goal:", error);
     return null;
   }
 
@@ -106,7 +108,7 @@ export async function createGoal(
     .select();
 
   if (error) {
-    console.error("Error creating goal:", error);
+    logger.error("Error creating goal:", error);
     return { success: false, error: error.message };
   }
 
@@ -145,7 +147,7 @@ export async function updateGoal(
     .select();
 
   if (error) {
-    console.error("Error updating goal:", error);
+    logger.error("Error updating goal:", error);
     return { success: false, error: error.message };
   }
 
@@ -171,7 +173,7 @@ export async function deleteGoal(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting goal:", error);
+    logger.error("Error deleting goal:", error);
     return { success: false, error: error.message };
   }
 
@@ -199,7 +201,7 @@ export async function updateGoalProgress(id: string, amount: number) {
     .single();
 
   if (fetchError) {
-    console.error("Error fetching goal:", fetchError);
+    logger.error("Error fetching goal:", fetchError);
     return { success: false, error: fetchError.message };
   }
 
@@ -222,7 +224,7 @@ export async function updateGoalProgress(id: string, amount: number) {
     .select();
 
   if (error) {
-    console.error("Error updating goal progress:", error);
+    logger.error("Error updating goal progress:", error);
     return { success: false, error: error.message };
   }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { FeedbackNotificationEmail } from "@/components/email-templates/feedback-notification";
 import { Feedback } from "@/lib/types/feedback";
+import { logger } from "@/lib/utils/logger";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.RESEND_API_KEY) {
-      console.error("RESEND_API_KEY não configurada");
+      logger.error("RESEND_API_KEY não configurada");
       return NextResponse.json(
         { error: "Configuração de email não encontrada" },
         { status: 500 }
@@ -142,24 +143,25 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      console.error("Erro do Resend:", error);
+      logger.error("Erro do Resend:", error );
       return NextResponse.json(
         { error: "Erro ao enviar email", details: error },
         { status: 500 }
       );
     }
 
-    console.log("Email enviado com sucesso:", data?.id);
+    logger.info("Email enviado com sucesso:", { data: data?.id });
     return NextResponse.json({
       success: true,
       messageId: data?.id,
       message: "Notificação enviada com sucesso",
     });
   } catch (error) {
-    console.error("Erro inesperado no envio de email:", error);
+    logger.error("Erro inesperado no envio de email:", error );
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
     );
   }
 }
+

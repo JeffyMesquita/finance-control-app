@@ -4,6 +4,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { logger } from "@/lib/utils/logger";
 
 export function BadgesList() {
   const [badges, setBadges] = useState<any[]>([]);
@@ -26,7 +27,7 @@ export function BadgesList() {
 
       setBadges(data || []);
     } catch (error) {
-      console.error("Error fetching badges:", error);
+      logger.error("Error fetching badges:", error );
       toast({
         title: "Erro",
         description: "Não foi possível carregar as badges.",
@@ -95,3 +96,4 @@ export function BadgesList() {
     </Card>
   );
 }
+

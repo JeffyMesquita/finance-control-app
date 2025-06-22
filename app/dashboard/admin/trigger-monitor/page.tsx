@@ -1,3 +1,4 @@
+import { logger } from "@/lib/utils/logger";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -46,7 +47,7 @@ export default function TriggerMonitorPage() {
 
       setError(null);
     } catch (err: any) {
-      console.error("Erro ao buscar usuários:", err);
+      logger.error("Erro ao buscar usuários:", err );
       setError(err.message);
       setUsers([]);
     } finally {
@@ -152,3 +153,4 @@ export default function TriggerMonitorPage() {
     </div>
   );
 }
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -71,7 +72,7 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
         const data = await getRecentTransactions(7);
         setTransactions(data);
       } catch (error) {
-        console.error("Erro ao carregar transações:", error);
+        logger.error("Erro ao carregar transações:", error);
       } finally {
         setIsLoading(false);
       }

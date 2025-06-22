@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -128,7 +130,7 @@ export function EditTransactionDialog({
       setCategories(categoriesData);
       setAccounts(accountsData);
     } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias e contas",
@@ -217,7 +219,7 @@ export function EditTransactionDialog({
         throw new Error(result.error || "Falha ao atualizar transação");
       }
     } catch (error) {
-      console.error("Erro ao atualizar transação:", error);
+      logger.error("Erro ao atualizar transação:", error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao atualizar transação",

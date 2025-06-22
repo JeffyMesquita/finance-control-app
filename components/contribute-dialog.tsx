@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -132,7 +134,7 @@ export function ContributeDialog({
       setAmount(0);
       onSuccess?.();
     } catch (error) {
-      console.error("Erro ao realizar contribuição:", error);
+      logger.error("Erro ao realizar contribuição:", error);
       toast({
         title: "Erro na Contribuição",
         description:

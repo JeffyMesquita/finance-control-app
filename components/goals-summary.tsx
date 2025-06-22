@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,7 +94,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
 
       setStats(stats);
     } catch (error) {
-      console.error("Erro ao carregar dados das metas:", error);
+      logger.error("Erro ao carregar dados das metas:", error);
     } finally {
       setIsLoading(false);
     }

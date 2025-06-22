@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -94,7 +96,7 @@ export async function getTransactions(
   const { data, error } = await dataQuery.range(offset, offset + pageSize - 1);
 
   if (error) {
-    console.error("Error fetching transactions:", error);
+    logger.error("Error fetching transactions:", error);
     return { data: [], total: 0 };
   }
 
@@ -132,7 +134,7 @@ export async function getRecentTransactions(limit = 5) {
     .limit(limit);
 
   if (error) {
-    console.error("Error fetching recent transactions:", error);
+    logger.error("Error fetching recent transactions:", error);
     return [];
   }
 
@@ -160,7 +162,7 @@ export async function createTransaction(
     .select();
 
   if (error) {
-    console.error("Error creating transaction:", error);
+    logger.error("Error creating transaction:", error);
     return { success: false, error: error.message };
   }
 
@@ -202,7 +204,7 @@ export async function updateTransaction(
     .select();
 
   if (error) {
-    console.error("Error updating transaction:", error);
+    logger.error("Error updating transaction:", error);
     return { success: false, error: error.message };
   }
 
@@ -250,7 +252,7 @@ export async function deleteTransaction(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting transaction:", error);
+    logger.error("Error deleting transaction:", error);
     return { success: false, error: error.message };
   }
 
@@ -290,7 +292,7 @@ export async function deleteTransactions(ids: string[]) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting transactions:", error);
+    logger.error("Error deleting transactions:", error);
     return { success: false, error: error.message };
   }
 
@@ -332,7 +334,7 @@ async function updateAccountBalance(accountId: string) {
     .lte("date", currentDate);
 
   if (transactionsError) {
-    console.error("Error calculating balance:", transactionsError);
+    logger.error("Error calculating balance:", transactionsError);
     return;
   }
 
@@ -348,6 +350,6 @@ async function updateAccountBalance(accountId: string) {
     .eq("user_id", user.id);
 
   if (updateError) {
-    console.error("Error updating account balance:", updateError);
+    logger.error("Error updating account balance:", updateError);
   }
 }

@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -91,7 +93,7 @@ export async function depositToSavingsBox(
       .single();
 
     if (transactionError) {
-      console.error("Error creating deposit transaction:", transactionError);
+      logger.error("Error creating deposit transaction:", transactionError);
       return { success: false, error: transactionError.message };
     }
 
@@ -114,7 +116,7 @@ export async function depositToSavingsBox(
           .eq("user_id", user.id);
 
         if (updateAccountError) {
-          console.error("Error updating account balance:", updateAccountError);
+          logger.error("Error updating account balance:", updateAccountError);
           // Reverter a transação do cofrinho se houver erro
           await supabase
             .from("savings_transactions")
@@ -134,7 +136,7 @@ export async function depositToSavingsBox(
 
     return { success: true, data: transaction };
   } catch (error) {
-    console.error("Error in deposit operation:", error);
+    logger.error("Error in deposit operation:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -221,7 +223,7 @@ export async function withdrawFromSavingsBox(
       .single();
 
     if (transactionError) {
-      console.error("Error creating withdraw transaction:", transactionError);
+      logger.error("Error creating withdraw transaction:", transactionError);
       return { success: false, error: transactionError.message };
     }
 
@@ -244,7 +246,7 @@ export async function withdrawFromSavingsBox(
           .eq("user_id", user.id);
 
         if (updateAccountError) {
-          console.error("Error updating account balance:", updateAccountError);
+          logger.error("Error updating account balance:", updateAccountError);
           // Reverter a transação do cofrinho se houver erro
           await supabase
             .from("savings_transactions")
@@ -264,7 +266,7 @@ export async function withdrawFromSavingsBox(
 
     return { success: true, data: transaction };
   } catch (error) {
-    console.error("Error in withdraw operation:", error);
+    logger.error("Error in withdraw operation:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -358,7 +360,7 @@ export async function transferBetweenBoxes(
       .single();
 
     if (transactionError) {
-      console.error("Error creating transfer transaction:", transactionError);
+      logger.error("Error creating transfer transaction:", transactionError);
       return { success: false, error: transactionError.message };
     }
 
@@ -373,7 +375,7 @@ export async function transferBetweenBoxes(
 
     return { success: true, data: transaction };
   } catch (error) {
-    console.error("Error in transfer operation:", error);
+    logger.error("Error in transfer operation:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -428,7 +430,7 @@ export async function getSavingsTransactions(boxId?: string, limit?: number) {
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching savings transactions:", error);
+    logger.error("Error fetching savings transactions:", error);
     return [];
   }
 
@@ -479,7 +481,7 @@ export async function getSavingsTransactionsByUser(limit?: number) {
   const { data, error } = await query;
 
   if (error) {
-    console.error("Error fetching user savings transactions:", error);
+    logger.error("Error fetching user savings transactions:", error);
     return [];
   }
 
@@ -543,7 +545,7 @@ export async function getSavingsTransactionsStats(boxId?: string) {
     const { data: transactions, error } = await query;
 
     if (error) {
-      console.error("Error fetching savings transactions stats:", error);
+      logger.error("Error fetching savings transactions stats:", error);
       return null;
     }
 
@@ -565,7 +567,7 @@ export async function getSavingsTransactionsStats(boxId?: string) {
 
     return stats;
   } catch (error) {
-    console.error("Error calculating savings transactions stats:", error);
+    logger.error("Error calculating savings transactions stats:", error);
     return null;
   }
 }
@@ -591,7 +593,7 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
       .single();
 
     if (boxError || !savingsBox) {
-      console.error("Savings box not found:", boxError);
+      logger.error("Savings box not found:", boxError);
       return { success: false, error: "Cofrinho não encontrado" };
     }
 
@@ -603,7 +605,7 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
       .eq("user_id", user.id);
 
     if (goalsError) {
-      console.error("Error fetching linked goals:", goalsError);
+      logger.error("Error fetching linked goals:", goalsError);
       return { success: false, error: "Erro ao buscar metas vinculadas" };
     }
 
@@ -622,7 +624,9 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
           .eq("user_id", user.id);
 
         if (updateError) {
-          console.error(`Error updating goal ${goal.id}:`, updateError);
+          logger.error(`Error updating goal ${goal.id}:`, {
+            data: updateError,
+          });
           return {
             success: false,
             goalId: goal.id,
@@ -638,7 +642,7 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
     const successful = results.filter((r) => r.success);
     const failed = results.filter((r) => !r.success);
 
-    console.log(
+    logger.info(
       `Sync completed: ${successful.length} successful, ${failed.length} failed`
     );
 
@@ -653,7 +657,7 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
       details: results,
     };
   } catch (error) {
-    console.error("Error syncing goal with savings box:", error);
+    logger.error("Error syncing goal with savings box:", error);
     return { success: false, error: "Erro interno ao sincronizar" };
   }
 }

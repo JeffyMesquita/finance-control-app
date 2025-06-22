@@ -1,3 +1,4 @@
+import { logger } from "@/lib/utils/logger";
 "use client";
 
 import { useState } from "react";
@@ -56,7 +57,7 @@ export default function TestTrigger() {
         variant: "success",
       });
     } catch (error: any) {
-      console.error("Erro ao verificar usuário:", error);
+      logger.error("Erro ao verificar usuário:", error );
       toast({
         title: "Erro",
         description: error.message || "Falha ao verificar usuário",
@@ -105,3 +106,4 @@ export default function TestTrigger() {
     </div>
   );
 }
+

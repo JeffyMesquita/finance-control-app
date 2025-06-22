@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getReferralStats } from "@/app/actions/referrals";
 import { supabaseCache } from "@/lib/supabase/cache";
+import { logger } from "@/lib/utils/logger";
 
 const CACHE_KEY = "referral-stats";
 const MAX_RETRIES = 3;
@@ -46,7 +47,7 @@ export function ReferralStats() {
       // Cache the stats
       supabaseCache.set(CACHE_KEY, data);
     } catch (error) {
-      console.error("Error fetching referral stats:", error);
+      logger.error("Error fetching referral stats:", error );
     } finally {
       setLoading(false);
     }
@@ -106,3 +107,4 @@ export function ReferralStats() {
     </div>
   );
 }
+

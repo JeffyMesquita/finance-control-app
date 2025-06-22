@@ -4,6 +4,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { logger } from "@/lib/utils/logger";
 
 export function ReferralList() {
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -26,7 +27,7 @@ export function ReferralList() {
 
       setReferrals(data || []);
     } catch (error) {
-      console.error("Error fetching referrals:", error);
+      logger.error("Error fetching referrals:", error );
       toast({
         title: "Erro",
         description: "Não foi possível carregar as indicações.",
@@ -97,3 +98,4 @@ export function ReferralList() {
     </Card>
   );
 }
+

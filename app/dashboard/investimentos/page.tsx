@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,7 +81,7 @@ export default function InvestmentosPage() {
       setInvestments(investmentsData || []);
       setSummary(summaryData);
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      logger.error("Erro ao carregar dados:", err);
       setError("Erro ao carregar dados dos investimentos");
       toast({
         title: "Erro",

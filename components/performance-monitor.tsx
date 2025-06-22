@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useEffect } from "react";
 import { useReportWebVitals } from "next/web-vitals";
 
@@ -7,7 +9,7 @@ export function PerformanceMonitor() {
   useReportWebVitals((metric) => {
     // Aqui você pode enviar as métricas para seu serviço de analytics
     // Por exemplo: Google Analytics, Vercel Analytics, etc.
-    console.log(metric);
+    logger.info(metric);
 
     // Exemplo de implementação com Google Analytics
     if (typeof window !== "undefined" && (window as any).gtag) {
@@ -25,7 +27,7 @@ export function PerformanceMonitor() {
     if (typeof window !== "undefined" && "PerformanceObserver" in window) {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          console.log(`${entry.name}: ${entry.duration}`);
+          logger.info(`${entry.name}: ${entry.duration}`);
         }
       });
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -187,7 +189,7 @@ export function ExportDialog({
 
       onOpenChange(false);
     } catch (error) {
-      console.error("Erro ao exportar dados:", error);
+      logger.error("Erro ao exportar dados:", error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao exportar dados",

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import {
   getSavingsBoxesStats,
   getSavingsBoxesSummary,
@@ -65,7 +67,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
       setStats(statsData);
       setTotalAmount(totalData || 0);
     } catch (error) {
-      console.error("Erro ao carregar dados dos cofrinhos:", error);
+      logger.error("Erro ao carregar dados dos cofrinhos:", error);
     } finally {
       setIsLoading(false);
     }

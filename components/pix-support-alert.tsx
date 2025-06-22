@@ -1,4 +1,6 @@
 "use client";
+
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState, useCallback } from "react";
 import {
   Card,
@@ -40,7 +42,7 @@ export function PixSupportAlert() {
         variant: "info",
       });
     } catch (error) {
-      console.error("Erro ao copiar chave PIX:", error);
+      logger.error("Erro ao copiar chave PIX:", error);
       toast({
         title: "Erro",
         description: "Não foi possível copiar a chave PIX",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { logger } from "@/lib/utils/logger";
 import {
   Table,
   TableBody,
@@ -55,7 +56,7 @@ export function AccountsTable({
         variant: "success",
       });
     } catch (error) {
-      console.error("Error deleting account:", error);
+      logger.error("Error deleting account:", error as Error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a conta.",

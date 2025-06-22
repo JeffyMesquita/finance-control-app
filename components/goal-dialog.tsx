@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -165,7 +167,7 @@ export function GoalDialog({
       setCategories(categoriesData.filter((c) => c.type === "EXPENSE"));
       setSavingsBoxes(savingsBoxesData);
     } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error);
       toast({
         title: "Erro ao Carregar",
         description:
@@ -248,7 +250,7 @@ export function GoalDialog({
         throw new Error(result.error || "Falha ao processar meta");
       }
     } catch (error) {
-      console.error("Erro ao processar meta:", error);
+      logger.error("Erro ao processar meta:", error);
       toast({
         title: isEditing ? "Erro ao Atualizar" : "Erro ao Criar",
         description:

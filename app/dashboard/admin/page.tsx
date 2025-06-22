@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useEffect, useState } from "react";
 import { AdminStatsCards } from "@/components/admin/admin-stats-cards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,7 +40,7 @@ export default function AdminDashboardPage() {
         toast.error("Erro ao carregar estatísticas");
       }
     } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error);
       toast.error("Erro ao carregar dados do dashboard");
     } finally {
       setLoading(false);

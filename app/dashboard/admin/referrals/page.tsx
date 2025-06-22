@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +40,7 @@ export default function AdminReferralsPage() {
         toast.error("Erro ao carregar dados de referências");
       }
     } catch (error) {
-      console.error("Error loading referrals:", error);
+      logger.error("Error loading referrals:", error);
       toast.error("Erro ao carregar dados de referências");
     } finally {
       setLoading(false);

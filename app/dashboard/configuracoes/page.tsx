@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -51,7 +53,7 @@ export default function ConfiguracoesPage() {
         const settingsData = await getUserSettings();
         setSettings(settingsData);
       } catch (error) {
-        console.error("Erro ao carregar configurações:", error);
+        logger.error("Erro ao carregar configurações:", error);
         toast({
           title: "Erro",
           description:
@@ -79,7 +81,7 @@ export default function ConfiguracoesPage() {
         variant: "success",
       });
     } catch (error) {
-      console.error("Erro ao atualizar configurações:", error);
+      logger.error("Erro ao atualizar configurações:", error);
       toast({
         title: "Erro",
         description:

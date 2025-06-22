@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import {
   getExpenseBreakdown,
   getGoalsStats,
@@ -31,7 +33,7 @@ import {
   PiggyBank,
   Target,
   TrendingUp,
-  Unlink
+  Unlink,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -49,7 +51,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   XAxis,
-  YAxis
+  YAxis,
 } from "recharts";
 
 const COLORS = [
@@ -217,7 +219,7 @@ export function ReportsOverview() {
         setGoalsStats(goalsResult);
         setSavingsBoxStats(savingsResult);
       } catch (error) {
-        console.error("Error fetching report data:", error);
+        logger.error("Error fetching report data:", error);
       } finally {
         setIsLoading(false);
       }

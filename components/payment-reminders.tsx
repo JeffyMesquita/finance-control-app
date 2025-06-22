@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,7 +39,7 @@ export function PaymentReminders() {
       .order("due_date", { ascending: true });
 
     if (error) {
-      console.error("Error fetching reminders:", error);
+      logger.error("Error fetching reminders:", error);
       return;
     }
 
@@ -77,7 +78,7 @@ export function PaymentReminders() {
       .eq("id", id);
 
     if (error) {
-      console.error("Error updating status:", error);
+      logger.error("Error updating status:", error);
     }
   };
 

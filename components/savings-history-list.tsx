@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ export function SavingsHistoryList({
       const data = await getSavingsTransactionsByUser(limit);
       setTransactions(data || []);
     } catch (error) {
-      console.error("Erro ao carregar transações:", error);
+      logger.error("Erro ao carregar transações:", error);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +95,7 @@ export function SavingsHistoryList({
       const data = await getSavingsBoxes();
       setAllBoxes(data || []);
     } catch (error) {
-      console.error("Erro ao carregar cofrinhos:", error);
+      logger.error("Erro ao carregar cofrinhos:", error);
     }
   };
 
@@ -323,8 +324,8 @@ export function SavingsHistoryList({
                       transaction.type === "DEPOSIT"
                         ? "text-green-600"
                         : transaction.type === "WITHDRAW"
-                        ? "text-red-600"
-                        : "text-blue-600"
+                          ? "text-red-600"
+                          : "text-blue-600"
                     }`}
                   >
                     {transaction.type === "WITHDRAW" ? "-" : ""}

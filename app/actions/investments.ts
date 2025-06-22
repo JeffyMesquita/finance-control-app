@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -82,7 +84,7 @@ export async function createInvestment(data: CreateInvestmentData) {
     revalidatePath("/dashboard/investimentos");
     return { success: true, data: convertInvestmentFromDB(investment) };
   } catch (error) {
-    console.error("Erro ao criar investimento:", error);
+    logger.error("Erro ao criar investimento:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido",
@@ -109,7 +111,7 @@ export async function getInvestments(): Promise<Investment[]> {
     if (error) throw error;
     return (data || []).map(convertInvestmentFromDB);
   } catch (error) {
-    console.error("Erro ao buscar investimentos:", error);
+    logger.error("Erro ao buscar investimentos:", error);
     return [];
   }
 }
@@ -136,7 +138,7 @@ export async function getInvestmentById(
     if (error) throw error;
     return data ? convertInvestmentFromDB(data) : null;
   } catch (error) {
-    console.error("Erro ao buscar investimento:", error);
+    logger.error("Erro ao buscar investimento:", error);
     return null;
   }
 }
@@ -175,7 +177,7 @@ export async function updateInvestment(id: string, data: UpdateInvestmentData) {
     revalidatePath("/dashboard/investimentos");
     return { success: true, data: convertInvestmentFromDB(investment) };
   } catch (error) {
-    console.error("Erro ao atualizar investimento:", error);
+    logger.error("Erro ao atualizar investimento:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido",
@@ -204,7 +206,7 @@ export async function deleteInvestment(id: string) {
     revalidatePath("/dashboard/investimentos");
     return { success: true };
   } catch (error) {
-    console.error("Erro ao deletar investimento:", error);
+    logger.error("Erro ao deletar investimento:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido",
@@ -271,7 +273,7 @@ export async function createInvestmentTransaction(
       data: { ...transaction, amount: convertFromCents(transaction.amount) },
     };
   } catch (error) {
-    console.error("Erro ao criar transação:", error);
+    logger.error("Erro ao criar transação:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido",
@@ -307,7 +309,7 @@ export async function getInvestmentTransactions(
     if (error) throw error;
     return (data || []).map(convertTransactionFromDB);
   } catch (error) {
-    console.error("Erro ao buscar transações:", error);
+    logger.error("Erro ao buscar transações:", error);
     return [];
   }
 }
@@ -372,7 +374,7 @@ export async function getInvestmentSummary(): Promise<InvestmentSummary> {
       active_investments: activeInvestments.length,
     };
   } catch (error) {
-    console.error("Erro ao obter resumo:", error);
+    logger.error("Erro ao obter resumo:", error);
     return {
       total_invested: 0,
       current_value: 0,
@@ -439,7 +441,7 @@ export async function getInvestmentCategoryStats(): Promise<
       })
       .sort((a, b) => b.total_amount - a.total_amount);
   } catch (error) {
-    console.error("Erro ao obter estatísticas por categoria:", error);
+    logger.error("Erro ao obter estatísticas por categoria:", error);
     return [];
   }
 }

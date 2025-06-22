@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,7 +45,7 @@ export function UserNav({ user }: { user?: any }) {
       router.push("/login");
       router.refresh();
     } catch (error) {
-      console.error("Erro ao fazer logout:", error);
+      logger.error("Erro ao fazer logout:", error);
     }
   };
 

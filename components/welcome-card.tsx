@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState, useEffect, useMemo } from "react";
 import {
   Card,
@@ -57,7 +59,7 @@ export function WelcomeCard() {
           setUserName("usuário");
         }
       } catch (error) {
-        console.error("Erro ao buscar perfil:", error);
+        logger.error("Erro ao buscar perfil:", error);
       } finally {
         setIsLoading(false);
       }

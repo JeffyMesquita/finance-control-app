@@ -1,4 +1,6 @@
 "use client";
+
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState, useCallback } from "react";
 import {
   Card,
@@ -49,7 +51,7 @@ export function ShareAppAlert() {
       setReferralStats(formattedStats);
       setInviteCount(stats?.referralCount);
     } catch (error) {
-      console.error("Error fetching referral stats:", error);
+      logger.error("Error fetching referral stats:", error);
       toast({
         title: "Erro",
         description: "Não foi possível carregar as estatísticas de indicação.",
@@ -87,7 +89,7 @@ export function ShareAppAlert() {
         variant: "info",
       });
     } catch (error) {
-      console.error("Erro ao copiar link:", error);
+      logger.error("Erro ao copiar link:", error);
       toast({
         title: "Erro",
         description: "Não foi possível copiar o link",

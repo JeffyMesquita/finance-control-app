@@ -4,6 +4,7 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/lib/supabase/database.types";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { logger } from "@/lib/utils/logger";
 
 export function PixTransactionsList() {
   const [transactions, setTransactions] = useState<any[]>([]);
@@ -26,7 +27,7 @@ export function PixTransactionsList() {
 
       setTransactions(data || []);
     } catch (error) {
-      console.error("Error fetching PIX transactions:", error);
+      logger.error("Error fetching PIX transactions:", error );
       toast({
         title: "Erro",
         description: "Não foi possível carregar as transações PIX.",
@@ -98,3 +99,4 @@ export function PixTransactionsList() {
     </Card>
   );
 }
+

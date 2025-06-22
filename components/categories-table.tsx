@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -116,7 +118,7 @@ export function CategoriesTable() {
       setCategories(data);
       setFilteredCategories(data);
     } catch (error) {
-      console.error("Erro ao carregar categorias:", error);
+      logger.error("Erro ao carregar categorias:", error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias",
@@ -155,7 +157,7 @@ export function CategoriesTable() {
         description: "Categoria excluída com sucesso.",
       });
     } catch (error) {
-      console.error("Error deleting category:", error);
+      logger.error("Error deleting category:", error);
       toast({
         title: "Erro",
         description: "Não foi possível excluir a categoria.",

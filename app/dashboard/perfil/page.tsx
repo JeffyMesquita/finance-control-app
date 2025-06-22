@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -117,7 +119,7 @@ export default function PerfilPage() {
         }
       })
       .catch((error) => {
-        console.error("Erro ao carregar perfil:", error);
+        logger.error("Erro ao carregar perfil:", error);
         // Em caso de erro, usa o perfil inicial
         setProfile(initialProfile);
         toast({
@@ -185,7 +187,7 @@ export default function PerfilPage() {
         throw new Error("Falha ao atualizar perfil");
       }
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error);
+      logger.error("Erro ao atualizar perfil:", error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao atualizar perfil",
@@ -490,11 +492,11 @@ export default function PerfilPage() {
                           cepError && !isCepLoading && !isCepSearching
                             ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                             : cepData &&
-                              !cepError &&
-                              !isCepLoading &&
-                              !isCepSearching
-                            ? "border-green-300 focus:border-green-500 focus:ring-green-500"
-                            : ""
+                                !cepError &&
+                                !isCepLoading &&
+                                !isCepSearching
+                              ? "border-green-300 focus:border-green-500 focus:ring-green-500"
+                              : ""
                         }`}
                       />
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">

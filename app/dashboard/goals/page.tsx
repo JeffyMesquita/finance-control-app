@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { deleteGoal, getGoals } from "@/app/actions/goals";
 import { ContributeDialog } from "@/components/contribute-dialog";
 import { GoalCard } from "@/components/goal-card";
@@ -97,7 +99,7 @@ export default function GoalsPage() {
       const data = await getGoals();
       setGoals(data || []);
     } catch (err) {
-      console.error("Erro ao carregar metas:", err);
+      logger.error("Erro ao carregar metas:", err);
       setError("Erro ao carregar dados das metas");
       toast({
         title: "Erro",
@@ -143,7 +145,7 @@ export default function GoalsPage() {
         throw new Error(result.error || "Falha ao excluir meta");
       }
     } catch (error) {
-      console.error("Erro ao excluir meta:", error);
+      logger.error("Erro ao excluir meta:", error);
       toast({
         title: "Erro",
         description:

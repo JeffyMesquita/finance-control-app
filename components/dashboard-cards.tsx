@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -63,7 +64,7 @@ export function DashboardCards() {
       // Cache the data
       supabaseCache.set(CACHE_KEY, dashboardData);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      logger.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }

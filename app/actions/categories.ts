@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -22,7 +24,7 @@ export async function getCategories() {
     .order("name");
 
   if (error) {
-    console.error("Error fetching categories:", error);
+    logger.error("Error fetching categories:", error);
     return [];
   }
 
@@ -50,7 +52,7 @@ export async function createCategory(
     .select();
 
   if (error) {
-    console.error("Error creating category:", error);
+    logger.error("Error creating category:", error);
     return { success: false, error: error.message };
   }
 
@@ -83,7 +85,7 @@ export async function updateCategory(
     .select();
 
   if (error) {
-    console.error("Error updating category:", error);
+    logger.error("Error updating category:", error);
     return { success: false, error: error.message };
   }
 
@@ -109,7 +111,7 @@ export async function deleteCategory(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting category:", error);
+    logger.error("Error deleting category:", error);
     return { success: false, error: error.message };
   }
 

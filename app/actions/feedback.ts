@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import {
@@ -37,7 +39,7 @@ export async function createFeedback(data: CreateFeedbackData) {
       .single();
 
     if (error) {
-      console.error("Erro ao criar feedback:", error);
+      logger.error("Erro ao criar feedback:", error);
       return { success: false, error: error.message };
     }
 
@@ -57,22 +59,21 @@ export async function createFeedback(data: CreateFeedbackData) {
       );
 
       if (!response.ok) {
-        console.error(
-          "Erro na resposta do email:",
+        logger.error("Erro na resposta do email:", [
           response.status,
-          response.statusText
-        );
+          response.statusText,
+        ]);
       } else {
-        console.log("Email de notificação enviado com sucesso");
+        logger.info("Email de notificação enviado com sucesso");
       }
     } catch (emailError) {
-      console.error("Erro ao enviar email:", emailError);
+      logger.error("Erro ao enviar email:", emailError);
       // Não falha a operação se o email não for enviado
     }
 
     return { success: true, data: feedback };
   } catch (error) {
-    console.error("Erro inesperado ao criar feedback:", error);
+    logger.error("Erro inesperado ao criar feedback:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -96,13 +97,13 @@ export async function getUserFeedbacks() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Erro ao buscar feedbacks:", error);
+      logger.error("Erro ao buscar feedbacks:", error);
       return { success: false, error: error.message };
     }
 
     return { success: true, data: feedbacks as Feedback[] };
   } catch (error) {
-    console.error("Erro inesperado ao buscar feedbacks:", error);
+    logger.error("Erro inesperado ao buscar feedbacks:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -119,13 +120,13 @@ export async function getFeedbackById(id: string) {
       .single();
 
     if (error) {
-      console.error("Erro ao buscar feedback:", error);
+      logger.error("Erro ao buscar feedback:", error);
       return { success: false, error: error.message };
     }
 
     return { success: true, data: feedback as Feedback };
   } catch (error) {
-    console.error("Erro inesperado ao buscar feedback:", error);
+    logger.error("Erro inesperado ao buscar feedback:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }
@@ -145,7 +146,7 @@ export async function getFeedbackStats(): Promise<{
       .select("type, status, priority, created_at");
 
     if (error) {
-      console.error("Erro ao buscar estatísticas:", error);
+      logger.error("Erro ao buscar estatísticas:", error);
       return { success: false, error: error.message };
     }
 
@@ -194,7 +195,7 @@ export async function getFeedbackStats(): Promise<{
 
     return { success: true, data: stats };
   } catch (error) {
-    console.error("Erro inesperado ao buscar estatísticas:", error);
+    logger.error("Erro inesperado ao buscar estatísticas:", error);
     return { success: false, error: "Erro interno do servidor" };
   }
 }

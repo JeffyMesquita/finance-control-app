@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -144,7 +146,7 @@ export function AddTransactionDialog({
         }));
       }
     } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error);
       toast({
         title: "Erro",
         description: "Falha ao carregar categorias e contas",
@@ -286,7 +288,7 @@ export function AddTransactionDialog({
         }
       }
     } catch (error) {
-      console.error("Erro ao criar transação:", error);
+      logger.error("Erro ao criar transação:", error);
       toast({
         title: "Erro ao Criar",
         description:

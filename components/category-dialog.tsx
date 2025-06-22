@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createCategory, updateCategory } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,7 +104,7 @@ export function CategoryDialog({
         throw new Error(result.error || "Falha ao criar categoria");
       }
     } catch (error) {
-      console.error("Erro ao criar categoria:", error);
+      logger.error("Erro ao criar categoria:", error);
       toast({
         title: "Erro ao Criar",
         description:
@@ -220,8 +222,8 @@ export function CategoryDialog({
                   ? "Atualizando..."
                   : "Adicionando..."
                 : category
-                ? "Atualizar"
-                : "Adicionar"}
+                  ? "Atualizar"
+                  : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { logger } from "@/lib/utils/logger";
 
 /**
  * Função para monitorar se um usuário foi inserido corretamente na tabela users
@@ -42,8 +43,8 @@ export async function monitorUserInsertion(userId: string) {
 export async function checkTriggerLogs() {
   // Esta função é apenas um exemplo e não funcionará diretamente
   // Os logs do Supabase devem ser verificados no painel administrativo
-  console.log("Para verificar logs de erros do trigger:")
-  console.log("1. Acesse o painel do Supabase")
-  console.log('2. Vá para "Database" > "Logs"')
-  console.log("3. Filtre por erros relacionados ao seu trigger")
+  logger.info("Para verificar logs de erros do trigger:")
+  logger.info("1. Acesse o painel do Supabase")
+  logger.info('2. Vá para "Database" > "Logs"')
+  logger.info("3. Filtre por erros relacionados ao seu trigger")
 }

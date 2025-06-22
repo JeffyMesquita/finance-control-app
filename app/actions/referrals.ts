@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createActionClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -77,7 +79,7 @@ export async function handleReferral(
       });
 
     if (referralError) {
-      console.error("Failed to create referral:", referralError);
+      logger.error("Failed to create referral:", referralError);
       return {
         success: false,
         message: "Erro ao processar referência",
@@ -118,7 +120,7 @@ export async function handleReferral(
       }`,
     };
   } catch (error) {
-    console.error("Error handling referral:", error);
+    logger.error("Error handling referral:", error);
     return {
       success: false,
       message: "Erro ao processar referência",
@@ -172,7 +174,7 @@ export async function getReferralStats() {
       referrer,
     };
   } catch (error) {
-    console.error("Error getting referral stats:", error);
+    logger.error("Error getting referral stats:", error);
     return { referralCount: 0, badges: [], referrer: null };
   }
 }

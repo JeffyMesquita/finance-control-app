@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { motion, useAnimation } from "framer-motion";
@@ -35,17 +36,16 @@ export function LandingPage() {
     const existingRef = localStorage.getItem("referral_id");
 
     if (!existingRef) {
-      console.log("🔗 First referral captured in landing page:", referralId);
+      logger.info("🔗 First referral captured in landing page:", {
+        data: referralId,
+      });
       localStorage.setItem("referral_id", referralId);
     } else if (existingRef !== referralId) {
-      console.log(
-        "⚠️ Keeping first referral:",
-        existingRef,
-        "ignoring:",
-        referralId
-      );
+      logger.info("⚠️ Keeping first referral:", {
+        data: [existingRef, "ignoring:", referralId],
+      });
     } else {
-      console.log("✅ Same referral confirmed:", referralId);
+      logger.info("✅ Same referral confirmed:", { data: referralId });
     }
   }
 

@@ -1,38 +1,49 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Download } from "lucide-react"
-import { ExportDialog } from "@/components/export-dialog"
-import { getCategories } from "@/app/actions/categories"
-import { getAccounts } from "@/app/actions/accounts"
+import { logger } from "@/lib/utils/logger";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { ExportDialog } from "@/components/export-dialog";
+import { getCategories } from "@/app/actions/categories";
+import { getAccounts } from "@/app/actions/accounts";
 
 interface ExportButtonProps {
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
+  variant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link"
+    | "destructive";
 }
 
 export function ExportButton({ variant = "outline" }: ExportButtonProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [categories, setCategories] = useState([])
-  const [accounts, setAccounts] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isDialogOpen) {
-      fetchData()
+      fetchData();
     }
-  }, [isDialogOpen])
+  }, [isDialogOpen]);
 
   async function fetchData() {
     try {
-      setIsLoading(true)
-      const [categoriesData, accountsData] = await Promise.all([getCategories(), getAccounts()])
-      setCategories(categoriesData)
-      setAccounts(accountsData)
+      setIsLoading(true);
+      const [categoriesData, accountsData] = await Promise.all([
+        getCategories(),
+        getAccounts(),
+      ]);
+      setCategories(categoriesData);
+      setAccounts(accountsData);
     } catch (error) {
-      console.error("Erro ao carregar dados para exportação:", error)
+      logger.error("Erro ao carregar dados para exportação:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -42,7 +53,12 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
         <Download className="mr-2 h-4 w-4" />
         Exportar
       </Button>
-      <ExportDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} categories={categories} accounts={accounts} />
+      <ExportDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        categories={categories}
+        accounts={accounts}
+      />
     </>
-  )
+  );
 }

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/utils/logger";
 "use client";
 
 import { HeroVisual } from "@/components/hero-visual";
@@ -61,7 +62,7 @@ export default function LoginPage() {
           router.push("/dashboard");
         }
       } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        logger.error("Erro ao verificar sessão:", error );
       } finally {
         setIsCheckingSession(false);
       }
@@ -93,19 +94,14 @@ export default function LoginPage() {
 
       if (!existingRef) {
         // Primeiro referral - salvar
-        console.log("🔗 First referral captured in login page:", ref);
+        logger.info("🔗 First referral captured in login page:", { data: ref });
         localStorage.setItem("referral_id", ref);
       } else if (existingRef !== ref) {
         // Referral diferente já existe - manter o primeiro (first-touch)
-        console.log(
-          "⚠️ Keeping first referral:",
-          existingRef,
-          "ignoring:",
-          ref
-        );
+        logger.info("⚠️ Keeping first referral:", { data: [existingRef, "ignoring:", ref] });
       } else {
         // Mesmo referral - OK
-        console.log("✅ Same referral confirmed:", ref);
+        logger.info("✅ Same referral confirmed:", { data: ref });
       }
     }
   }, [searchParams]);
@@ -137,7 +133,7 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (error: any) {
-      console.error("Erro na autenticação:", error);
+      logger.error("Erro na autenticação:", error );
       setError(error.message);
     } finally {
       setIsLoading(false);
@@ -168,7 +164,7 @@ export default function LoginPage() {
       // Após login Google, processa referência
       // O redirecionamento será tratado pelo Supabase
     } catch (error: any) {
-      console.error("Erro ao fazer login:", error);
+      logger.error("Erro ao fazer login:", error );
       setError("Falha ao fazer login com Google. Por favor, tente novamente.");
       setIsLoading(false);
     }
@@ -357,3 +353,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

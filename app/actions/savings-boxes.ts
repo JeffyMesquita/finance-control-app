@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -36,7 +38,7 @@ export async function getSavingsBoxes() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching savings boxes with transactions:", error);
+      logger.error("Error fetching savings boxes with transactions:", error);
 
       // Fallback: buscar sem relacionamentos se houver erro
       const { data: fallbackData, error: fallbackError } = await supabase
@@ -47,10 +49,7 @@ export async function getSavingsBoxes() {
         .order("created_at", { ascending: false });
 
       if (fallbackError) {
-        console.error(
-          "Error fetching savings boxes (fallback):",
-          fallbackError
-        );
+        logger.error("Error fetching savings boxes (fallback):", fallbackError);
         return [];
       }
 
@@ -60,16 +59,16 @@ export async function getSavingsBoxes() {
         savings_transactions: [],
       }));
 
-      console.log(
+      logger.info(
         "✅ Fallback successful, returning data without transactions"
       );
       return dataWithEmptyTransactions;
     }
 
-    console.log("✅ Successfully fetched savings boxes with transactions");
+    logger.info("✅ Successfully fetched savings boxes with transactions");
     return data;
   } catch (err) {
-    console.error("Unexpected error in getSavingsBoxes:", err);
+    logger.error("Unexpected error in getSavingsBoxes:", err);
     return [];
   }
 }
@@ -105,7 +104,7 @@ export async function getSavingsBoxById(id: string) {
     .single();
 
   if (error) {
-    console.error("Error fetching savings box:", error);
+    logger.error("Error fetching savings box:", error);
     return null;
   }
 
@@ -152,7 +151,7 @@ export async function createSavingsBox(
     .single();
 
   if (error) {
-    console.error("Error creating savings box:", error);
+    logger.error("Error creating savings box:", error);
     return { success: false, error: error.message };
   }
 
@@ -214,7 +213,7 @@ export async function updateSavingsBox(
     .single();
 
   if (error) {
-    console.error("Error updating savings box:", error);
+    logger.error("Error updating savings box:", error);
     return { success: false, error: error.message };
   }
 
@@ -273,7 +272,7 @@ export async function deleteSavingsBox(id: string) {
     .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting savings box:", error);
+    logger.error("Error deleting savings box:", error);
     return { success: false, error: error.message };
   }
 
@@ -300,7 +299,7 @@ export async function getSavingsBoxesTotal() {
     .eq("is_active", true);
 
   if (error) {
-    console.error("Error fetching savings boxes total:", error);
+    logger.error("Error fetching savings boxes total:", error);
     return 0;
   }
 
@@ -342,7 +341,7 @@ export async function getSavingsBoxesSummary() {
     .limit(5);
 
   if (error) {
-    console.error("Error fetching savings boxes summary:", error);
+    logger.error("Error fetching savings boxes summary:", error);
     return [];
   }
 
@@ -394,7 +393,7 @@ export async function getSavingsBoxesStats() {
     .eq("is_active", true);
 
   if (error) {
-    console.error("Error fetching savings boxes stats:", error);
+    logger.error("Error fetching savings boxes stats:", error);
     return {
       total_boxes: 0,
       total_amount: 0,
@@ -459,7 +458,7 @@ export async function restoreSavingsBox(id: string) {
     .single();
 
   if (error) {
-    console.error("Error restoring savings box:", error);
+    logger.error("Error restoring savings box:", error);
     return { success: false, error: error.message };
   }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
@@ -68,7 +70,7 @@ export function ExpensesComparisonChart() {
           previousMonth: previousMonthData,
         });
       } catch (error) {
-        console.error("Error fetching expense data:", error);
+        logger.error("Error fetching expense data:", error);
       } finally {
         setIsLoading(false);
       }

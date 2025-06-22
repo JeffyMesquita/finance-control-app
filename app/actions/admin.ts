@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/utils/logger";
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
@@ -260,7 +262,7 @@ export async function getAdminStats(): Promise<{
 
     return { success: true, data: stats };
   } catch (error) {
-    console.error("Error fetching admin stats:", error);
+    logger.error("Error fetching admin stats:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -638,7 +640,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
       },
     };
   } catch (error) {
-    console.error("Error fetching admin users:", error);
+    logger.error("Error fetching admin users:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -788,7 +790,7 @@ export async function updateFeedbackStatus(
 
     return { success: true, data };
   } catch (error) {
-    console.error("Error updating feedback:", error);
+    logger.error("Error updating feedback:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -951,7 +953,7 @@ export async function getReferralsData() {
       },
     };
   } catch (error) {
-    console.error("Error fetching referrals data:", error);
+    logger.error("Error fetching referrals data:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

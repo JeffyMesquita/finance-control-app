@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -166,7 +167,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
         });
       }
     } catch (error) {
-      console.error("Erro ao enviar feedback:", error);
+      logger.error("Erro ao enviar feedback:", error);
       toast.error("Erro inesperado", {
         description: "Não foi possível enviar o feedback. Tente novamente.",
       });

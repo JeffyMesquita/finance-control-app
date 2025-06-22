@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -140,7 +142,7 @@ export default function AdminFeedbacksPage() {
         toast.error(`Erro ao carregar feedbacks: ${errorMessage}`);
       }
     } catch (error) {
-      console.error("Erro inesperado ao carregar feedbacks:", error);
+      logger.error("Erro inesperado ao carregar feedbacks:", error);
       toast.error(
         `Erro inesperado: ${error instanceof Error ? error.message : "Erro desconhecido"}`
       );
@@ -178,10 +180,9 @@ export default function AdminFeedbacksPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      console.log(
-        "Usuário atual na página:",
-        user ? { id: user.id, email: user.email } : "null"
-      );
+      logger.info("Usuário atual na página:", {
+        data: [user ? { id: user.id, email: user.email } : "null"],
+      });
     };
 
     checkCurrentUser();

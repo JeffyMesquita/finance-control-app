@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "@/lib/utils/logger";
 import { useEffect, useState } from "react";
 import {
   Card,
@@ -115,7 +116,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
         const monthlyData = await getMonthlyData();
         setData(monthlyData);
       } catch (error) {
-        console.error("Erro ao carregar dados mensais:", error);
+        logger.error("Erro ao carregar dados mensais:", error);
       } finally {
         setIsLoading(false);
       }

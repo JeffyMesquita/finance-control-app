@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { logger } from "@/lib/utils/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (sessionError) {
-      console.error("Session error:", sessionError);
+      logger.error("Session error:", sessionError );
       return NextResponse.redirect(
         new URL(
           `/login?error=${encodeURIComponent(sessionError.message)}`,
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getSession();
 
     if (getSessionError || !session) {
-      console.error("Get session error:", getSessionError);
+      logger.error("Get session error:", getSessionError );
       return NextResponse.redirect(
         new URL("/login?error=Falha+ao+obter+sessão", request.url)
       );
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (insertError) {
-        console.error("Insert user error:", insertError);
+        logger.error("Insert user error:", insertError );
         return NextResponse.redirect(
           new URL("/login?error=Falha+ao+criar+usuário", request.url)
         );
@@ -86,9 +87,10 @@ export async function GET(request: NextRequest) {
     // Redirect to dashboard after successful login
     return NextResponse.redirect(new URL("/dashboard", request.url));
   } catch (error) {
-    console.error("Callback error:", error);
+    logger.error("Callback error:", error );
     return NextResponse.redirect(
       new URL("/login?error=Falha+ao+processar+autenticação", request.url)
     );
   }
 }
+

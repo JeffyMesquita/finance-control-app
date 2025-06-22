@@ -1,38 +1,46 @@
-"use server"
+"use server";
 
-import { revalidatePath } from "next/cache"
-import { createActionClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types"
+import { logger } from "@/lib/utils/logger";
+
+import { revalidatePath } from "next/cache";
+import { createActionClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
 
 export async function getAccounts() {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const { data, error } = await supabase.from("financial_accounts").select("*").eq("user_id", user.id).order("name")
+  const { data, error } = await supabase
+    .from("financial_accounts")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name");
 
   if (error) {
-    console.error("Error fetching accounts:", error)
-    return []
+    logger.error("Error fetching accounts:", error);
+    return [];
   }
 
-  return data
+  return data;
 }
 
-export async function createAccount(account: Omit<InsertTables<"financial_accounts">, "user_id">) {
-  const supabase = createActionClient()
+export async function createAccount(
+  account: Omit<InsertTables<"financial_accounts">, "user_id">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
@@ -41,26 +49,29 @@ export async function createAccount(account: Omit<InsertTables<"financial_accoun
       ...account,
       user_id: user.id,
     })
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error creating account:", error)
-    return { success: false, error: error.message }
+    logger.error("Error creating account:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard")
+  revalidatePath("/dashboard");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
-export async function updateAccount(id: string, account: UpdateTables<"financial_accounts">) {
-  const supabase = createActionClient()
+export async function updateAccount(
+  id: string,
+  account: UpdateTables<"financial_accounts">
+) {
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
   const { data, error } = await supabase
@@ -68,36 +79,40 @@ export async function updateAccount(id: string, account: UpdateTables<"financial
     .update(account)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select();
 
   if (error) {
-    console.error("Error updating account:", error)
-    return { success: false, error: error.message }
+    logger.error("Error updating account:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard")
+  revalidatePath("/dashboard");
 
-  return { success: true, data }
+  return { success: true, data };
 }
 
 export async function deleteAccount(id: string) {
-  const supabase = createActionClient()
+  const supabase = createActionClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect("/login")
+    redirect("/login");
   }
 
-  const { error } = await supabase.from("financial_accounts").delete().eq("id", id).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("financial_accounts")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
 
   if (error) {
-    console.error("Error deleting account:", error)
-    return { success: false, error: error.message }
+    logger.error("Error deleting account:", error);
+    return { success: false, error: error.message };
   }
 
-  revalidatePath("/dashboard")
+  revalidatePath("/dashboard");
 
-  return { success: true }
+  return { success: true };
 }
