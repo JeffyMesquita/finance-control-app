@@ -6,8 +6,11 @@ import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { UserSettings } from "@/lib/types";
+import type { BaseActionResult } from "@/lib/types/actions";
 
-export async function getUserSettings(): Promise<UserSettings | null> {
+export async function getUserSettings(): Promise<
+  BaseActionResult<UserSettings>
+> {
   const supabase = createActionClient();
 
   const {
@@ -25,13 +28,21 @@ export async function getUserSettings(): Promise<UserSettings | null> {
 
   if (error && error.code !== "PGRST116") {
     logger.error("Erro ao buscar configurações do usuário:", error as Error);
-    return null;
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as UserSettings,
+  };
 }
 
-export async function updateUserSettings(settings: UserSettings) {
+export async function updateUserSettings(
+  settings: UserSettings
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -49,14 +60,21 @@ export async function updateUserSettings(settings: UserSettings) {
 
   if (error) {
     logger.error("Erro ao atualizar configurações do usuário:", error as Error);
-    throw new Error(error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/configuracoes");
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
-export async function updateTheme(theme: string) {
+export async function updateTheme(
+  theme: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -73,10 +91,14 @@ export async function updateTheme(theme: string) {
 
   if (error) {
     logger.error("Erro ao atualizar tema:", error as Error);
-    throw new Error(error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
-  return { success: true };
+  return {
+    success: true,
+  };
 }
-

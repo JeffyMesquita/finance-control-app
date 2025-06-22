@@ -2,17 +2,20 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
+import type {
+  BaseActionResult,
+  SavingsTransactionData,
+} from "@/lib/types/actions";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { InsertTables } from "@/lib/supabase/database.types";
 
 export async function depositToSavingsBox(
   boxId: string,
   amount: number,
   accountId?: string,
   description?: string
-) {
+): Promise<BaseActionResult<SavingsTransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -24,7 +27,10 @@ export async function depositToSavingsBox(
 
   // Validações básicas
   if (!boxId) {
-    return { success: false, error: "ID do cofrinho é obrigatório" };
+    return {
+      success: false,
+      error: "ID do cofrinho é obrigatório",
+    };
   }
 
   if (!amount || amount <= 0) {
@@ -46,11 +52,17 @@ export async function depositToSavingsBox(
     .single();
 
   if (boxError || !savingsBox) {
-    return { success: false, error: "Cofrinho não encontrado" };
+    return {
+      success: false,
+      error: "Cofrinho não encontrado",
+    };
   }
 
   if (!savingsBox.is_active) {
-    return { success: false, error: "Cofrinho está inativo" };
+    return {
+      success: false,
+      error: "Cofrinho está inativo",
+    };
   }
 
   // Verificar se a conta existe (se fornecida)
@@ -63,16 +75,19 @@ export async function depositToSavingsBox(
       .single();
 
     if (accountError || !account) {
-      return { success: false, error: "Conta não encontrada" };
+      return {
+        success: false,
+        error: "Conta não encontrada",
+      };
     }
 
     // Verificar se a conta tem saldo suficiente (account.balance já está em centavos)
-    if (account.balance < amountInCents) {
+    if ((account.balance || 0) < amountInCents) {
       return {
         success: false,
         error: `Saldo insuficiente na conta ${
           account.name
-        }. Saldo disponível: R$ ${(account.balance / 100).toFixed(2)}`,
+        }. Saldo disponível: R$ ${((account.balance || 0) / 100).toFixed(2)}`,
       };
     }
   }
@@ -94,7 +109,10 @@ export async function depositToSavingsBox(
 
     if (transactionError) {
       logger.error("Error creating deposit transaction:", transactionError);
-      return { success: false, error: transactionError.message };
+      return {
+        success: false,
+        error: transactionError.message,
+      };
     }
 
     // Se foi informada uma conta, debitar o valor dela
@@ -108,7 +126,7 @@ export async function depositToSavingsBox(
         .single();
 
       if (currentAccount) {
-        const newBalance = currentAccount.balance - amountInCents;
+        const newBalance = (currentAccount.balance || 0) - amountInCents;
         const { error: updateAccountError } = await supabase
           .from("financial_accounts")
           .update({ balance: newBalance })
@@ -123,7 +141,10 @@ export async function depositToSavingsBox(
             .delete()
             .eq("id", transaction.id);
 
-          return { success: false, error: "Erro ao atualizar saldo da conta" };
+          return {
+            success: false,
+            error: "Erro ao atualizar saldo da conta",
+          };
         }
       }
     }
@@ -134,10 +155,16 @@ export async function depositToSavingsBox(
     // Sincronizar metas vinculadas ao cofrinho
     await syncGoalWithSavingsBox(boxId);
 
-    return { success: true, data: transaction };
+    return {
+      success: true,
+      data: transaction as SavingsTransactionData,
+    };
   } catch (error) {
     logger.error("Error in deposit operation:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
@@ -146,7 +173,7 @@ export async function withdrawFromSavingsBox(
   amount: number,
   accountId?: string,
   description?: string
-) {
+): Promise<BaseActionResult<SavingsTransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -158,11 +185,17 @@ export async function withdrawFromSavingsBox(
 
   // Validações básicas
   if (!boxId) {
-    return { success: false, error: "ID do cofrinho é obrigatório" };
+    return {
+      success: false,
+      error: "ID do cofrinho é obrigatório",
+    };
   }
 
   if (!amount || amount <= 0) {
-    return { success: false, error: "Valor do saque deve ser maior que zero" };
+    return {
+      success: false,
+      error: "Valor do saque deve ser maior que zero",
+    };
   }
 
   // Converter valor de reais para centavos
@@ -177,18 +210,24 @@ export async function withdrawFromSavingsBox(
     .single();
 
   if (boxError || !savingsBox) {
-    return { success: false, error: "Cofrinho não encontrado" };
+    return {
+      success: false,
+      error: "Cofrinho não encontrado",
+    };
   }
 
   if (!savingsBox.is_active) {
-    return { success: false, error: "Cofrinho está inativo" };
+    return {
+      success: false,
+      error: "Cofrinho está inativo",
+    };
   }
 
-  if (savingsBox.current_amount < amountInCents) {
+  if ((savingsBox.current_amount || 0) < amountInCents) {
     return {
       success: false,
       error: `Saldo insuficiente no cofrinho. Saldo disponível: R$ ${(
-        savingsBox.current_amount / 100
+        (savingsBox.current_amount || 0) / 100
       ).toFixed(2)}`,
     };
   }
@@ -203,7 +242,10 @@ export async function withdrawFromSavingsBox(
       .single();
 
     if (accountError || !account) {
-      return { success: false, error: "Conta de destino não encontrada" };
+      return {
+        success: false,
+        error: "Conta de destino não encontrada",
+      };
     }
   }
 
@@ -224,7 +266,10 @@ export async function withdrawFromSavingsBox(
 
     if (transactionError) {
       logger.error("Error creating withdraw transaction:", transactionError);
-      return { success: false, error: transactionError.message };
+      return {
+        success: false,
+        error: transactionError.message,
+      };
     }
 
     // Se foi informada uma conta, creditar o valor nela
@@ -238,7 +283,7 @@ export async function withdrawFromSavingsBox(
         .single();
 
       if (currentAccount) {
-        const newBalance = currentAccount.balance + amountInCents;
+        const newBalance = (currentAccount.balance || 0) + amountInCents;
         const { error: updateAccountError } = await supabase
           .from("financial_accounts")
           .update({ balance: newBalance })
@@ -253,7 +298,10 @@ export async function withdrawFromSavingsBox(
             .delete()
             .eq("id", transaction.id);
 
-          return { success: false, error: "Erro ao atualizar saldo da conta" };
+          return {
+            success: false,
+            error: "Erro ao atualizar saldo da conta",
+          };
         }
       }
     }
@@ -264,10 +312,16 @@ export async function withdrawFromSavingsBox(
     // Sincronizar metas vinculadas ao cofrinho
     await syncGoalWithSavingsBox(boxId);
 
-    return { success: true, data: transaction };
+    return {
+      success: true,
+      data: transaction as SavingsTransactionData,
+    };
   } catch (error) {
     logger.error("Error in withdraw operation:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
@@ -276,7 +330,7 @@ export async function transferBetweenBoxes(
   toBoxId: string,
   amount: number,
   description?: string
-) {
+): Promise<BaseActionResult<SavingsTransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -288,7 +342,10 @@ export async function transferBetweenBoxes(
 
   // Validações básicas
   if (!fromBoxId || !toBoxId) {
-    return { success: false, error: "IDs dos cofrinhos são obrigatórios" };
+    return {
+      success: false,
+      error: "IDs dos cofrinhos são obrigatórios",
+    };
   }
 
   if (fromBoxId === toBoxId) {
@@ -326,19 +383,25 @@ export async function transferBetweenBoxes(
   const toBox = boxes.find((box) => box.id === toBoxId);
 
   if (!fromBox || !toBox) {
-    return { success: false, error: "Erro ao identificar os cofrinhos" };
+    return {
+      success: false,
+      error: "Erro ao identificar os cofrinhos",
+    };
   }
 
   if (!fromBox.is_active || !toBox.is_active) {
-    return { success: false, error: "Um dos cofrinhos está inativo" };
+    return {
+      success: false,
+      error: "Um dos cofrinhos está inativo",
+    };
   }
 
-  if (fromBox.current_amount < amountInCents) {
+  if ((fromBox.current_amount || 0) < amountInCents) {
     return {
       success: false,
       error: `Saldo insuficiente no cofrinho "${
         fromBox.name
-      }". Saldo disponível: R$ ${(fromBox.current_amount / 100).toFixed(2)}`,
+      }". Saldo disponível: R$ ${((fromBox.current_amount || 0) / 100).toFixed(2)}`,
     };
   }
 
@@ -361,7 +424,10 @@ export async function transferBetweenBoxes(
 
     if (transactionError) {
       logger.error("Error creating transfer transaction:", transactionError);
-      return { success: false, error: transactionError.message };
+      return {
+        success: false,
+        error: transactionError.message,
+      };
     }
 
     revalidatePath("/dashboard");
@@ -373,14 +439,23 @@ export async function transferBetweenBoxes(
       syncGoalWithSavingsBox(toBoxId),
     ]);
 
-    return { success: true, data: transaction };
+    return {
+      success: true,
+      data: transaction as SavingsTransactionData,
+    };
   } catch (error) {
     logger.error("Error in transfer operation:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
-export async function getSavingsTransactions(boxId?: string, limit?: number) {
+export async function getSavingsTransactions(
+  boxId?: string,
+  limit?: number
+): Promise<BaseActionResult<SavingsTransactionData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -431,13 +506,21 @@ export async function getSavingsTransactions(boxId?: string, limit?: number) {
 
   if (error) {
     logger.error("Error fetching savings transactions:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as SavingsTransactionData[],
+  };
 }
 
-export async function getSavingsTransactionsByUser(limit?: number) {
+export async function getSavingsTransactionsByUser(
+  limit?: number
+): Promise<BaseActionResult<SavingsTransactionData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -482,13 +565,21 @@ export async function getSavingsTransactionsByUser(limit?: number) {
 
   if (error) {
     logger.error("Error fetching user savings transactions:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as SavingsTransactionData[],
+  };
 }
 
-export async function deleteSavingsTransaction(transactionId: string) {
+export async function deleteSavingsTransaction(
+  transactionId: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -507,7 +598,10 @@ export async function deleteSavingsTransaction(transactionId: string) {
     .single();
 
   if (fetchError || !transaction) {
-    return { success: false, error: "Transação não encontrada" };
+    return {
+      success: false,
+      error: "Transação não encontrada",
+    };
   }
 
   // Note: Excluir transações é uma operação delicada porque afeta os saldos
@@ -520,7 +614,9 @@ export async function deleteSavingsTransaction(transactionId: string) {
 }
 
 // Função para obter estatísticas de movimentação
-export async function getSavingsTransactionsStats(boxId?: string) {
+export async function getSavingsTransactionsStats(
+  boxId?: string
+): Promise<BaseActionResult<any>> {
   const supabase = createActionClient();
 
   const {
@@ -545,8 +641,14 @@ export async function getSavingsTransactionsStats(boxId?: string) {
     const { data: transactions, error } = await query;
 
     if (error) {
-      logger.error("Error fetching savings transactions stats:", error as Error);
-      return null;
+      logger.error(
+        "Error fetching savings transactions stats:",
+        error as Error
+      );
+      return {
+        success: false,
+        error: error.message,
+      };
     }
 
     const stats = {
@@ -556,24 +658,35 @@ export async function getSavingsTransactionsStats(boxId?: string) {
       total_transfers: transactions.filter((t) => t.type === "TRANSFER").length,
       total_deposited: transactions
         .filter((t) => t.type === "DEPOSIT")
-        .reduce((sum, t) => sum + t.amount, 0),
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
       total_withdrawn: transactions
         .filter((t) => t.type === "WITHDRAW")
-        .reduce((sum, t) => sum + t.amount, 0),
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
       total_transferred: transactions
         .filter((t) => t.type === "TRANSFER")
-        .reduce((sum, t) => sum + t.amount, 0),
+        .reduce((sum, t) => sum + (t.amount || 0), 0),
     };
 
-    return stats;
+    return {
+      success: true,
+      data: stats,
+    };
   } catch (error) {
-    logger.error("Error calculating savings transactions stats:", error as Error);
-    return null;
+    logger.error(
+      "Error calculating savings transactions stats:",
+      error as Error
+    );
+    return {
+      success: false,
+      error: "Erro interno ao calcular estatísticas",
+    };
   }
 }
 
 // Função para sincronizar o valor da meta com o cofrinho
-export async function syncGoalWithSavingsBox(savingsBoxId: string) {
+export async function syncGoalWithSavingsBox(
+  savingsBoxId: string
+): Promise<BaseActionResult<any>> {
   const supabase = createActionClient();
 
   const {
@@ -594,7 +707,10 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
 
     if (boxError || !savingsBox) {
       logger.error("Savings box not found:", boxError);
-      return { success: false, error: "Cofrinho não encontrado" };
+      return {
+        success: false,
+        error: "Cofrinho não encontrado",
+      };
     }
 
     // Buscar metas vinculadas a este cofrinho
@@ -606,12 +722,18 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
 
     if (goalsError) {
       logger.error("Error fetching linked goals:", goalsError);
-      return { success: false, error: "Erro ao buscar metas vinculadas" };
+      return {
+        success: false,
+        error: "Erro ao buscar metas vinculadas",
+      };
     }
 
     if (!goals || goals.length === 0) {
       // Não há metas vinculadas, isso é normal
-      return { success: true, message: "Nenhuma meta vinculada encontrada" };
+      return {
+        success: true,
+        data: { message: "Nenhuma meta vinculada encontrada" },
+      };
     }
 
     // Atualizar cada meta vinculada com o valor atual do cofrinho
@@ -626,7 +748,7 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
         if (updateError) {
           logger.error(`Error updating goal ${goal.id}:`, {
             data: updateError,
-          });
+          } as unknown as Error);
           return {
             success: false,
             goalId: goal.id,
@@ -652,13 +774,17 @@ export async function syncGoalWithSavingsBox(savingsBoxId: string) {
 
     return {
       success: true,
-      synchronized: successful.length,
-      failed: failed.length,
-      details: results,
+      data: {
+        synchronized: successful.length,
+        failed: failed.length,
+        details: results,
+      },
     };
   } catch (error) {
     logger.error("Error syncing goal with savings box:", error as Error);
-    return { success: false, error: "Erro interno ao sincronizar" };
+    return {
+      success: false,
+      error: "Erro interno ao sincronizar",
+    };
   }
 }
-

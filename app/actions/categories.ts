@@ -1,13 +1,19 @@
 "use server";
 
 import { logger } from "@/lib/utils/logger";
-
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
+import type {
+  CategoryData,
+  CreateCategoryData,
+  UpdateCategoryData,
+  BaseActionResult,
+} from "@/lib/types/actions";
 
-export async function getCategories() {
+export async function getCategories(): Promise<
+  BaseActionResult<CategoryData[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -25,15 +31,21 @@ export async function getCategories() {
 
   if (error) {
     logger.error("Error fetching categories:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as CategoryData[],
+  };
 }
 
 export async function createCategory(
-  category: Omit<InsertTables<"categories">, "user_id">
-) {
+  category: CreateCategoryData
+): Promise<BaseActionResult<CategoryData>> {
   const supabase = createActionClient();
 
   const {
@@ -49,25 +61,29 @@ export async function createCategory(
       ...category,
       user_id: user.id,
     })
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error creating category:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/categories");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as CategoryData,
+  };
 }
 
 export async function updateCategory(
   id: string,
-  category: Omit<
-    UpdateTables<"categories">,
-    "user_id" | "created_at" | "updated_at"
-  >
-) {
+  category: UpdateCategoryData
+): Promise<BaseActionResult<CategoryData>> {
   const supabase = createActionClient();
 
   const {
@@ -82,19 +98,28 @@ export async function updateCategory(
     .update(category)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error updating category:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/categories");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as CategoryData,
+  };
 }
 
-export async function deleteCategory(id: string) {
+export async function deleteCategory(
+  id: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -112,11 +137,15 @@ export async function deleteCategory(id: string) {
 
   if (error) {
     logger.error("Error deleting category:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/categories");
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
-

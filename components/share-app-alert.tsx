@@ -42,14 +42,22 @@ export function ShareAppAlert() {
     if (!user) return;
 
     try {
-      const stats = await getReferralStats();
-      const formattedStats = {
-        totalReferrals: stats?.referralCount,
-        activeReferrals: stats?.badges.length,
-        referrer: stats?.referrer,
-      };
-      setReferralStats(formattedStats);
-      setInviteCount(stats?.referralCount);
+      const result = await getReferralStats();
+      if (result.success && result.data) {
+        const stats = result.data;
+        const formattedStats = {
+          totalReferrals: stats?.referralCount || 0,
+          activeReferrals: stats?.badges?.length || 0,
+          referrer: stats?.referrer,
+        };
+        setReferralStats(formattedStats);
+        setInviteCount(stats?.referralCount || 0);
+      } else {
+        logger.error(
+          "Error fetching referral stats:",
+          new Error(result.error || "Falha ao carregar estatísticas")
+        );
+      }
     } catch (error) {
       logger.error("Error fetching referral stats:", error as Error);
       toast({
@@ -262,4 +270,3 @@ export function ShareAppAlert() {
     </AnimatePresence>
   );
 }
-

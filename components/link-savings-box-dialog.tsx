@@ -90,8 +90,12 @@ export function LinkSavingsBoxDialog({
   const fetchSavingsBoxes = async () => {
     setIsLoading(true);
     try {
-      const data = await getSavingsBoxes();
-      setSavingsBoxes(data || []);
+      const result = await getSavingsBoxes();
+      if (result.success && result.data) {
+        setSavingsBoxes(result.data || []);
+      } else {
+        setSavingsBoxes([]);
+      }
     } catch (error) {
       logger.error("Erro ao carregar cofrinhos:", error as Error);
       toast({
@@ -398,4 +402,3 @@ export function LinkSavingsBoxDialog({
     </Dialog>
   );
 }
-

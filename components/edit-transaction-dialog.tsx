@@ -29,6 +29,7 @@ import { updateTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
 import { Switch } from "@/components/ui/switch";
+import { CategoryData } from "@/lib/types/actions";
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -76,7 +77,7 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [formData, setFormData] = useState({
     type: transaction.type || "EXPENSE",
@@ -127,8 +128,8 @@ export function EditTransactionDialog({
         getAccounts(),
       ]);
 
-      setCategories(categoriesData);
-      setAccounts(accountsData);
+      setCategories(categoriesData.data || []);
+      setAccounts(accountsData.data || []);
     } catch (error) {
       logger.error("Erro ao carregar dados:", error as Error);
       toast({
@@ -395,4 +396,3 @@ export function EditTransactionDialog({
     </Dialog>
   );
 }
-

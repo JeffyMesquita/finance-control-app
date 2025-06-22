@@ -30,9 +30,9 @@ export function ReferralStats() {
         return;
       }
 
-      const data = await getReferralStats();
+      const result = await getReferralStats();
 
-      if (!data) {
+      if (!result.success || !result.data) {
         if (retryCount < MAX_RETRIES) {
           setTimeout(() => {
             setRetryCount((prev) => prev + 1);
@@ -40,9 +40,10 @@ export function ReferralStats() {
           }, RETRY_DELAY);
           return;
         }
-        throw new Error("Failed to fetch referral stats");
+        throw new Error(result.error || "Failed to fetch referral stats");
       }
 
+      const data = result.data;
       setStats(data);
       // Cache the stats
       supabaseCache.set(CACHE_KEY, data);
@@ -107,5 +108,3 @@ export function ReferralStats() {
     </div>
   );
 }
-
-

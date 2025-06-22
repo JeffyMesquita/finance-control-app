@@ -8,6 +8,8 @@ import { Download } from "lucide-react";
 import { ExportDialog } from "@/components/export-dialog";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
+import { CategoryData } from "@/lib/types/actions";
+import { AccountData } from "@/lib/types/actions";
 
 interface ExportButtonProps {
   variant?:
@@ -21,8 +23,8 @@ interface ExportButtonProps {
 
 export function ExportButton({ variant = "outline" }: ExportButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const [accounts, setAccounts] = useState<AccountData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -34,12 +36,19 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
   async function fetchData() {
     try {
       setIsLoading(true);
-      const [categoriesData, accountsData] = await Promise.all([
+      const [categoriesResult, accountsResult] = await Promise.all([
         getCategories(),
         getAccounts(),
       ]);
-      setCategories(categoriesData);
-      setAccounts(accountsData);
+
+      setCategories(
+        categoriesResult.success && categoriesResult.data
+          ? categoriesResult.data
+          : []
+      );
+      setAccounts(
+        accountsResult.success && accountsResult.data ? accountsResult.data : []
+      );
     } catch (error) {
       logger.error("Erro ao carregar dados para exportação:", error as Error);
     } finally {
@@ -62,4 +71,3 @@ export function ExportButton({ variant = "outline" }: ExportButtonProps) {
     </>
   );
 }
-

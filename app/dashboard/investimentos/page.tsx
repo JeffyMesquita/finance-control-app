@@ -73,15 +73,43 @@ export default function InvestmentosPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [investmentsData, summaryData] = await Promise.all([
+      const [investmentsResult, summaryResult] = await Promise.all([
         getInvestments(),
         getInvestmentSummary(),
       ]);
 
-      setInvestments(investmentsData || []);
-      setSummary(summaryData);
+      if (investmentsResult.success && investmentsResult.data) {
+        setInvestments(investmentsResult.data || []);
+      } else {
+        setInvestments([]);
+        toast({
+          title: "Erro",
+          description:
+            investmentsResult.error || "Falha ao carregar investimentos",
+          variant: "destructive",
+        });
+      }
+
+      if (summaryResult.success && summaryResult.data) {
+        setSummary(summaryResult.data);
+      } else {
+        setSummary({
+          total_invested: 0,
+          current_value: 0,
+          total_return: 0,
+          return_percentage: 0,
+          monthly_contributions: 0,
+          active_investments: 0,
+        });
+        toast({
+          title: "Erro",
+          description:
+            summaryResult.error || "Falha ao carregar resumo dos investimentos",
+          variant: "destructive",
+        });
+      }
     } catch (err) {
-      logger.error("Erro ao carregar dados:", err);
+      logger.error("Erro ao carregar dados:", err as Error);
       setError("Erro ao carregar dados dos investimentos");
       toast({
         title: "Erro",

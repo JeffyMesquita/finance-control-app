@@ -6,8 +6,9 @@ import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { UserProfile } from "@/lib/types";
+import type { BaseActionResult } from "@/lib/types/actions";
 
-export async function getUserProfile(): Promise<UserProfile | null> {
+export async function getUserProfile(): Promise<BaseActionResult<UserProfile>> {
   const supabase = createActionClient();
 
   const {
@@ -25,13 +26,21 @@ export async function getUserProfile(): Promise<UserProfile | null> {
 
   if (error && error.code !== "PGRST116") {
     logger.error("Erro ao buscar perfil do usuário:", error as Error);
-    return null;
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as UserProfile,
+  };
 }
 
-export async function updateUserProfile(profile: UserProfile) {
+export async function updateUserProfile(
+  profile: UserProfile
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -49,14 +58,21 @@ export async function updateUserProfile(profile: UserProfile) {
 
   if (error) {
     logger.error("Erro ao atualizar perfil do usuário:", error as Error);
-    throw new Error(error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/perfil");
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
-export async function updateProfileImage(imageUrl: string) {
+export async function updateProfileImage(
+  imageUrl: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -73,10 +89,14 @@ export async function updateProfileImage(imageUrl: string) {
 
   if (error) {
     logger.error("Erro ao atualizar imagem de perfil:", error as Error);
-    throw new Error(error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/perfil");
-  return { success: true };
+  return {
+    success: true,
+  };
 }
-

@@ -62,39 +62,52 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const goalsData = await getGoals();
-      setGoals(goalsData || []);
+      const result = await getGoals();
+      if (result.success && result.data) {
+        const goalsData = result.data;
+        setGoals(goalsData || []);
 
-      // Calcular estatísticas
-      const stats: GoalsStats = {
-        total_goals: goalsData.length,
-        active_goals: goalsData.filter((g) => !g.is_completed).length,
-        completed_goals: goalsData.filter((g) => g.is_completed).length,
-        total_target: goalsData.reduce(
-          (sum, g) => sum + g.target_amount / 100,
-          0
-        ),
-        total_saved: goalsData.reduce(
-          (sum, g) => sum + g.current_amount / 100,
-          0
-        ),
-        average_progress:
-          goalsData.length > 0
-            ? Math.round(
-                goalsData.reduce(
-                  (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
-                  0
-                ) / goalsData.length
-              )
-            : 0,
-        overdue_goals: goalsData.filter(
-          (g) => !g.is_completed && new Date(g.target_date) < new Date()
-        ).length,
-      };
+        // Calcular estatísticas
+        const stats: GoalsStats = {
+          total_goals: goalsData.length,
+          active_goals: goalsData.filter((g) => !g.is_completed).length,
+          completed_goals: goalsData.filter((g) => g.is_completed).length,
+          total_target: goalsData.reduce(
+            (sum, g) => sum + g.target_amount / 100,
+            0
+          ),
+          total_saved: goalsData.reduce(
+            (sum, g) => sum + g.current_amount / 100,
+            0
+          ),
+          average_progress:
+            goalsData.length > 0
+              ? Math.round(
+                  goalsData.reduce(
+                    (sum, g) =>
+                      sum + (g.current_amount / g.target_amount) * 100,
+                    0
+                  ) / goalsData.length
+                )
+              : 0,
+          overdue_goals: goalsData.filter(
+            (g) => !g.is_completed && new Date(g.target_date) < new Date()
+          ).length,
+        };
 
-      setStats(stats);
+        setStats(stats);
+      } else {
+        logger.error(
+          "Erro ao carregar dados das metas:",
+          new Error(result.error || "Falha ao carregar metas")
+        );
+        setGoals([]);
+        setStats(null);
+      }
     } catch (error) {
       logger.error("Erro ao carregar dados das metas:", error as Error);
+      setGoals([]);
+      setStats(null);
     } finally {
       setIsLoading(false);
     }
@@ -342,4 +355,3 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
     </Card>
   );
 }
-

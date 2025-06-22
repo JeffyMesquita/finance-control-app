@@ -69,22 +69,30 @@ export function ExportDialog({
     setIsLoading(true);
 
     try {
-      let data = [];
-      let headers = [];
-      let fields = [];
+      let data: any[] = [];
+      let headers: string[] = [];
+      let fields: (string | ((item: any) => string))[] = [];
       let title = "";
       let filename = "";
 
       // Get data based on export type
       switch (exportType) {
         case "transactions":
-          data = await getTransactionsForExport(
+          const transactionsResult = await getTransactionsForExport(
             dateRange !== "all" ? dateFrom : undefined,
             dateRange !== "all" ? dateTo : undefined,
             transactionType !== "all" ? transactionType : undefined,
             selectedCategory || undefined,
             selectedAccount || undefined
           );
+
+          if (!transactionsResult.success || !transactionsResult.data) {
+            throw new Error(
+              transactionsResult.error || "Falha ao exportar transações"
+            );
+          }
+
+          data = transactionsResult.data;
 
           headers = [
             "Data",
@@ -111,7 +119,13 @@ export function ExportDialog({
           break;
 
         case "accounts":
-          data = await getAccountsForExport();
+          const accountsResult = await getAccountsForExport();
+
+          if (!accountsResult.success || !accountsResult.data) {
+            throw new Error(accountsResult.error || "Falha ao exportar contas");
+          }
+
+          data = accountsResult.data;
           headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"];
           fields = ["name", "type", "balance", "currency"];
           title = "Exportação de Contas";
@@ -119,7 +133,15 @@ export function ExportDialog({
           break;
 
         case "categories":
-          data = await getCategoriesForExport();
+          const categoriesResult = await getCategoriesForExport();
+
+          if (!categoriesResult.success || !categoriesResult.data) {
+            throw new Error(
+              categoriesResult.error || "Falha ao exportar categorias"
+            );
+          }
+
+          data = categoriesResult.data;
           headers = ["Nome da Categoria", "Tipo", "Cor"];
           fields = ["name", "type", "color"];
           title = "Exportação de Categorias";
@@ -127,7 +149,13 @@ export function ExportDialog({
           break;
 
         case "goals":
-          data = await getGoalsForExport();
+          const goalsResult = await getGoalsForExport();
+
+          if (!goalsResult.success || !goalsResult.data) {
+            throw new Error(goalsResult.error || "Falha ao exportar metas");
+          }
+
+          data = goalsResult.data;
           headers = [
             "Nome da Meta",
             "Valor Alvo",
@@ -158,7 +186,15 @@ export function ExportDialog({
           break;
 
         case "monthly_summary":
-          data = await getMonthlySummaryForExport();
+          const monthlyResult = await getMonthlySummaryForExport();
+
+          if (!monthlyResult.success || !monthlyResult.data) {
+            throw new Error(
+              monthlyResult.error || "Falha ao exportar resumo mensal"
+            );
+          }
+
+          data = monthlyResult.data;
           headers = ["Mês", "Receitas", "Despesas", "Economia"];
           fields = ["month", "income", "expenses", "savings"];
           title = "Resumo Mensal";
@@ -168,13 +204,13 @@ export function ExportDialog({
 
       // Generate export file
       if (fileFormat === "csv") {
-        const csvContent = convertToCSV(data, headers, fields);
+        const csvContent = convertToCSV(data, headers, fields as string[]);
         downloadCSV(csvContent, `${filename}.csv`);
       } else {
         generatePDF(
           data,
           headers,
-          fields,
+          fields as string[],
           title,
           `${filename}.pdf`,
           exportType === "transactions" ? "landscape" : "portrait"
@@ -324,7 +360,7 @@ export function ExportDialog({
               <Checkbox
                 id="include-notes"
                 checked={includeNotes}
-                onCheckedChange={setIncludeNotes}
+                onCheckedChange={(checked) => setIncludeNotes(checked === true)}
               />
               <Label htmlFor="include-notes">Incluir Observações</Label>
             </div>
@@ -385,4 +421,3 @@ export function ExportDialog({
     </Dialog>
   );
 }
-

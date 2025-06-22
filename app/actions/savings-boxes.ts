@@ -1,13 +1,19 @@
 "use server";
 
 import { logger } from "@/lib/utils/logger";
-
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
+import type {
+  SavingsBoxData,
+  CreateSavingsBoxData,
+  UpdateSavingsBoxData,
+  BaseActionResult,
+} from "@/lib/types/actions";
 
-export async function getSavingsBoxes() {
+export async function getSavingsBoxes(): Promise<
+  BaseActionResult<SavingsBoxData[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -38,7 +44,10 @@ export async function getSavingsBoxes() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      logger.error("Error fetching savings boxes with transactions:", error as Error);
+      logger.error(
+        "Error fetching savings boxes with transactions:",
+        error as Error
+      );
 
       // Fallback: buscar sem relacionamentos se houver erro
       const { data: fallbackData, error: fallbackError } = await supabase
@@ -50,7 +59,10 @@ export async function getSavingsBoxes() {
 
       if (fallbackError) {
         logger.error("Error fetching savings boxes (fallback):", fallbackError);
-        return [];
+        return {
+          success: false,
+          error: fallbackError.message,
+        };
       }
 
       // Adicionar array vazio de transações para manter compatibilidade
@@ -62,18 +74,29 @@ export async function getSavingsBoxes() {
       logger.info(
         "✅ Fallback successful, returning data without transactions"
       );
-      return dataWithEmptyTransactions;
+      return {
+        success: true,
+        data: dataWithEmptyTransactions as SavingsBoxData[],
+      };
     }
 
     logger.info("✅ Successfully fetched savings boxes with transactions");
-    return data;
+    return {
+      success: true,
+      data: data as SavingsBoxData[],
+    };
   } catch (err) {
-    logger.error("Unexpected error in getSavingsBoxes:", err);
-    return [];
+    logger.error("Unexpected error in getSavingsBoxes:", err as Error);
+    return {
+      success: false,
+      error: "Erro inesperado ao buscar cofrinhos",
+    };
   }
 }
 
-export async function getSavingsBoxById(id: string) {
+export async function getSavingsBoxById(
+  id: string
+): Promise<BaseActionResult<SavingsBoxData>> {
   const supabase = createActionClient();
 
   const {
@@ -105,15 +128,21 @@ export async function getSavingsBoxById(id: string) {
 
   if (error) {
     logger.error("Error fetching savings box:", error as Error);
-    return null;
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as SavingsBoxData,
+  };
 }
 
 export async function createSavingsBox(
-  savingsBox: Omit<InsertTables<"savings_boxes">, "user_id">
-) {
+  savingsBox: CreateSavingsBoxData
+): Promise<BaseActionResult<SavingsBoxData>> {
   const supabase = createActionClient();
 
   const {
@@ -125,22 +154,32 @@ export async function createSavingsBox(
 
   // Validações básicas
   if (!savingsBox.name || savingsBox.name.trim() === "") {
-    return { success: false, error: "Nome do cofrinho é obrigatório" };
+    return {
+      success: false,
+      error: "Nome do cofrinho é obrigatório",
+    };
   }
 
   if (savingsBox.target_amount && savingsBox.target_amount <= 0) {
-    return { success: false, error: "Meta deve ser maior que zero" };
+    return {
+      success: false,
+      error: "Meta deve ser maior que zero",
+    };
   }
 
   // Converter valores de reais para centavos
   const savingsBoxData = {
-    ...savingsBox,
+    name: savingsBox.name,
+    description: savingsBox.description || null,
     current_amount: savingsBox.current_amount
       ? Math.round(savingsBox.current_amount * 100)
       : 0,
     target_amount: savingsBox.target_amount
       ? Math.round(savingsBox.target_amount * 100)
       : null,
+    color: savingsBox.color || "#3B82F6",
+    icon: savingsBox.icon || "piggy-bank",
+    is_active: savingsBox.is_active !== false,
     user_id: user.id,
   };
 
@@ -152,19 +191,25 @@ export async function createSavingsBox(
 
   if (error) {
     logger.error("Error creating savings box:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cofrinhos");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as SavingsBoxData,
+  };
 }
 
 export async function updateSavingsBox(
   id: string,
-  savingsBox: UpdateTables<"savings_boxes">
-) {
+  savingsBox: UpdateSavingsBoxData
+): Promise<BaseActionResult<SavingsBoxData>> {
   const supabase = createActionClient();
 
   const {
@@ -179,7 +224,10 @@ export async function updateSavingsBox(
     savingsBox.name !== undefined &&
     (!savingsBox.name || savingsBox.name.trim() === "")
   ) {
-    return { success: false, error: "Nome do cofrinho é obrigatório" };
+    return {
+      success: false,
+      error: "Nome do cofrinho é obrigatório",
+    };
   }
 
   if (
@@ -187,11 +235,14 @@ export async function updateSavingsBox(
     savingsBox.target_amount !== null &&
     savingsBox.target_amount <= 0
   ) {
-    return { success: false, error: "Meta deve ser maior que zero" };
+    return {
+      success: false,
+      error: "Meta deve ser maior que zero",
+    };
   }
 
   // Converter valores de reais para centavos se estiverem presentes
-  const updateData = { ...savingsBox };
+  const updateData: any = { ...savingsBox };
   if (updateData.current_amount !== undefined) {
     updateData.current_amount = updateData.current_amount
       ? Math.round(updateData.current_amount * 100)
@@ -214,16 +265,24 @@ export async function updateSavingsBox(
 
   if (error) {
     logger.error("Error updating savings box:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cofrinhos");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as SavingsBoxData,
+  };
 }
 
-export async function deleteSavingsBox(id: string) {
+export async function deleteSavingsBox(
+  id: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -241,7 +300,7 @@ export async function deleteSavingsBox(id: string) {
     .eq("user_id", user.id)
     .single();
 
-  if (savingsBox && savingsBox.current_amount > 0) {
+  if (savingsBox && (savingsBox.current_amount || 0) > 0) {
     return {
       success: false,
       error: `Não é possível excluir o cofrinho "${savingsBox.name}" porque ele possui saldo. Saque todo o dinheiro antes de excluir.`,
@@ -273,16 +332,21 @@ export async function deleteSavingsBox(id: string) {
 
   if (error) {
     logger.error("Error deleting savings box:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cofrinhos");
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
-export async function getSavingsBoxesTotal() {
+export async function getSavingsBoxesTotal(): Promise<number> {
   const supabase = createActionClient();
 
   const {
@@ -307,7 +371,9 @@ export async function getSavingsBoxesTotal() {
   return total;
 }
 
-export async function getSavingsBoxesSummary() {
+export async function getSavingsBoxesSummary(): Promise<
+  BaseActionResult<any[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -342,7 +408,10 @@ export async function getSavingsBoxesSummary() {
 
   if (error) {
     logger.error("Error fetching savings boxes summary:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Calcular progresso e status de vinculação
@@ -366,10 +435,13 @@ export async function getSavingsBoxesSummary() {
         : null,
   }));
 
-  return summary;
+  return {
+    success: true,
+    data: summary,
+  };
 }
 
-export async function getSavingsBoxesStats() {
+export async function getSavingsBoxesStats(): Promise<BaseActionResult<any>> {
   const supabase = createActionClient();
 
   const {
@@ -395,11 +467,8 @@ export async function getSavingsBoxesStats() {
   if (error) {
     logger.error("Error fetching savings boxes stats:", error as Error);
     return {
-      total_boxes: 0,
-      total_amount: 0,
-      total_with_goals: 0,
-      total_completed_goals: 0,
-      average_completion: 0,
+      success: false,
+      error: error.message,
     };
   }
 
@@ -430,16 +499,21 @@ export async function getSavingsBoxesStats() {
       : 0;
 
   return {
-    total_boxes: totalBoxes,
-    total_amount: totalAmount,
-    total_with_goals: totalWithGoals,
-    total_completed_goals: completedGoals,
-    average_completion: Math.round(averageCompletion),
+    success: true,
+    data: {
+      total_boxes: totalBoxes,
+      total_amount: totalAmount,
+      total_with_goals: totalWithGoals,
+      total_completed_goals: completedGoals,
+      average_completion: Math.round(averageCompletion),
+    },
   };
 }
 
 // Função para restaurar um cofrinho excluído (soft delete)
-export async function restoreSavingsBox(id: string) {
+export async function restoreSavingsBox(
+  id: string
+): Promise<BaseActionResult<SavingsBoxData>> {
   const supabase = createActionClient();
 
   const {
@@ -459,12 +533,17 @@ export async function restoreSavingsBox(id: string) {
 
   if (error) {
     logger.error("Error restoring savings box:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/cofrinhos");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as SavingsBoxData,
+  };
 }
-

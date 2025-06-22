@@ -14,6 +14,7 @@ import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { getRecentTransactions } from "@/app/actions/transactions";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { RecentTransactionsSkeleton } from "@/components/skeletons";
+import { TransactionData } from "@/lib/types/actions";
 
 type Category = {
   id: string;
@@ -63,14 +64,21 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ className }: RecentTransactionsProps) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        const data = await getRecentTransactions(7);
-        setTransactions(data);
+        const result = await getRecentTransactions(7);
+        if (result.success && result.data) {
+          setTransactions(result.data);
+        } else {
+          logger.error(
+            "Erro ao carregar transações:",
+            new Error(result.error || "Falha ao carregar transações recentes")
+          );
+        }
       } catch (error) {
         logger.error("Erro ao carregar transações:", error as Error);
       } finally {
@@ -154,4 +162,3 @@ export function RecentTransactions({ className }: RecentTransactionsProps) {
     </Card>
   );
 }
-

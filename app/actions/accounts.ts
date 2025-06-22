@@ -1,13 +1,17 @@
 "use server";
 
 import { logger } from "@/lib/utils/logger";
-
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
+import type {
+  AccountData,
+  CreateAccountData,
+  UpdateAccountData,
+  BaseActionResult,
+} from "@/lib/types/actions";
 
-export async function getAccounts() {
+export async function getAccounts(): Promise<BaseActionResult<AccountData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -25,15 +29,21 @@ export async function getAccounts() {
 
   if (error) {
     logger.error("Error fetching accounts:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as AccountData[],
+  };
 }
 
 export async function createAccount(
-  account: Omit<InsertTables<"financial_accounts">, "user_id">
-) {
+  account: CreateAccountData
+): Promise<BaseActionResult<AccountData>> {
   const supabase = createActionClient();
 
   const {
@@ -49,22 +59,29 @@ export async function createAccount(
       ...account,
       user_id: user.id,
     })
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error creating account:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as AccountData,
+  };
 }
 
 export async function updateAccount(
   id: string,
-  account: UpdateTables<"financial_accounts">
-) {
+  account: UpdateAccountData
+): Promise<BaseActionResult<AccountData>> {
   const supabase = createActionClient();
 
   const {
@@ -79,19 +96,28 @@ export async function updateAccount(
     .update(account)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error updating account:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as AccountData,
+  };
 }
 
-export async function deleteAccount(id: string) {
+export async function deleteAccount(
+  id: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -109,11 +135,66 @@ export async function deleteAccount(id: string) {
 
   if (error) {
     logger.error("Error deleting account:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard");
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
+export async function getAccountWithStats(
+  id: string
+): Promise<
+  BaseActionResult<
+    AccountData & { stats: { totalTransactions: number; balance: number } }
+  >
+> {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Get account data
+  const { data: account, error: accountError } = await supabase
+    .from("financial_accounts")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (accountError) {
+    logger.error("Error fetching account:", accountError as Error);
+    return {
+      success: false,
+      error: accountError.message,
+    };
+  }
+
+  // Get transaction count
+  const { count } = await supabase
+    .from("transactions")
+    .select("*", { count: "exact", head: true })
+    .eq("account_id", id)
+    .eq("user_id", user.id);
+
+  return {
+    success: true,
+    data: {
+      ...(account as AccountData),
+      stats: {
+        totalTransactions: count || 0,
+        balance: account.balance || 0,
+      },
+    },
+  };
+}

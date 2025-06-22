@@ -93,10 +93,16 @@ export function SavingsTransactionDialog({
   const loadAccounts = async () => {
     setIsLoadingAccounts(true);
     try {
-      const accountsData = await getAccounts();
-      setAccounts(accountsData || []);
+      const result = await getAccounts();
+      if (result.success && result.data) {
+        setAccounts(result.data || []);
+      } else {
+        toast.error("Erro ao carregar contas");
+        setAccounts([]);
+      }
     } catch (error) {
       toast.error("Erro ao carregar contas");
+      setAccounts([]);
     } finally {
       setIsLoadingAccounts(false);
     }
@@ -342,8 +348,8 @@ export function SavingsTransactionDialog({
                     ? "Depositando..."
                     : "Sacando..."
                   : isDeposit
-                  ? "Confirmar Depósito"
-                  : "Confirmar Saque"}
+                    ? "Confirmar Depósito"
+                    : "Confirmar Saque"}
               </Button>
             </DialogFooter>
           </form>
@@ -352,4 +358,3 @@ export function SavingsTransactionDialog({
     </Dialog>
   );
 }
-

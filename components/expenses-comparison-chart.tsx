@@ -60,14 +60,20 @@ export function ExpensesComparisonChart() {
     async function fetchData() {
       try {
         // Buscar dados do mês atual
-        const currentMonthData = await getExpenseBreakdown();
+        const currentMonthResult = await getExpenseBreakdown();
 
         // Buscar dados do mês anterior
-        const previousMonthData = await getExpenseBreakdown("previous");
+        const previousMonthResult = await getExpenseBreakdown("previous");
 
         setExpenseData({
-          currentMonth: currentMonthData,
-          previousMonth: previousMonthData,
+          currentMonth:
+            currentMonthResult.success && currentMonthResult.data
+              ? currentMonthResult.data
+              : [],
+          previousMonth:
+            previousMonthResult.success && previousMonthResult.data
+              ? previousMonthResult.data
+              : [],
         });
       } catch (error) {
         logger.error("Error fetching expense data:", error as Error);
@@ -202,4 +208,3 @@ const YAxisCustomTick = (props: any) => {
     </g>
   );
 };
-

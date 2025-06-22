@@ -58,13 +58,24 @@ export default function CofrinhosDashboard() {
     setIsLoading(true);
     setError(null);
     try {
-      const [boxesData, statsData] = await Promise.all([
+      const [boxesResult, statsResult] = await Promise.all([
         getSavingsBoxes(),
         getSavingsBoxesStats(),
       ]);
 
-      setSavingsBoxes(boxesData || []);
-      setStats(statsData);
+      if (boxesResult.success && boxesResult.data) {
+        setSavingsBoxes(boxesResult.data || []);
+      } else {
+        setSavingsBoxes([]);
+        toast.error(boxesResult.error || "Erro ao carregar cofrinhos");
+      }
+
+      if (statsResult.success && statsResult.data) {
+        setStats(statsResult.data);
+      } else {
+        setStats(null);
+        toast.error(statsResult.error || "Erro ao carregar estatísticas");
+      }
     } catch (err) {
       setError("Erro ao carregar dados dos cofrinhos");
       toast.error("Erro ao carregar dados dos cofrinhos");

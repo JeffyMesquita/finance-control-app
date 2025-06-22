@@ -15,6 +15,7 @@ import {
   InvestmentCategoryStats,
   INVESTMENT_CATEGORY_COLORS,
 } from "@/lib/types/investments";
+import type { BaseActionResult } from "@/lib/types/actions";
 
 // Helper para converter centavos para reais
 const convertFromCents = (cents: number): number => {
@@ -43,14 +44,21 @@ const convertTransactionFromDB = (transaction: any): InvestmentTransaction => ({
 });
 
 // Criar investimento
-export async function createInvestment(data: CreateInvestmentData) {
+export async function createInvestment(
+  data: CreateInvestmentData
+): Promise<BaseActionResult<Investment>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    if (!user) {
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
+    }
 
     const investmentData = {
       ...data,
@@ -69,7 +77,12 @@ export async function createInvestment(data: CreateInvestmentData) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
 
     // Criar transação inicial de aporte
     await supabase.from("investment_transactions").insert({
@@ -82,7 +95,10 @@ export async function createInvestment(data: CreateInvestmentData) {
     });
 
     revalidatePath("/dashboard/investimentos");
-    return { success: true, data: convertInvestmentFromDB(investment) };
+    return {
+      success: true,
+      data: convertInvestmentFromDB(investment),
+    };
   } catch (error) {
     logger.error("Erro ao criar investimento:", error as Error);
     return {
@@ -93,14 +109,21 @@ export async function createInvestment(data: CreateInvestmentData) {
 }
 
 // Buscar investimentos do usuário
-export async function getInvestments(): Promise<Investment[]> {
+export async function getInvestments(): Promise<
+  BaseActionResult<Investment[]>
+> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      return {
+        success: true,
+        data: [],
+      };
+    }
 
     const { data, error } = await supabase
       .from("investments")
@@ -108,25 +131,42 @@ export async function getInvestments(): Promise<Investment[]> {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
-    return (data || []).map(convertInvestmentFromDB);
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map(convertInvestmentFromDB),
+    };
   } catch (error) {
     logger.error("Erro ao buscar investimentos:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: "Erro ao buscar investimentos",
+    };
   }
 }
 
 // Buscar investimento por ID
 export async function getInvestmentById(
   id: string
-): Promise<Investment | null> {
+): Promise<BaseActionResult<Investment>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return null;
+    if (!user) {
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
+    }
 
     const { data, error } = await supabase
       .from("investments")
@@ -135,23 +175,43 @@ export async function getInvestmentById(
       .eq("user_id", user.id)
       .single();
 
-    if (error) throw error;
-    return data ? convertInvestmentFromDB(data) : null;
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: convertInvestmentFromDB(data),
+    };
   } catch (error) {
     logger.error("Erro ao buscar investimento:", error as Error);
-    return null;
+    return {
+      success: false,
+      error: "Erro ao buscar investimento",
+    };
   }
 }
 
 // Atualizar investimento
-export async function updateInvestment(id: string, data: UpdateInvestmentData) {
+export async function updateInvestment(
+  id: string,
+  data: UpdateInvestmentData
+): Promise<BaseActionResult<Investment>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    if (!user) {
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
+    }
 
     // Converter valores monetários para centavos
     const updateData = {
@@ -172,10 +232,18 @@ export async function updateInvestment(id: string, data: UpdateInvestmentData) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
 
     revalidatePath("/dashboard/investimentos");
-    return { success: true, data: convertInvestmentFromDB(investment) };
+    return {
+      success: true,
+      data: convertInvestmentFromDB(investment),
+    };
   } catch (error) {
     logger.error("Erro ao atualizar investimento:", error as Error);
     return {
@@ -186,14 +254,21 @@ export async function updateInvestment(id: string, data: UpdateInvestmentData) {
 }
 
 // Deletar investimento
-export async function deleteInvestment(id: string) {
+export async function deleteInvestment(
+  id: string
+): Promise<BaseActionResult<void>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    if (!user) {
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
+    }
 
     const { error } = await supabase
       .from("investments")
@@ -201,10 +276,17 @@ export async function deleteInvestment(id: string) {
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (error) throw error;
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
 
     revalidatePath("/dashboard/investimentos");
-    return { success: true };
+    return {
+      success: true,
+    };
   } catch (error) {
     logger.error("Erro ao deletar investimento:", error as Error);
     return {
@@ -217,14 +299,19 @@ export async function deleteInvestment(id: string) {
 // Criar transação de investimento
 export async function createInvestmentTransaction(
   data: CreateInvestmentTransactionData
-) {
+): Promise<BaseActionResult<InvestmentTransaction>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    if (!user) {
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
+    }
 
     // Converter valor para centavos
     const transactionData = {
@@ -240,7 +327,12 @@ export async function createInvestmentTransaction(
       .select()
       .single();
 
-    if (transactionError) throw transactionError;
+    if (transactionError) {
+      return {
+        success: false,
+        error: transactionError.message,
+      };
+    }
 
     // Atualizar o valor atual do investimento
     const { data: investment } = await supabase
@@ -270,7 +362,7 @@ export async function createInvestmentTransaction(
     revalidatePath("/dashboard/investimentos");
     return {
       success: true,
-      data: { ...transaction, amount: convertFromCents(transaction.amount) },
+      data: convertTransactionFromDB(transaction),
     };
   } catch (error) {
     logger.error("Erro ao criar transação:", error as Error);
@@ -284,14 +376,19 @@ export async function createInvestmentTransaction(
 // Buscar transações de investimento
 export async function getInvestmentTransactions(
   investmentId?: string
-): Promise<InvestmentTransaction[]> {
+): Promise<BaseActionResult<InvestmentTransaction[]>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      return {
+        success: true,
+        data: [],
+      };
+    }
 
     let query = supabase
       .from("investment_transactions")
@@ -306,16 +403,30 @@ export async function getInvestmentTransactions(
       ascending: false,
     });
 
-    if (error) throw error;
-    return (data || []).map(convertTransactionFromDB);
+    if (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+
+    return {
+      success: true,
+      data: (data || []).map(convertTransactionFromDB),
+    };
   } catch (error) {
     logger.error("Erro ao buscar transações:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: "Erro ao buscar transações",
+    };
   }
 }
 
 // Obter resumo dos investimentos
-export async function getInvestmentSummary(): Promise<InvestmentSummary> {
+export async function getInvestmentSummary(): Promise<
+  BaseActionResult<InvestmentSummary>
+> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
@@ -324,16 +435,27 @@ export async function getInvestmentSummary(): Promise<InvestmentSummary> {
     } = await supabase.auth.getUser();
     if (!user) {
       return {
-        total_invested: 0,
-        current_value: 0,
-        total_return: 0,
-        return_percentage: 0,
-        monthly_contributions: 0,
-        active_investments: 0,
+        success: true,
+        data: {
+          total_invested: 0,
+          current_value: 0,
+          total_return: 0,
+          return_percentage: 0,
+          monthly_contributions: 0,
+          active_investments: 0,
+        },
       };
     }
 
-    const investments = await getInvestments();
+    const investmentsResult = await getInvestments();
+    if (!investmentsResult.success || !investmentsResult.data) {
+      return {
+        success: false,
+        error: "Erro ao buscar investimentos",
+      };
+    }
+
+    const investments = investmentsResult.data;
     const activeInvestments = investments.filter((inv) => inv.is_active);
 
     const totalInvested = activeInvestments.reduce(
@@ -366,32 +488,39 @@ export async function getInvestmentSummary(): Promise<InvestmentSummary> {
       ) || 0;
 
     return {
-      total_invested: totalInvested,
-      current_value: currentValue,
-      total_return: totalReturn,
-      return_percentage: returnPercentage,
-      monthly_contributions: monthlyContributions,
-      active_investments: activeInvestments.length,
+      success: true,
+      data: {
+        total_invested: totalInvested,
+        current_value: currentValue,
+        total_return: totalReturn,
+        return_percentage: returnPercentage,
+        monthly_contributions: monthlyContributions,
+        active_investments: activeInvestments.length,
+      },
     };
   } catch (error) {
     logger.error("Erro ao obter resumo:", error as Error);
     return {
-      total_invested: 0,
-      current_value: 0,
-      total_return: 0,
-      return_percentage: 0,
-      monthly_contributions: 0,
-      active_investments: 0,
+      success: false,
+      error: "Erro ao obter resumo dos investimentos",
     };
   }
 }
 
 // Obter estatísticas por categoria
 export async function getInvestmentCategoryStats(): Promise<
-  InvestmentCategoryStats[]
+  BaseActionResult<InvestmentCategoryStats[]>
 > {
   try {
-    const investments = await getInvestments();
+    const investmentsResult = await getInvestments();
+    if (!investmentsResult.success || !investmentsResult.data) {
+      return {
+        success: false,
+        error: "Erro ao buscar investimentos",
+      };
+    }
+
+    const investments = investmentsResult.data;
     const activeInvestments = investments.filter((inv) => inv.is_active);
 
     const categoryMap = new Map<
@@ -422,7 +551,7 @@ export async function getInvestmentCategoryStats(): Promise<
       0
     );
 
-    return Array.from(categoryMap.entries())
+    const stats = Array.from(categoryMap.entries())
       .map(([category, stats]) => {
         const returnAmount = stats.current_value - stats.total_invested;
         const returnPercentage =
@@ -440,10 +569,16 @@ export async function getInvestmentCategoryStats(): Promise<
         };
       })
       .sort((a, b) => b.total_amount - a.total_amount);
+
+    return {
+      success: true,
+      data: stats,
+    };
   } catch (error) {
     logger.error("Erro ao obter estatísticas por categoria:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: "Erro ao obter estatísticas por categoria",
+    };
   }
 }
-
-

@@ -12,15 +12,13 @@ import {
 } from "@/components/ui/card";
 import { getDashboardData, getExpenseBreakdown } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
+import { DashboardData, ExpenseBreakdownItem } from "@/lib/types/actions";
 
 export function DataSummary() {
-  const [dashboardData, setDashboardData] = useState({
-    totalBalance: 0,
-    monthlyIncome: 0,
-    monthlyExpenses: 0,
-    monthlySavings: 0,
-  });
-  const [expenseData, setExpenseData] = useState([]);
+  const [dashboardData, setDashboardData] = useState<DashboardData>(
+    {} as DashboardData
+  );
+  const [expenseData, setExpenseData] = useState<ExpenseBreakdownItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,8 +29,8 @@ export function DataSummary() {
           getDashboardData(),
           getExpenseBreakdown(),
         ]);
-        setDashboardData(dashboardResult);
-        setExpenseData(expenseResult);
+        setDashboardData(dashboardResult.data || ({} as DashboardData));
+        setExpenseData(expenseResult.data || []);
       } catch (error) {
         logger.error("Error fetching data:", error as Error);
       } finally {

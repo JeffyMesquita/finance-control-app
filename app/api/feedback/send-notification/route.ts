@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      logger.error("Erro do Resend:", error );
+      logger.error("Erro do Resend:", error);
       return NextResponse.json(
         { error: "Erro ao enviar email", details: error },
         { status: 500 }
@@ -157,11 +157,10 @@ export async function POST(request: NextRequest) {
       message: "Notificação enviada com sucesso",
     });
   } catch (error) {
-    logger.error("Erro inesperado no envio de email:", error );
+    logger.error("Erro inesperado no envio de email:", error as Error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }
     );
   }
 }
-

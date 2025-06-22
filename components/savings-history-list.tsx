@@ -1,10 +1,10 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { getSavingsBoxes } from "@/app/actions/savings-boxes";
+import { getSavingsTransactionsByUser } from "@/app/actions/savings-transactions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,19 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getSavingsTransactionsByUser } from "@/app/actions/savings-transactions";
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
-import {
-  ArrowUp,
-  ArrowDown,
-  ArrowRightLeft,
-  PiggyBank,
-  Filter,
-  Calendar,
-  Wallet,
-} from "lucide-react";
+import { SavingsTransactionData } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  ArrowDown,
+  ArrowRightLeft,
+  ArrowUp,
+  Calendar,
+  Filter,
+  PiggyBank,
+  Wallet,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface SavingsTransaction {
   id: string;
@@ -62,7 +63,9 @@ export function SavingsHistoryList({
   showFilters = true,
   boxId,
 }: SavingsHistoryListProps) {
-  const [transactions, setTransactions] = useState<SavingsTransaction[]>([]);
+  const [transactions, setTransactions] = useState<SavingsTransactionData[]>(
+    []
+  );
   const [allBoxes, setAllBoxes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>("all");
@@ -81,10 +84,15 @@ export function SavingsHistoryList({
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await getSavingsTransactionsByUser(limit);
-      setTransactions(data || []);
+      const result = await getSavingsTransactionsByUser(limit);
+      if (result.success && result.data) {
+        setTransactions(result.data || []);
+      } else {
+        setTransactions([]);
+      }
     } catch (error) {
       logger.error("Erro ao carregar transações:", error as Error);
+      setTransactions([]);
     } finally {
       setIsLoading(false);
     }
@@ -92,10 +100,15 @@ export function SavingsHistoryList({
 
   const loadBoxes = async () => {
     try {
-      const data = await getSavingsBoxes();
-      setAllBoxes(data || []);
+      const result = await getSavingsBoxes();
+      if (result.success && result.data) {
+        setAllBoxes(result.data || []);
+      } else {
+        setAllBoxes([]);
+      }
     } catch (error) {
       logger.error("Erro ao carregar cofrinhos:", error as Error);
+      setAllBoxes([]);
     }
   };
 
@@ -112,7 +125,7 @@ export function SavingsHistoryList({
     }
   };
 
-  const getTransactionTitle = (transaction: SavingsTransaction) => {
+  const getTransactionTitle = (transaction: SavingsTransactionData) => {
     switch (transaction.type) {
       case "DEPOSIT":
         return `Depósito em ${transaction.savings_box?.name}`;
@@ -371,4 +384,3 @@ export function SavingsHistoryList({
     </Card>
   );
 }
-

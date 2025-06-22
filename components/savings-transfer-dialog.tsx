@@ -84,14 +84,21 @@ export function SavingsTransferDialog({
   const loadSavingsBoxes = async () => {
     setIsLoadingBoxes(true);
     try {
-      const boxesData = await getSavingsBoxes();
-      // Filtrar cofrinhos (excluir o cofrinho de origem)
-      const filtered = (boxesData || []).filter(
-        (box) => box.id !== fromSavingsBox.id && box.is_active
-      );
-      setAvailableBoxes(filtered);
+      const result = await getSavingsBoxes();
+      if (result.success && result.data) {
+        const boxesData = result.data;
+        // Filtrar cofrinhos (excluir o cofrinho de origem)
+        const filtered = (boxesData || []).filter(
+          (box) => box.id !== fromSavingsBox.id && box.is_active
+        );
+        setAvailableBoxes(filtered);
+      } else {
+        toast.error("Erro ao carregar cofrinhos");
+        setAvailableBoxes([]);
+      }
     } catch (error) {
       toast.error("Erro ao carregar cofrinhos");
+      setAvailableBoxes([]);
     } finally {
       setIsLoadingBoxes(false);
     }
@@ -362,4 +369,3 @@ export function SavingsTransferDialog({
     </Dialog>
   );
 }
-

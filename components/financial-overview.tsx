@@ -113,8 +113,15 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
   useEffect(() => {
     async function fetchData() {
       try {
-        const monthlyData = await getMonthlyData();
-        setData(monthlyData);
+        const result = await getMonthlyData();
+        if (result.success && result.data) {
+          setData(result.data);
+        } else {
+          logger.error(
+            "Erro ao carregar dados mensais:",
+            new Error(result.error || "Falha ao carregar dados")
+          );
+        }
       } catch (error) {
         logger.error("Erro ao carregar dados mensais:", error as Error);
       } finally {
@@ -253,4 +260,3 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
     </Card>
   );
 }
-

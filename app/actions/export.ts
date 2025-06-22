@@ -1,9 +1,15 @@
 "use server";
 
 import { logger } from "@/lib/utils/logger";
-
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import type {
+  TransactionData,
+  AccountData,
+  CategoryData,
+  GoalData,
+  BaseActionResult,
+} from "@/lib/types/actions";
 
 // Export transactions
 export async function getTransactionsForExport(
@@ -12,7 +18,7 @@ export async function getTransactionsForExport(
   type?: string,
   categoryId?: string,
   accountId?: string
-) {
+): Promise<BaseActionResult<TransactionData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -63,14 +69,22 @@ export async function getTransactionsForExport(
 
   if (error) {
     logger.error("Error fetching transactions for export:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as TransactionData[],
+  };
 }
 
 // Export accounts
-export async function getAccountsForExport() {
+export async function getAccountsForExport(): Promise<
+  BaseActionResult<AccountData[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -88,14 +102,22 @@ export async function getAccountsForExport() {
 
   if (error) {
     logger.error("Error fetching accounts for export:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as AccountData[],
+  };
 }
 
 // Export categories
-export async function getCategoriesForExport() {
+export async function getCategoriesForExport(): Promise<
+  BaseActionResult<CategoryData[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -113,14 +135,22 @@ export async function getCategoriesForExport() {
 
   if (error) {
     logger.error("Error fetching categories for export:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as CategoryData[],
+  };
 }
 
 // Export goals
-export async function getGoalsForExport() {
+export async function getGoalsForExport(): Promise<
+  BaseActionResult<GoalData[]>
+> {
   const supabase = createActionClient();
 
   const {
@@ -144,14 +174,22 @@ export async function getGoalsForExport() {
 
   if (error) {
     logger.error("Error fetching goals for export:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as GoalData[],
+  };
 }
 
 // Get monthly summary for export
-export async function getMonthlySummaryForExport(year?: number) {
+export async function getMonthlySummaryForExport(
+  year?: number
+): Promise<BaseActionResult<any[]>> {
   const supabase = createActionClient();
 
   const {
@@ -174,7 +212,10 @@ export async function getMonthlySummaryForExport(year?: number) {
 
   if (error) {
     logger.error("Error fetching monthly summary for export:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Group by month
@@ -196,9 +237,9 @@ export async function getMonthlySummaryForExport(year?: number) {
     const month = date.getMonth();
 
     if (transaction.type === "INCOME") {
-      monthlyData[month].income += transaction.amount;
+      monthlyData[month].income += transaction.amount || 0;
     } else {
-      monthlyData[month].expenses += transaction.amount;
+      monthlyData[month].expenses += transaction.amount || 0;
     }
   });
 
@@ -207,6 +248,8 @@ export async function getMonthlySummaryForExport(year?: number) {
     month.savings = month.income - month.expenses;
   });
 
-  return monthlyData;
+  return {
+    success: true,
+    data: monthlyData,
+  };
 }
-

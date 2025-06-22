@@ -9,9 +9,12 @@ import {
   Feedback,
   FeedbackStats,
 } from "@/lib/types/feedback";
+import type { BaseActionResult } from "@/lib/types/actions";
 
 // Criar novo feedback
-export async function createFeedback(data: CreateFeedbackData) {
+export async function createFeedback(
+  data: CreateFeedbackData
+): Promise<BaseActionResult<Feedback>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
@@ -40,7 +43,10 @@ export async function createFeedback(data: CreateFeedbackData) {
 
     if (error) {
       logger.error("Erro ao criar feedback:", error as Error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        error: error.message,
+      };
     }
 
     // Enviar notificação por email
@@ -71,15 +77,23 @@ export async function createFeedback(data: CreateFeedbackData) {
       // Não falha a operação se o email não for enviado
     }
 
-    return { success: true, data: feedback };
+    return {
+      success: true,
+      data: feedback as Feedback,
+    };
   } catch (error) {
     logger.error("Erro inesperado ao criar feedback:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
 // Listar feedbacks do usuário
-export async function getUserFeedbacks() {
+export async function getUserFeedbacks(): Promise<
+  BaseActionResult<Feedback[]>
+> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
@@ -87,7 +101,10 @@ export async function getUserFeedbacks() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      return { success: false, error: "Usuário não autenticado" };
+      return {
+        success: false,
+        error: "Usuário não autenticado",
+      };
     }
 
     const { data: feedbacks, error } = await supabase
@@ -98,18 +115,29 @@ export async function getUserFeedbacks() {
 
     if (error) {
       logger.error("Erro ao buscar feedbacks:", error as Error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        error: error.message,
+      };
     }
 
-    return { success: true, data: feedbacks as Feedback[] };
+    return {
+      success: true,
+      data: feedbacks as Feedback[],
+    };
   } catch (error) {
     logger.error("Erro inesperado ao buscar feedbacks:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
 // Obter feedback por ID
-export async function getFeedbackById(id: string) {
+export async function getFeedbackById(
+  id: string
+): Promise<BaseActionResult<Feedback>> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
@@ -121,22 +149,29 @@ export async function getFeedbackById(id: string) {
 
     if (error) {
       logger.error("Erro ao buscar feedback:", error as Error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        error: error.message,
+      };
     }
 
-    return { success: true, data: feedback as Feedback };
+    return {
+      success: true,
+      data: feedback as Feedback,
+    };
   } catch (error) {
     logger.error("Erro inesperado ao buscar feedback:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
 
 // Estatísticas de feedback (para administradores)
-export async function getFeedbackStats(): Promise<{
-  success: boolean;
-  data?: FeedbackStats;
-  error?: string;
-}> {
+export async function getFeedbackStats(): Promise<
+  BaseActionResult<FeedbackStats>
+> {
   try {
     const supabase = createServerComponentClient({ cookies });
 
@@ -147,7 +182,10 @@ export async function getFeedbackStats(): Promise<{
 
     if (error) {
       logger.error("Erro ao buscar estatísticas:", error as Error);
-      return { success: false, error: error.message };
+      return {
+        success: false,
+        error: error.message,
+      };
     }
 
     const stats: FeedbackStats = {
@@ -193,10 +231,15 @@ export async function getFeedbackStats(): Promise<{
       }
     });
 
-    return { success: true, data: stats };
+    return {
+      success: true,
+      data: stats,
+    };
   } catch (error) {
     logger.error("Erro inesperado ao buscar estatísticas:", error as Error);
-    return { success: false, error: "Erro interno do servidor" };
+    return {
+      success: false,
+      error: "Erro interno do servidor",
+    };
   }
 }
-

@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
         toast.error("Erro ao carregar estatísticas");
       }
     } catch (error) {
-      logger.error("Erro ao carregar dados:", error);
+      logger.error("Erro ao carregar dados:", error as Error);
       toast.error("Erro ao carregar dados do dashboard");
     } finally {
       setLoading(false);

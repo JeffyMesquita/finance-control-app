@@ -95,6 +95,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabaseCache } from "@/lib/supabase/cache";
 import { DynamicIcon, LucideIcon } from "./dynamic-icon";
+import { TransactionData } from "@/lib/types/actions";
 
 const CACHE_KEY = "transactions-data";
 const MAX_RETRIES = 3;
@@ -105,10 +106,10 @@ export function TransactionsTable() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+    useState<TransactionData | null>(null);
+  const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<
-    Transaction[]
+    TransactionData[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -162,8 +163,8 @@ export function TransactionsTable() {
         selectedCategory,
         search
       );
-      setTransactions(result.data);
-      setFilteredTransactions(result.data);
+      setTransactions(result.data || []);
+      setFilteredTransactions(result.data || []);
       setTotalTransactions(result.total);
       supabaseCache.set(CACHE_KEY, result.data);
     } catch (error) {
@@ -182,7 +183,7 @@ export function TransactionsTable() {
   async function fetchCategories() {
     try {
       const data = await getCategories();
-      setCategories(data);
+      setCategories(data.data || []);
     } catch (error) {
       logger.error("Erro ao carregar categorias:", error as Error);
       toast({
@@ -194,7 +195,7 @@ export function TransactionsTable() {
     }
   }
 
-  const handleEdit = (transaction: Transaction) => {
+  const handleEdit = (transaction: TransactionData) => {
     setSelectedTransaction(transaction);
     setIsEditDialogOpen(true);
   };
@@ -888,4 +889,3 @@ export function TransactionsTable() {
     </div>
   );
 }
-

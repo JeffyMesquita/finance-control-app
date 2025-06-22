@@ -1,11 +1,20 @@
 "use server";
 
 import { logger } from "@/lib/utils/logger";
-
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
+import type {
+  TransactionData,
+  TransactionFilters,
+  TransactionStats,
+  CreateTransactionData,
+  UpdateTransactionData,
+  PaginatedResult,
+  BaseActionResult,
+  createSuccessResponse,
+  createErrorResponse,
+} from "@/lib/types/actions";
 
 export async function getTransactions(
   page = 1,
@@ -14,7 +23,7 @@ export async function getTransactions(
   type?: string,
   category?: string,
   search?: string
-) {
+): Promise<PaginatedResult<TransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -97,13 +106,33 @@ export async function getTransactions(
 
   if (error) {
     logger.error("Error fetching transactions:", error as Error);
-    return { data: [], total: 0 };
+    return {
+      success: false,
+      error: error.message,
+      data: [],
+      total: 0,
+      page,
+      limit: pageSize,
+      hasMore: false,
+    };
   }
 
-  return { data, total: count || 0 };
+  const total = count || 0;
+  const hasMore = offset + pageSize < total;
+
+  return {
+    success: true,
+    data: data as TransactionData[],
+    total,
+    page,
+    limit: pageSize,
+    hasMore,
+  };
 }
 
-export async function getRecentTransactions(limit = 5) {
+export async function getRecentTransactions(
+  limit = 5
+): Promise<BaseActionResult<TransactionData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -135,15 +164,21 @@ export async function getRecentTransactions(limit = 5) {
 
   if (error) {
     logger.error("Error fetching recent transactions:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as TransactionData[],
+  };
 }
 
 export async function createTransaction(
-  transaction: Omit<InsertTables<"transactions">, "user_id">
-) {
+  transaction: CreateTransactionData
+): Promise<BaseActionResult<TransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -159,11 +194,15 @@ export async function createTransaction(
       ...transaction,
       user_id: user.id,
     })
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error creating transaction:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Update account balance
@@ -172,13 +211,16 @@ export async function createTransaction(
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/transactions");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as unknown as TransactionData,
+  };
 }
 
 export async function updateTransaction(
   id: string,
-  transaction: UpdateTables<"transactions">
-) {
+  transaction: UpdateTransactionData
+): Promise<BaseActionResult<TransactionData>> {
   const supabase = createActionClient();
 
   const {
@@ -201,11 +243,15 @@ export async function updateTransaction(
     .update(transaction)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error updating transaction:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Update account balances if the account changed
@@ -214,8 +260,8 @@ export async function updateTransaction(
     transaction.account_id &&
     originalTransaction.account_id !== transaction.account_id
   ) {
-    await updateAccountBalance(originalTransaction.account_id);
-    await updateAccountBalance(transaction.account_id);
+    await updateAccountBalance(originalTransaction.account_id || "");
+    await updateAccountBalance(transaction.account_id || "");
   } else {
     // Update the current account balance
     await updateAccountBalance(originalTransaction?.account_id || "");
@@ -224,10 +270,15 @@ export async function updateTransaction(
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/transactions");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as unknown as TransactionData,
+  };
 }
 
-export async function deleteTransaction(id: string) {
+export async function deleteTransaction(
+  id: string
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -253,21 +304,28 @@ export async function deleteTransaction(id: string) {
 
   if (error) {
     logger.error("Error deleting transaction:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Update account balance
   if (transaction) {
-    await updateAccountBalance(transaction.account_id);
+    await updateAccountBalance(transaction.account_id || "");
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/transactions");
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
-export async function deleteTransactions(ids: string[]) {
+export async function deleteTransactions(
+  ids: string[]
+): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -293,7 +351,10 @@ export async function deleteTransactions(ids: string[]) {
 
   if (error) {
     logger.error("Error deleting transactions:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   // Update account balances for all affected accounts
@@ -301,17 +362,93 @@ export async function deleteTransactions(ids: string[]) {
     const uniqueAccountIds = [
       ...new Set(transactions.map((t) => t.account_id)),
     ];
-    await Promise.all(uniqueAccountIds.map((id) => updateAccountBalance(id)));
+    await Promise.all(
+      uniqueAccountIds.map((id) => updateAccountBalance(id || ""))
+    );
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/transactions");
 
-  return { success: true };
+  return {
+    success: true,
+  };
+}
+
+export async function getTransactionStats(
+  filters?: TransactionFilters
+): Promise<BaseActionResult<TransactionStats>> {
+  const supabase = createActionClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/login");
+  }
+
+  let query = supabase
+    .from("transactions")
+    .select("amount, type")
+    .eq("user_id", user.id);
+
+  // Apply filters
+  if (filters?.startDate) {
+    query = query.gte("date", filters.startDate);
+  }
+  if (filters?.endDate) {
+    query = query.lte("date", filters.endDate);
+  }
+  if (filters?.type) {
+    query = query.eq("type", filters.type);
+  }
+  if (filters?.accountId) {
+    query = query.eq("account_id", filters.accountId);
+  }
+  if (filters?.categoryId) {
+    query = query.eq("category_id", filters.categoryId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    logger.error("Error fetching transaction stats:", error as Error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  const totalTransactions = data.length;
+  const totalIncome = data
+    .filter((t) => t.type === "INCOME")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = data
+    .filter((t) => t.type === "EXPENSE")
+    .reduce((sum, t) => sum + t.amount, 0);
+  const amounts = data.map((t) => t.amount);
+
+  const stats: TransactionStats = {
+    totalTransactions,
+    totalIncome,
+    totalExpenses,
+    netAmount: totalIncome - totalExpenses,
+    averageTransactionAmount:
+      totalTransactions > 0
+        ? amounts.reduce((a, b) => a + b, 0) / totalTransactions
+        : 0,
+    largestTransaction: amounts.length > 0 ? Math.max(...amounts) : 0,
+    smallestTransaction: amounts.length > 0 ? Math.min(...amounts) : 0,
+  };
+
+  return {
+    success: true,
+    data: stats,
+  };
 }
 
 // Helper function to update account balance based on transactions
-async function updateAccountBalance(accountId: string) {
+async function updateAccountBalance(accountId: string): Promise<void> {
   const supabase = createActionClient();
 
   const {
@@ -353,4 +490,3 @@ async function updateAccountBalance(accountId: string) {
     logger.error("Error updating account balance:", updateError);
   }
 }
-

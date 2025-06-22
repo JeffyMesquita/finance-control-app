@@ -130,20 +130,26 @@ export function AddTransactionDialog({
 
   async function fetchData() {
     try {
-      const [categoriesData, accountsData] = await Promise.all([
+      const [categoriesResult, accountsResult] = await Promise.all([
         getCategories(),
         getAccounts(),
       ]);
-      setCategories(categoriesData);
-      setAccounts(accountsData);
 
-      // Set default account if available
-      if (accountsData.length > 0) {
-        setFormData((prev) => ({
-          ...prev,
-          account_id: accountsData[0].id,
-          category_id: categoriesData[0].id,
-        }));
+      if (categoriesResult.success && categoriesResult.data) {
+        setCategories(categoriesResult.data);
+      }
+
+      if (accountsResult.success && accountsResult.data) {
+        setAccounts(accountsResult.data);
+
+        // Set default account if available
+        if (accountsResult.data.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            account_id: accountsResult.data?.[0]?.id || "",
+            category_id: categoriesResult.data?.[0]?.id || "",
+          }));
+        }
       }
     } catch (error) {
       logger.error("Erro ao carregar dados:", error as Error);
@@ -506,4 +512,3 @@ export function AddTransactionDialog({
     </Dialog>
   );
 }
-

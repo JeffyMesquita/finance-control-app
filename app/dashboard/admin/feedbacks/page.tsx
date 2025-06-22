@@ -142,7 +142,7 @@ export default function AdminFeedbacksPage() {
         toast.error(`Erro ao carregar feedbacks: ${errorMessage}`);
       }
     } catch (error) {
-      logger.error("Erro inesperado ao carregar feedbacks:", error);
+      logger.error("Erro inesperado ao carregar feedbacks:", error as Error);
       toast.error(
         `Erro inesperado: ${error instanceof Error ? error.message : "Erro desconhecido"}`
       );

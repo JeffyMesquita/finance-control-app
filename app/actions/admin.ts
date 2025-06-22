@@ -5,6 +5,7 @@ import { logger } from "@/lib/utils/logger";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import type { BaseActionResult } from "@/lib/types/actions";
 
 // Types para dados administrativos
 export interface AdminStats {
@@ -82,11 +83,7 @@ async function verifyAdmin() {
 }
 
 // Buscar estatísticas gerais
-export async function getAdminStats(): Promise<{
-  success: boolean;
-  data?: AdminStats;
-  error?: string;
-}> {
+export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
   try {
     await verifyAdmin();
     const supabase = createServerComponentClient({ cookies });
@@ -260,7 +257,10 @@ export async function getAdminStats(): Promise<{
       },
     };
 
-    return { success: true, data: stats };
+    return {
+      success: true,
+      data: stats,
+    };
   } catch (error) {
     logger.error("Error fetching admin stats:", error as Error);
     return {
@@ -960,5 +960,3 @@ export async function getReferralsData() {
     };
   }
 }
-
-

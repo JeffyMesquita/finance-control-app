@@ -114,9 +114,21 @@ export function CategoriesTable() {
   async function fetchCategories() {
     try {
       setIsLoading(true);
-      const data = await getCategories();
-      setCategories(data);
-      setFilteredCategories(data);
+      const result = await getCategories();
+      if (result.success && result.data) {
+        setCategories(result.data);
+        setFilteredCategories(result.data);
+      } else {
+        logger.error(
+          "Erro ao carregar categorias:",
+          new Error(result.error || "Falha ao carregar categorias")
+        );
+        toast({
+          title: "Erro",
+          description: result.error || "Falha ao carregar categorias",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       logger.error("Erro ao carregar categorias:", error as Error);
       toast({
@@ -429,4 +441,3 @@ export function CategoriesTable() {
     </div>
   );
 }
-

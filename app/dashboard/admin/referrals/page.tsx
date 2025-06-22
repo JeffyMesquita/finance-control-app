@@ -40,7 +40,7 @@ export default function AdminReferralsPage() {
         toast.error("Erro ao carregar dados de referências");
       }
     } catch (error) {
-      logger.error("Error loading referrals:", error);
+      logger.error("Error loading referrals:", error as Error);
       toast.error("Erro ao carregar dados de referências");
     } finally {
       setLoading(false);

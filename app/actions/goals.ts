@@ -5,9 +5,14 @@ import { logger } from "@/lib/utils/logger";
 import { revalidatePath } from "next/cache";
 import { createActionClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { InsertTables, UpdateTables } from "@/lib/supabase/database.types";
+import type {
+  GoalData,
+  CreateGoalData,
+  UpdateGoalData,
+  BaseActionResult,
+} from "@/lib/types/actions";
 
-export async function getGoals() {
+export async function getGoals(): Promise<BaseActionResult<GoalData[]>> {
   const supabase = createActionClient();
 
   const {
@@ -37,13 +42,21 @@ export async function getGoals() {
 
   if (error) {
     logger.error("Error fetching goals:", error as Error);
-    return [];
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as GoalData[],
+  };
 }
 
-export async function getGoalById(id: string) {
+export async function getGoalById(
+  id: string
+): Promise<BaseActionResult<GoalData>> {
   const supabase = createActionClient();
 
   const {
@@ -74,15 +87,21 @@ export async function getGoalById(id: string) {
 
   if (error) {
     logger.error("Error fetching goal:", error as Error);
-    return null;
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
-  return data;
+  return {
+    success: true,
+    data: data as GoalData,
+  };
 }
 
 export async function createGoal(
-  goal: Omit<InsertTables<"financial_goals">, "user_id">
-) {
+  goal: CreateGoalData
+): Promise<BaseActionResult<GoalData>> {
   const supabase = createActionClient();
 
   const {
@@ -105,22 +124,29 @@ export async function createGoal(
   const { data, error } = await supabase
     .from("financial_goals")
     .insert(goalData)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error creating goal:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/goals");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as GoalData,
+  };
 }
 
 export async function updateGoal(
   id: string,
-  goal: UpdateTables<"financial_goals">
-) {
+  goal: UpdateGoalData
+): Promise<BaseActionResult<GoalData>> {
   const supabase = createActionClient();
 
   const {
@@ -144,19 +170,26 @@ export async function updateGoal(
     .update(updateData)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error updating goal:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/goals");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as GoalData,
+  };
 }
 
-export async function deleteGoal(id: string) {
+export async function deleteGoal(id: string): Promise<BaseActionResult<void>> {
   const supabase = createActionClient();
 
   const {
@@ -174,15 +207,23 @@ export async function deleteGoal(id: string) {
 
   if (error) {
     logger.error("Error deleting goal:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/goals");
 
-  return { success: true };
+  return {
+    success: true,
+  };
 }
 
-export async function updateGoalProgress(id: string, amount: number) {
+export async function updateGoalProgress(
+  id: string,
+  amount: number
+): Promise<BaseActionResult<GoalData>> {
   const supabase = createActionClient();
 
   const {
@@ -202,14 +243,17 @@ export async function updateGoalProgress(id: string, amount: number) {
 
   if (fetchError) {
     logger.error("Error fetching goal:", fetchError);
-    return { success: false, error: fetchError.message };
+    return {
+      success: false,
+      error: fetchError.message,
+    };
   }
 
   // Convert contribution amount to cents
   const amountInCents = Math.round(amount * 100);
 
   // Calculate new amount (both values are already in cents)
-  const newAmount = goal.current_amount + amountInCents;
+  const newAmount = (goal.current_amount || 0) + amountInCents;
   const isCompleted = newAmount >= goal.target_amount;
 
   // Update the goal
@@ -221,15 +265,21 @@ export async function updateGoalProgress(id: string, amount: number) {
     })
     .eq("id", id)
     .eq("user_id", user.id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     logger.error("Error updating goal progress:", error as Error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/dashboard/goals");
 
-  return { success: true, data };
+  return {
+    success: true,
+    data: data as GoalData,
+  };
 }
-

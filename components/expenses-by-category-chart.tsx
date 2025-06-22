@@ -78,8 +78,15 @@ export function ExpensesByCategoryChart({
   useEffect(() => {
     async function fetchData() {
       try {
-        const data = await getExpenseBreakdown();
-        setExpenseData(data);
+        const result = await getExpenseBreakdown();
+        if (result.success && result.data) {
+          setExpenseData(result.data);
+        } else {
+          logger.error(
+            "Error fetching expense data:",
+            new Error(result.error || "Falha ao carregar dados de despesas")
+          );
+        }
       } catch (error) {
         logger.error("Error fetching expense data:", error as Error);
       } finally {
@@ -146,4 +153,3 @@ export function ExpensesByCategoryChart({
     </Card>
   );
 }
-

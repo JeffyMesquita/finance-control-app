@@ -19,13 +19,14 @@ import { getDashboardData } from "@/app/actions/dashboard";
 import { formatCurrency } from "@/lib/utils";
 import { supabaseCache } from "@/lib/supabase/cache";
 import { DashboardCardsSkeleton } from "@/components/skeletons";
+import { DashboardData } from "@/lib/types/actions";
 
 const CACHE_KEY = "dashboard-data";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
 export function DashboardCards() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
@@ -41,15 +42,19 @@ export function DashboardCards() {
     try {
       // Check cache first
       const cachedData = supabaseCache.get(CACHE_KEY);
-      if (cachedData) {
-        setData(cachedData);
+      if (
+        cachedData &&
+        typeof cachedData === "object" &&
+        "totalBalance" in cachedData
+      ) {
+        setData(cachedData as DashboardData);
         setLoading(false);
         return;
       }
 
-      const dashboardData = await getDashboardData();
+      const result = await getDashboardData();
 
-      if (!dashboardData) {
+      if (!result.success || !result.data) {
         if (retryCount < MAX_RETRIES) {
           setTimeout(() => {
             setRetryCount((prev) => prev + 1);
@@ -57,12 +62,12 @@ export function DashboardCards() {
           }, RETRY_DELAY);
           return;
         }
-        throw new Error("Failed to fetch dashboard data");
+        throw new Error(result.error || "Failed to fetch dashboard data");
       }
 
-      setData(dashboardData);
+      setData(result.data);
       // Cache the data
-      supabaseCache.set(CACHE_KEY, dashboardData);
+      supabaseCache.set(CACHE_KEY, result.data);
     } catch (error) {
       logger.error("Error fetching dashboard data:", error as Error);
     } finally {
@@ -573,4 +578,3 @@ export function DashboardCards() {
     </div>
   );
 }
-

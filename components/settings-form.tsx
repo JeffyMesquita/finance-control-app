@@ -74,7 +74,7 @@ export function SettingsForm() {
           throw error;
         }
       } else {
-        setSettings(settingsData);
+        setSettings(settingsData as unknown as UserSettings);
         supabaseCache.set(CACHE_KEY, settingsData);
       }
     } catch (error) {
@@ -340,5 +340,3 @@ export function SettingsForm() {
     </div>
   );
 }
-
-

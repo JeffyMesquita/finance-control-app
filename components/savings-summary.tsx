@@ -63,8 +63,8 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
         getSavingsBoxesTotal(),
       ]);
 
-      setSummary(summaryData || []);
-      setStats(statsData);
+      setSummary(summaryData.data || []);
+      setStats(statsData.data || null);
       setTotalAmount(totalData || 0);
     } catch (error) {
       logger.error("Erro ao carregar dados dos cofrinhos:", error as Error);
@@ -293,4 +293,3 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
     </Card>
   );
 }
-
