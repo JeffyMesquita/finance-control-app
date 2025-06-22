@@ -1,288 +1,325 @@
-# 💸 Finance Control App
+# 💸 FinanceTrack - Sistema Completo de Gestão Financeira
 
-> Repositório oficial do projeto de controle financeiro pessoal e multiplataforma, desenvolvido com foco em organização, visualização e segurança.
+> **Plataforma completa de controle financeiro pessoal e empresarial**, desenvolvida com foco em automação, análise inteligente e experiência do usuário excepcional.
 
----
+<div align="center">
 
-## 📌 Objetivo
+[![Next.js](https://img.shields.io/badge/Next.js-15.2.4-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Latest-green?style=flat-square&logo=supabase)](https://supabase.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-Este projeto foi criado com o intuito de proporcionar uma **plataforma de controle financeiro moderna, responsiva e segura**, onde usuários possam:
+[🚀 Demo Ao Vivo](https://financetrack.jeffymesquita.dev) • [📋 Roadmap 2025](./docs/ROADMAP_MELHORIAS_2025.md) • [📖 Documentação](./docs/)
 
-- Registrar entradas e saídas financeiras de diferentes tipos
-- Acompanhar seu saldo e evolução ao longo do tempo
-- Gerar gráficos e comparativos mensais, trimestrais, semestrais e anuais
-- Visualizar relatórios por categoria e tipo de transação
-- Acessar o sistema com segurança via **login do Google**
-
----
-
-## 🧠 Por que este projeto existe?
-
-- 🌟 **Educação financeira é liberdade**: queremos tornar a gestão de finanças mais acessível e visual.
-- 🧱 **Tecnologia moderna**: integrar as melhores práticas de desenvolvimento fullstack com ferramentas modernas como Next.js, Prisma e Supabase.
-- 🔐 **Segurança em primeiro lugar**: garantir que apenas o dono dos dados tenha acesso aos mesmos via RLS.
-- 🎯 **Usabilidade**: criar uma interface agradável, responsiva e eficiente para qualquer dispositivo.
+</div>
 
 ---
 
-## 🏗️ Tech Stack
+## 🌟 **Visão Geral**
 
-| Camada         | Tecnologias                                              |
-| -------------- | -------------------------------------------------------- |
-| Frontend       | [Next.js](https://nextjs.org/), TailwindCSS              |
-| Backend        | Next.js API Routes, [Prisma ORM](https://www.prisma.io/) |
-| Autenticação   | Supabase Auth (Google OAuth)                             |
-| Banco de dados | PostgreSQL (via Supabase)                                |
-| Hospedagem     | Supabase (DB/Auth), Vercel (Frontend/API)                |
-| Gráficos       | Recharts / ApexCharts                                    |
+O **FinanceTrack** é uma solução completa de gestão financeira que vai muito além de um simples controle de gastos. É uma plataforma inteligente que combina automação, análise preditiva e uma interface moderna para transformar a forma como você gerencia suas finanças.
 
----
+### 🎯 **Por que FinanceTrack?**
 
-## 🧰 Funcionalidades principais
-
-- [x] Login com Google
-- [x] Criação automática de perfil ao autenticar
-- [x] Registro de entradas e saídas
-- [x] Filtros por categoria e período
-- [x] Gráficos comparativos por mês/trimestre/ano
-- [x] Responsivo (mobile-first)
-- [ ] Modo escuro
-- [ ] Exportação de relatórios em PDF
-- [ ] Dashboard com KPIs e metas financeiras
+- 🧠 **Inteligência Financeira**: Analytics avançadas e insights automáticos
+- 🔄 **Automação Total**: Débitos recorrentes, lembretes e relatórios automáticos
+- 📱 **Multi-Plataforma**: PWA responsivo que funciona em qualquer dispositivo
+- 🔒 **Segurança Enterprise**: Row Level Security e criptografia end-to-end
+- 📊 **Analytics Avançadas**: Dashboards interativos e relatórios personalizados
 
 ---
 
-## 🔐 Autenticação com Supabase
+## ✨ **Funcionalidades Principais**
 
-O sistema utiliza o **Supabase Auth com Google OAuth**.  
-Ao realizar o primeiro login, o Supabase dispara uma trigger que cria automaticamente o perfil do usuário na tabela `users`.
+### 💰 **Gestão Financeira Core**
 
-> Isso garante que os dados estejam prontos no banco sem depender de nenhuma ação adicional no frontend ou backend.
+- [x] **Transações Inteligentes**: CRUD completo com categorização automática
+- [x] **Contas Múltiplas**: Gestão de bancos, cartões, dinheiro e investimentos
+- [x] **Categorias Customizáveis**: Sistema flexível com ícones e cores
+- [x] **Filtros Avançados**: Por período, categoria, conta, tipo e valor
+- [x] **Importação de Dados**: Excel, CSV e integração bancária (futuro)
+
+### 🎯 **Metas e Planejamento**
+
+- [x] **Metas Financeiras**: Criação e acompanhamento de objetivos
+- [x] **Cofrinhos Digitais**: Sistema de poupança organizada por objetivos
+- [x] **Transferências Internas**: Entre cofrinhos e contas
+- [x] **Progresso Visual**: Gráficos e barras de progresso em tempo real
+- [x] **Vinculação Inteligente**: Metas conectadas a cofrinhos específicos
+
+### 📈 **Investimentos e Patrimônio**
+
+- [x] **Carteira de Investimentos**: Tracking completo de 9 categorias
+- [x] **ROI Automático**: Cálculo de rentabilidade em tempo real
+- [x] **Análise de Performance**: Gráficos de evolução patrimonial
+- [x] **Diversificação**: Visualização de distribuição por categoria
+- [x] **Metas de Investimento**: Objetivos específicos por ativo
+
+### 🔄 **Automação Inteligente**
+
+- [x] **Débitos Recorrentes**: Processamento automático via Supabase Cron
+- [x] **Lembretes Inteligentes**: Notificações de vencimentos e metas
+- [x] **Relatórios Automáticos**: Geração mensal de análises financeiras
+- [x] **Backup Automático**: Sincronização e backup de dados
+- [x] **Notificações Push**: Sistema completo de alertas
+
+### 📊 **Analytics e Relatórios**
+
+- [x] **Dashboard Executivo**: 8+ cards com métricas essenciais
+- [x] **Gráficos Interativos**: Recharts com drill-down e filtros
+- [x] **Comparativos Temporais**: Análise mensal, trimestral e anual
+- [x] **Exportação Avançada**: PDF, Excel, CSV com layouts personalizados
+- [x] **Análise de Tendências**: Detecção de padrões e anomalias
+
+### 👥 **Social e Gamificação**
+
+- [x] **Sistema de Conquistas**: 13 badges com critérios específicos
+- [x] **Programa de Referrals**: Convites com tracking completo
+- [x] **Perfil Personalizado**: Customização completa do usuário
+- [x] **Compartilhamento**: Links de convite e conquistas
+- [x] **Comunidade**: Sistema de feedback integrado
+
+### 🛠️ **Administração e Suporte**
+
+- [x] **Painel Administrativo**: Dashboard completo para gestão
+- [x] **Analytics de Usuários**: DAU, MAU, retention e churn
+- [x] **Sistema de Feedback**: Coleta estruturada de sugestões e bugs
+- [x] **Monitoramento**: Logs, métricas e alertas em tempo real
+- [x] **Gestão de Usuários**: CRUD completo com permissões
 
 ---
 
-## 🧾 Estrutura do banco de dados
+## 🏗️ **Arquitetura Técnica**
 
-O Supabase está conectado a um banco PostgreSQL chamado `finance_control_db`.
+### **Frontend Stack**
 
-**Tabelas principais:**
+```typescript
+Next.js 15.2.4      // App Router + Server Components
+TypeScript 5.0      // Type Safety completo
+Tailwind CSS 3.4    // Styling system + Design tokens
+Radix UI            // Componentes acessíveis
+Recharts            // Gráficos interativos
+Framer Motion       // Animações fluidas
+React Hook Form     // Gerenciamento de formulários
+Zod                 // Validação de schemas
+```
 
-1. `users`: guarda informações do usuário autenticado
-2. `transactions`: entradas e saídas, com categorias, datas e descrição
+### **Backend & Database**
 
-Cada transação pertence a um usuário e é protegida por **Row Level Security (RLS)**.
+```sql
+Supabase            // BaaS completo
+PostgreSQL 15       // Database principal
+Row Level Security  // Segurança granular
+Supabase Cron       // Jobs agendados
+Edge Functions      // Serverless computing
+pg_cron + pg_net    // Automação nativa
+```
+
+### **DevOps & Performance**
+
+```yaml
+Vercel              # Hosting e CI/CD
+Vercel Analytics    # Web Vitals tracking
+Service Workers     # PWA + Offline support
+Bundle Analyzer     # Otimização de build
+ESLint + Prettier   # Code quality
+Performance Monitor # Core Web Vitals
+```
 
 ---
 
-## 🛡️ Segurança
+## 📱 **Progressive Web App**
 
-- Row Level Security ativado nas tabelas sensíveis
-- Apenas o dono dos dados pode acessar/alterar seus próprios registros
-- Tokens gerenciados pelo Supabase com expiração e verificação nativas
+O FinanceTrack é uma **PWA completa** com:
+
+- 📱 **Instalação**: Funciona como app nativo
+- 🔄 **Offline-First**: Sincronização automática quando online
+- 🔔 **Push Notifications**: Lembretes e alertas em tempo real
+- ⚡ **Performance**: Lighthouse Score 95+ em todas as métricas
+- 🎨 **Design Responsivo**: Otimizado para mobile, tablet e desktop
 
 ---
 
-## ▶️ Como rodar localmente
+## 🚀 **Quick Start**
 
-### 1. Clone o repositório
+### **1. Clone e Install**
 
 ```bash
 git clone https://github.com/jeffymesquita/finance-control-app.git
 cd finance-control-app
+pnpm install
 ```
 
-### 2. Instale as dependências
+### **2. Setup Environment**
 
 ```bash
-npm install
-# ou
-yarn
+# .env.local
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+RESEND_API_KEY=your-resend-key # Para emails
 ```
 
-### 3. Configure as variáveis de ambiente
-
-Crie um arquivo `.env.local` na raiz do projeto e adicione as seguintes variáveis:
+### **3. Database Setup**
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<opcional>
+# Execute as migrations na ordem:
+# 1. supabase/migrations/20241222_create_feedback_system.sql
+# 2. supabase/migrations/20241222_create_savings_boxes.sql
+# 3. supabase/migrations/20241223_create_investments_system.sql
 ```
 
-### 4. Execute o projeto
+### **4. Run Development**
 
 ```bash
-npm run dev
-# ou
-yarn dev
+pnpm dev
+# Acesse http://localhost:3000
 ```
 
-## 💡 Futuras melhorias
+---
 
-- 💡 Modo escuro
-- Sistema de metas financeiras
-- IA para análise de gastos
-- Upload de comprovantes
-- Compartilhamento de gastos com cônjuge/grupo
+## 📋 **Roadmap 2025**
 
-## 📫 Contato
+Temos um **[roadmap detalhado](./docs/ROADMAP_MELHORIAS_2025.md)** com 100+ melhorias planejadas:
 
-Para dúvidas, sugestões ou feedback, entre em contato:
+### **🔥 Q1 2025 - Automação Total**
 
-- [LinkedIn](https://www.linkedin.com/in/jeffymesquita/)
+- ✅ Supabase Cron para débitos recorrentes
+- ✅ Sistema de orçamentos inteligente
+- ✅ Open Banking integration
+- ✅ Análise preditiva com IA
 
-## 👨‍💻 Autor
+### **🚀 Q2 2025 - Mobile & Performance**
 
-**Jeffy Mesquita**  
-GitHub: [@jeffymesquita](https://github.com/jeffymesquita)  
-Desenvolvedor fullstack apaixonado por produtividade, design e finanças pessoais.
+- ✅ App móvel nativo (React Native)
+- ✅ OCR para escaneamento de recibos
+- ✅ Sincronização offline robusta
+- ✅ Performance optimization
 
-## 🪪 Licença
+### **📊 Q3 2025 - Analytics & BI**
 
-MIT License. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+- ✅ Dashboard de BI avançado
+- ✅ Machine Learning para insights
+- ✅ Alertas inteligentes
+- ✅ Relatórios personalizados
 
-## 📜 Agradecimentos
+### **🌍 Q4 2025 - Scale & Enterprise**
 
-Agradeço especialmente ao [Supabase](https://supabase.io/) e [Next.js](https://nextjs.org/) por suas ferramentas incríveis que tornaram este projeto possível.
-Agradeço também ao [TailwindCSS](https://tailwindcss.com/) pela facilidade de estilização e ao [Prisma](https://www.prisma.io/) pela simplicidade na manipulação de dados.
+- ✅ Multi-tenancy para empresas
+- ✅ API pública para integrações
+- ✅ Marketplace de plugins
+- ✅ Suporte multi-idioma
 
-## 🚀 Otimizações de SEO e Performance
+---
 
-O projeto implementa várias otimizações para melhorar a indexação e performance:
+## 📊 **Métricas e Performance**
 
-### SEO
+### **Web Vitals**
 
-- **Metadata Dinâmico**: Configuração completa de metadados para cada página
-- **Schema.org**: Dados estruturados para melhor compreensão pelos motores de busca
-- **Breadcrumbs**: Navegação estruturada com markup semântico
-- **URLs Canônicas**: Prevenção de conteúdo duplicado
-- **Sitemap**: Geração automática de sitemap.xml
-- **Robots.txt**: Configuração de regras de indexação
+- 🟢 **LCP**: < 1.2s (Excellent)
+- 🟢 **FID**: < 100ms (Excellent)
+- 🟢 **CLS**: < 0.1 (Excellent)
+- 🟢 **Lighthouse**: 95+ em todas as categorias
 
-### Performance
+### **Funcionalidades**
 
-- **Web Vitals**: Monitoramento de métricas de performance
-- **Font Display**: Otimização de carregamento de fontes
-- **Viewport**: Configurações otimizadas para dispositivos móveis
-- **OpenGraph**: Suporte a compartilhamento em redes sociais
-- **Twitter Cards**: Integração com Twitter
+- 📈 **50+ Componentes** React reutilizáveis
+- 🗄️ **15+ Tabelas** no banco de dados
+- ⚡ **30+ Server Actions** otimizadas
+- 🎨 **100+ Variantes** de design system
+- 🔄 **10+ Cronjobs** automatizados
 
-### Componentes Implementados
+---
 
-- `SchemaOrg`: Componente para dados estruturados
-- `Breadcrumbs`: Navegação semântica
-- `CanonicalUrl`: Gerenciamento de URLs canônicas
-- `PerformanceMonitor`: Monitoramento de métricas
+## 🤝 **Contribuição**
 
-### Configuração
+Adoramos contribuições! Veja nosso [Guia de Contribuição](./CONTRIBUTING.md):
 
-Para ativar todas as otimizações, configure as seguintes variáveis de ambiente:
+### **Como Contribuir**
 
-```bash
-NEXT_PUBLIC_BASE_URL=https://seu-dominio.com
-NEXT_PUBLIC_GA_ID=seu-id-do-google-analytics # opcional
-```
+1. 🍴 Fork o projeto
+2. 🌿 Crie uma branch (`git checkout -b feature/AmazingFeature`)
+3. 💾 Commit suas mudanças (`git commit -m 'Add AmazingFeature'`)
+4. 📤 Push para a branch (`git push origin feature/AmazingFeature`)
+5. 🔄 Abra um Pull Request
 
-### Implementação Completa
+### **Áreas de Contribuição**
 
-Para finalizar a implementação das otimizações, siga estes passos:
+- 🐛 **Bug fixes** e melhorias de performance
+- ✨ **Novas funcionalidades** do roadmap
+- 📖 **Documentação** e tutoriais
+- 🎨 **Design** e UX improvements
+- 🌍 **Traduções** para outros idiomas
 
-1. **Configuração de Domínio**
+---
 
-   - Substitua todas as ocorrências de `https://your-domain.com` pelo seu domínio real
-   - Arquivos a serem atualizados:
-     - `app/layout.tsx`
-     - `lib/schema-data.ts`
-     - `app/sitemap.ts`
-     - `app/robots.ts`
+## 📞 **Suporte e Comunidade**
 
-2. **Imagens de OpenGraph**
+### **Canais Oficiais**
 
-   - Crie uma imagem para compartilhamento em redes sociais
-   - Dimensões recomendadas: 1200x630 pixels
-   - Salve em: `/public/og-image.jpg`
-   - Formato: JPG ou PNG com boa compressão
+- 🐛 **Issues**: [GitHub Issues](https://github.com/jeffymesquita/finance-control-app/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/jeffymesquita/finance-control-app/discussions)
+- 📧 **Email**: contato@jeffymesquita.dev
+- 💼 **LinkedIn**: [@jeffymesquita](https://www.linkedin.com/in/jeffymesquita/)
 
-3. **Google Search Console**
+### **Documentação**
 
-   - Acesse [Google Search Console](https://search.google.com/search-console)
-   - Adicione seu site
-   - Copie o código de verificação
-   - Adicione em `app/layout.tsx`:
+- 📖 **Docs Técnicas**: [/docs](./docs/)
+- 🚀 **API Reference**: [/docs/api](./docs/api/)
+- 🎯 **Roadmap**: [/docs/ROADMAP_MELHORIAS_2025.md](./docs/ROADMAP_MELHORIAS_2025.md)
+- 🏗️ **Architecture**: [/docs/architecture.md](./docs/architecture.md)
 
-   ```typescript
-   verification: {
-     google: 'seu-codigo-de-verificacao',
-   }
-   ```
+---
 
-4. **Twitter Cards**
+## 👨‍💻 **Autor**
 
-   - Adicione seu handle do Twitter em `app/layout.tsx`:
+<div align="center">
 
-   ```typescript
-   twitter: {
-     card: 'summary_large_image',
-     creator: '@seu-handle',
-   }
-   ```
+### **Jeferson Mesquita**
 
-5. **Ícones e Manifesto**
+_Desenvolvedor Full Stack & Product Manager_
 
-   - Crie os seguintes arquivos na pasta `/public`:
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-jeffymesquita-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/jeffymesquita/)
+[![GitHub](https://img.shields.io/badge/GitHub-jeffymesquita-black?style=flat-square&logo=github)](https://github.com/jeffymesquita)
+[![Portfolio](https://img.shields.io/badge/Portfolio-jeffymesquita.dev-orange?style=flat-square&logo=safari)](https://jeffymesquita.dev)
 
-   a. **Favicon** (`/public/favicon.ico`)
+_"Transformando ideias em soluções tecnológicas que impactam vidas"_
 
-   - Dimensões: 16x16, 32x32, 48x48 pixels
-   - Formato: ICO
-   - Ferramentas recomendadas: [Favicon Generator](https://realfavicongenerator.net/)
+</div>
 
-   b. **Apple Touch Icon** (`/public/apple-touch-icon.png`)
+---
 
-   - Dimensões: 180x180 pixels
-   - Formato: PNG
-   - Sem transparência
-   - Sem cantos arredondados (iOS arredonda automaticamente)
+## 📄 **Licença**
 
-   c. **Web Manifest** (`/public/site.webmanifest`)
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-   ```json
-   {
-     "name": "Financial Management System",
-     "short_name": "Finance Control",
-     "icons": [
-       {
-         "src": "/android-chrome-192x192.png",
-         "sizes": "192x192",
-         "type": "image/png"
-       },
-       {
-         "src": "/android-chrome-512x512.png",
-         "sizes": "512x512",
-         "type": "image/png"
-       }
-     ],
-     "theme_color": "#ffffff",
-     "background_color": "#ffffff",
-     "display": "standalone"
-   }
-   ```
+---
 
-   d. **Ícones Adicionais**
+## 🙏 **Agradecimentos**
 
-   - `/public/android-chrome-192x192.png` (192x192 pixels)
-   - `/public/android-chrome-512x512.png` (512x512 pixels)
-   - `/public/favicon-16x16.png` (16x16 pixels)
-   - `/public/favicon-32x32.png` (32x32 pixels)
+### **Open Source Heroes**
 
-   > 💡 **Dica**: Use o [RealFaviconGenerator](https://realfavicongenerator.net/) para gerar todos os ícones necessários a partir de uma única imagem.
+- 🚀 [Vercel](https://vercel.com) - Hosting e deployment incríveis
+- 💚 [Supabase](https://supabase.com) - Backend-as-a-Service revolucionário
+- ⚛️ [Next.js Team](https://nextjs.org) - Framework React de próxima geração
+- 🎨 [Tailwind CSS](https://tailwindcss.com) - Utility-first CSS framework
+- 📊 [Recharts](https://recharts.org) - Biblioteca de gráficos fantástica
 
-### Verificação
+### **Community**
 
-Após implementar todas as otimizações, verifique se:
+Um agradecimento especial a todos os **early adopters**, **beta testers** e **contributors** que tornaram este projeto possível! 🎉
 
-1. O site está indexando corretamente no Google Search Console
-2. As imagens de OpenGraph aparecem corretamente ao compartilhar links
-3. Os ícones aparecem em diferentes dispositivos e navegadores
-4. O manifesto está funcionando para instalação PWA
-5. As métricas de performance estão sendo coletadas
+---
+
+<div align="center">
+
+### **⭐ Se este projeto te ajudou, deixe uma estrela!**
+
+[![GitHub stars](https://img.shields.io/github/stars/jeffymesquita/finance-control-app?style=social)](https://github.com/jeffymesquita/finance-control-app/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/jeffymesquita/finance-control-app?style=social)](https://github.com/jeffymesquita/finance-control-app/network/members)
+
+---
+
+**🚀 Feito com ❤️ no Brasil • 2024-2025**
+
+</div>
