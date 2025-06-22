@@ -15,6 +15,7 @@ import {
   Sliders,
   PiggyBank,
   Shield,
+  TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -48,6 +49,11 @@ const navItems = [
     title: "Cofrinhos",
     href: "/dashboard/cofrinhos",
     icon: PiggyBank,
+  },
+  {
+    title: "Investimentos",
+    href: "/dashboard/investimentos",
+    icon: TrendingUp,
   },
   {
     title: "Exportar",
