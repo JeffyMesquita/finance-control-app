@@ -51,9 +51,9 @@ export default function ConfiguracoesPage() {
         setIsLoading(true);
         // Obter configurações do usuário
         const settingsData = await getUserSettings();
-        setSettings(settingsData);
+        setSettings(settingsData.data || null);
       } catch (error) {
-        logger.error("Erro ao carregar configurações:", error);
+        logger.error("Erro ao carregar configurações:", error as Error);
         toast({
           title: "Erro",
           description:
@@ -81,7 +81,7 @@ export default function ConfiguracoesPage() {
         variant: "success",
       });
     } catch (error) {
-      logger.error("Erro ao atualizar configurações:", error);
+      logger.error("Erro ao atualizar configurações:", error as Error);
       toast({
         title: "Erro",
         description:
