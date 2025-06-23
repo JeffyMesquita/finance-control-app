@@ -28,7 +28,8 @@ export default function DashboardPage() {
         <WelcomeCard />
         <DashboardCards />
         <ExpensesByCategoryChart className="w-full bg-stone-100 dark:bg-stone-900 shadow-sm" />
-        <PaymentReminders />
+        {/* TODO: Implementar lembretes de pagamento */}
+        {/* <PaymentReminders /> */}
 
         <div className="grid gap-4 lg:grid-cols-2 max-w-full">
           <GoalsSummary />

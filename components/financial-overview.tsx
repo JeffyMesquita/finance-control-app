@@ -134,7 +134,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
 
   if (isLoading) {
     return (
-      <Card className={className}>
+      <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
         <CardHeader>
           <CardTitle>Visão Geral Financeira</CardTitle>
           <CardDescription>
