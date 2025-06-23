@@ -252,8 +252,8 @@ export async function getDashboardData(): Promise<
     let savingsBoxesTotal = 0;
     try {
       const savingsBoxesTotalResult = await getSavingsBoxesTotal();
-      if (savingsBoxesTotalResult.success && savingsBoxesTotalResult.data) {
-        savingsBoxesTotal = savingsBoxesTotalResult.data;
+      if (savingsBoxesTotalResult) {
+        savingsBoxesTotal = savingsBoxesTotalResult;
       }
     } catch (error) {
       logger.error("Erro ao buscar total dos cofrinhos:", error as Error);
@@ -522,9 +522,19 @@ export async function getGoalsStats(): Promise<BaseActionResult<GoalsStats>> {
           new Date(goal.created_at) <= new Date(lastDay)
       );
 
+      const monthCompleted = monthGoals.filter(
+        (goal) => goal.is_completed
+      ).length;
+      const monthTargetAmount = monthGoals.reduce(
+        (sum, goal) => sum + (goal.target_amount || 0),
+        0
+      );
+
       goalsByMonth.push({
-        month: monthName,
-        count: monthGoals.length,
+        name: monthName,
+        goals_created: monthGoals.length,
+        goals_completed: monthCompleted,
+        target_amount: monthTargetAmount,
       });
     }
 
