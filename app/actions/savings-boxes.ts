@@ -83,7 +83,7 @@ export async function getSavingsBoxes(): Promise<
     logger.info("✅ Successfully fetched savings boxes with transactions");
     return {
       success: true,
-      data: data as SavingsBoxData[],
+      data: data as unknown as SavingsBoxData[],
     };
   } catch (err) {
     logger.error("Unexpected error in getSavingsBoxes:", err as Error);
@@ -136,7 +136,7 @@ export async function getSavingsBoxById(
 
   return {
     success: true,
-    data: data as SavingsBoxData,
+    data: data as unknown as SavingsBoxData,
   };
 }
 
