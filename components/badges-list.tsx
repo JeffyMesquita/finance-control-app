@@ -16,26 +16,28 @@ export function BadgesList() {
   const fetchBadges = async () => {
     if (!user) return;
 
-    try {
-      const { data, error: badgesError } = await supabase
-        .from("badges")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+    // TODO: Implementar badges
 
-      if (badgesError) throw badgesError;
+    // try {
+    //   const { data, error: badgesError } = await supabase
+    //     .from("badges")
+    //     .select("*")
+    //     .eq("user_id", user.id)
+    //     .order("created_at", { ascending: false });
 
-      setBadges(data || []);
-    } catch (error) {
-      logger.error("Error fetching badges:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as badges.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    //   if (badgesError) throw badgesError;
+
+    //   setBadges(data || []);
+    // } catch (error) {
+    //   logger.error("Error fetching badges:", error as Error);
+    //   toast({
+    //     title: "Erro",
+    //     description: "Não foi possível carregar as badges.",
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {
@@ -96,5 +98,3 @@ export function BadgesList() {
     </Card>
   );
 }
-
-
