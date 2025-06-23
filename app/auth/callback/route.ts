@@ -22,12 +22,11 @@ export async function GET(request: NextRequest) {
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
     // Exchange code for session
-    const { error: sessionError } = await supabase.auth.exchangeCodeForSession(
-      code
-    );
+    const { error: sessionError } =
+      await supabase.auth.exchangeCodeForSession(code);
 
     if (sessionError) {
-      logger.error("Session error:", sessionError );
+      logger.error("Session error:", sessionError);
       return NextResponse.redirect(
         new URL(
           `/login?error=${encodeURIComponent(sessionError.message)}`,
@@ -43,7 +42,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getSession();
 
     if (getSessionError || !session) {
-      logger.error("Get session error:", getSessionError );
+      logger.error("Get session error:", getSessionError as Error);
       return NextResponse.redirect(
         new URL("/login?error=Falha+ao+obter+sessão", request.url)
       );
@@ -75,7 +74,7 @@ export async function GET(request: NextRequest) {
       });
 
       if (insertError) {
-        logger.error("Insert user error:", insertError );
+        logger.error("Insert user error:", insertError);
         return NextResponse.redirect(
           new URL("/login?error=Falha+ao+criar+usuário", request.url)
         );
@@ -87,10 +86,9 @@ export async function GET(request: NextRequest) {
     // Redirect to dashboard after successful login
     return NextResponse.redirect(new URL("/dashboard", request.url));
   } catch (error) {
-    logger.error("Callback error:", error );
+    logger.error("Callback error:", error as Error);
     return NextResponse.redirect(
       new URL("/login?error=Falha+ao+processar+autenticação", request.url)
     );
   }
 }
-

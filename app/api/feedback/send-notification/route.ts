@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { FeedbackNotificationEmail } from "@/components/email-templates/feedback-notification";
 import { Feedback } from "@/lib/types/feedback";
 import { logger } from "@/lib/utils/logger";
 
