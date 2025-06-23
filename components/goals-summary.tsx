@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { GoalData } from "@/lib/types/actions";
 
 interface Goal {
   id: string;
@@ -47,7 +48,7 @@ interface GoalsSummaryProps {
 }
 
 export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<GoalData[]>([]);
   const [stats, setStats] = useState<GoalsStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
@@ -64,7 +65,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
     try {
       const result = await getGoals();
       if (result.success && result.data) {
-        const goalsData = result.data;
+        const goalsData = result.data as GoalData[];
         setGoals(goalsData || []);
 
         // Calcular estatísticas
