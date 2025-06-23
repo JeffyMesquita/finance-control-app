@@ -214,10 +214,10 @@ export function ReportsOverview() {
             getSavingsBoxesStats(),
           ]);
 
-        setMonthlyData(monthlyResult);
-        setExpenseData(expenseResult);
-        setGoalsStats(goalsResult);
-        setSavingsBoxStats(savingsResult);
+        setMonthlyData(monthlyResult.data || ([] as MonthlyData[]));
+        setExpenseData(expenseResult.data || []);
+        setGoalsStats(goalsResult.data || null);
+        setSavingsBoxStats(savingsResult.data || null);
       } catch (error) {
         logger.error("Error fetching report data:", error as Error);
       } finally {
@@ -778,4 +778,3 @@ const PieCustomTooltip = ({
     </div>
   );
 };
-

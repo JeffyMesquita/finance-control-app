@@ -40,6 +40,7 @@ import {
   Target,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { GoalData } from "@/lib/types/actions";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "progress" | "target_date" | "target_amount" | "created";
@@ -72,7 +73,7 @@ type Goal = {
 
 export default function GoalsPage() {
   const { toast } = useToast();
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<GoalData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -97,9 +98,9 @@ export default function GoalsPage() {
     setError(null);
     try {
       const data = await getGoals();
-      setGoals(data || []);
+      setGoals(data.data || ([] as GoalData[]));
     } catch (err) {
-      logger.error("Erro ao carregar metas:", err);
+      logger.error("Erro ao carregar metas:", err as Error);
       setError("Erro ao carregar dados das metas");
       toast({
         title: "Erro",
@@ -124,7 +125,7 @@ export default function GoalsPage() {
   const handleDeleteGoal = (id: string) => {
     const goal = goals.find((g) => g.id === id);
     if (goal) {
-      setGoalToDelete(goal);
+      setGoalToDelete(goal as unknown as Goal);
       setIsDeleteAlertOpen(true);
     }
   };
@@ -145,7 +146,7 @@ export default function GoalsPage() {
         throw new Error(result.error || "Falha ao excluir meta");
       }
     } catch (error) {
-      logger.error("Erro ao excluir meta:", error);
+      logger.error("Erro ao excluir meta:", error as Error);
       toast({
         title: "Erro",
         description:

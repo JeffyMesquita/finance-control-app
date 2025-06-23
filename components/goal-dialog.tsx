@@ -163,9 +163,9 @@ export function GoalDialog({
     try {
       const [accountsData, categoriesData, savingsBoxesData] =
         await Promise.all([getAccounts(), getCategories(), getSavingsBoxes()]);
-      setAccounts(accountsData);
-      setCategories(categoriesData.filter((c) => c.type === "EXPENSE"));
-      setSavingsBoxes(savingsBoxesData);
+      setAccounts(accountsData.data || ([] as Account[]));
+      setCategories(categoriesData.data || ([] as Category[]));
+      setSavingsBoxes(savingsBoxesData.data || ([] as SavingsBox[]));
     } catch (error) {
       logger.error("Erro ao carregar dados:", error as Error);
       toast({
@@ -449,4 +449,3 @@ export function GoalDialog({
     </Dialog>
   );
 }
-
