@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "./logo";
 import {
@@ -187,4 +189,3 @@ export function Footer() {
     </footer>
   );
 }
-
