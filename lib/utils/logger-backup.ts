@@ -77,8 +77,8 @@ class AdvancedLogger {
                 level.replace(/\x1b\[[0-9;]*m/g, "") as LogLevel
               );
               const metaStr =
-                metadata && Object.keys(metadata).length > 0
-                  ? `\n${JSON.stringify(metadata as Record<string, any>, null, 2)}`
+                Object.keys(metadata).length > 0
+                  ? `\n${JSON.stringify(metadata, null, 2)}`
                   : "";
               return `${emoji} [${timestamp}] ${level}: ${message}${metaStr}`;
             })

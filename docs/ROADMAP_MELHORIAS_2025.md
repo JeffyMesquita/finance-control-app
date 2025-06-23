@@ -71,8 +71,8 @@
 - **Problema**: 80+ ocorrências de `console.log/error` encontradas
 - **Impacto**: Performance e segurança em produção
 - **Ação**:
-  - [ ] Criar utilitário `logger.ts` para diferentes ambientes
-  - [ ] Substituir todos `console.*` por logger personalizado
+  - ✅ Criar utilitário `logger.ts` para diferentes ambientes
+  - ✅ Substituir todos `console.*` por logger personalizado
   - [ ] Configurar Winston ou similar para logs estruturados
   - [ ] Adicionar nível de log baseado em ENV
 
