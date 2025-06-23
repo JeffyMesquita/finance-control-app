@@ -112,14 +112,14 @@ export default function PerfilPage() {
     getUserProfile()
       .then((profileData) => {
         if (profileData) {
-          setProfile(profileData);
+          setProfile(profileData.data || null);
         } else {
           // Se não há perfil, usa o perfil inicial
           setProfile(initialProfile);
         }
       })
       .catch((error) => {
-        logger.error("Erro ao carregar perfil:", error);
+        logger.error("Erro ao carregar perfil:", error as Error);
         // Em caso de erro, usa o perfil inicial
         setProfile(initialProfile);
         toast({
@@ -187,7 +187,7 @@ export default function PerfilPage() {
         throw new Error("Falha ao atualizar perfil");
       }
     } catch (error) {
-      logger.error("Erro ao atualizar perfil:", error);
+      logger.error("Erro ao atualizar perfil:", error as Error);
       toast({
         title: "Erro",
         description: (error as Error).message || "Falha ao atualizar perfil",
