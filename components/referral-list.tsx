@@ -16,26 +16,26 @@ export function ReferralList() {
   const fetchReferrals = async () => {
     if (!user) return;
 
-    try {
-      const { data, error: referralsError } = await supabase
-        .from("referrals")
-        .select("*")
-        .eq("referrer_id", user.id)
-        .order("created_at", { ascending: false });
+    // try {
+    //   const { data, error: referralsError } = await supabase
+    //     .from("referrals")
+    //     .select("*")
+    //     .eq("referrer_id", user.id)
+    //     .order("created_at", { ascending: false });
 
-      if (referralsError) throw referralsError;
+    //   if (referralsError) throw referralsError;
 
-      setReferrals(data || []);
-    } catch (error) {
-      logger.error("Error fetching referrals:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as indicações.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    //   setReferrals(data || []);
+    // } catch (error) {
+    //   logger.error("Error fetching referrals:", error as Error);
+    //   toast({
+    //     title: "Erro",
+    //     description: "Não foi possível carregar as indicações.",
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {
@@ -98,5 +98,3 @@ export function ReferralList() {
     </Card>
   );
 }
-
-

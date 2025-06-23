@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import { DynamicIcon, LucideIcon } from "./dynamic-icon";
 import { lucideIconList } from "./lucide-icon-list";
+import { CreateCategoryData } from "@/lib/types/actions";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -86,9 +87,14 @@ export function CategoryDialog({
       let result;
 
       if (category) {
-        result = await updateCategory(category.id, formData);
+        result = await updateCategory(
+          category.id,
+          formData as unknown as CreateCategoryData
+        );
       } else {
-        result = await createCategory(formData);
+        result = await createCategory(
+          formData as unknown as CreateCategoryData
+        );
       }
 
       if (result.success) {
@@ -231,4 +237,3 @@ export function CategoryDialog({
     </Dialog>
   );
 }
-

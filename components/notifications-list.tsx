@@ -19,32 +19,32 @@ export function NotificationsList() {
   const supabase = createClientComponentClient<Database>();
 
   const fetchNotifications = async () => {
-    try {
-      if (!user) return;
-      const cachedNotifications = supabaseCache.get<any[]>(CACHE_KEY);
-      if (cachedNotifications) {
-        setNotifications(cachedNotifications);
-        setLoading(false);
-        return;
-      }
-      const { data, error: notificationsError } = await supabase
-        .from("notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (notificationsError) throw notificationsError;
-      setNotifications(data || []);
-      supabaseCache.set(CACHE_KEY, data || []);
-    } catch (error) {
-      logger.error("Error fetching notifications:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as notificações.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    // try {
+    //   if (!user) return;
+    //   const cachedNotifications = supabaseCache.get<any[]>(CACHE_KEY);
+    //   if (cachedNotifications) {
+    //     setNotifications(cachedNotifications);
+    //     setLoading(false);
+    //     return;
+    //   }
+    //   const { data, error: notificationsError } = await supabase
+    //     .from("notifications")
+    //     .select("*")
+    //     .eq("user_id", user.id)
+    //     .order("created_at", { ascending: false });
+    //   if (notificationsError) throw notificationsError;
+    //   setNotifications(data || []);
+    //   supabaseCache.set(CACHE_KEY, data || []);
+    // } catch (error) {
+    //   logger.error("Error fetching notifications:", error as Error);
+    //   toast({
+    //     title: "Erro",
+    //     description: "Não foi possível carregar as notificações.",
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {
@@ -107,5 +107,3 @@ export function NotificationsList() {
     </Card>
   );
 }
-
-

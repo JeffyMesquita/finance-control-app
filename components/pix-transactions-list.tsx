@@ -16,26 +16,26 @@ export function PixTransactionsList() {
   const fetchTransactions = async () => {
     if (!user) return;
 
-    try {
-      const { data, error: transactionsError } = await supabase
-        .from("pix_transactions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+    // try {
+    //   const { data, error: transactionsError } = await supabase
+    //     .from("pix_transactions")
+    //     .select("*")
+    //     .eq("user_id", user.id)
+    //     .order("created_at", { ascending: false });
 
-      if (transactionsError) throw transactionsError;
+    //   if (transactionsError) throw transactionsError;
 
-      setTransactions(data || []);
-    } catch (error) {
-      logger.error("Error fetching PIX transactions:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as transações PIX.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    //   setTransactions(data || []);
+    // } catch (error) {
+    //   logger.error("Error fetching PIX transactions:", error as Error);
+    //   toast({
+    //     title: "Erro",
+    //     description: "Não foi possível carregar as transações PIX.",
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {
@@ -99,5 +99,3 @@ export function PixTransactionsList() {
     </Card>
   );
 }
-
-

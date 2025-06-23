@@ -36,6 +36,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { SavingsBoxData } from "@/lib/types/actions";
 
 type SavingsBox = {
   id: string;
@@ -74,7 +75,7 @@ export function LinkSavingsBoxDialog({
 }: LinkSavingsBoxDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBox[]>([]);
+  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBoxData[]>([]);
   const [selectedBoxId, setSelectedBoxId] = useState<string>("none");
   const [isLoading, setIsLoading] = useState(true);
 
