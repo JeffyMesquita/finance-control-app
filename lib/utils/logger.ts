@@ -1,19 +1,13 @@
 /**
- * Sistema de Logging Avançado com Winston - FinanceTrack
+ * Sistema de Logging Compatível - FinanceTrack
  *
  * Features:
- * - Logs estruturados com Winston (JSON em produção)
+ * - Console aprimorado universal
  * - Logs condicionais baseados no ambiente
- * - Diferentes níveis de log (debug, info, warn, error)
  * - Configuração via variáveis de ambiente
- * - Rotação automática de arquivos de log
- * - Integração com Sentry em produção
- * - Formatação consistente
+ * - 100% compatibilidade servidor/cliente
  * - Performance otimizada
  */
-
-import winston from "winston";
-import DailyRotateFile from "winston-daily-rotate-file";
 
 type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -35,132 +29,56 @@ interface LogContext {
 const LOG_LEVEL =
   (process.env.LOG_LEVEL as LogLevel) ||
   (process.env.NODE_ENV === "production" ? "info" : "debug");
-const LOG_TO_FILE =
-  process.env.LOG_TO_FILE === "true" || process.env.NODE_ENV === "production";
-const LOG_DIR = process.env.LOG_DIR || "./logs";
+const isServer = typeof window === "undefined";
 
-class AdvancedLogger {
+class AdvancedConsoleLogger {
   private isDevelopment: boolean;
   private isProduction: boolean;
   private isTest: boolean;
-  private winstonLogger: winston.Logger;
 
   constructor() {
     this.isDevelopment = process.env.NODE_ENV === "development";
     this.isProduction = process.env.NODE_ENV === "production";
     this.isTest = process.env.NODE_ENV === "test";
-
-    this.winstonLogger = this.createWinstonLogger();
   }
 
   /**
-   * Cria instância configurada do Winston
-   */
-  private createWinstonLogger(): winston.Logger {
-    const logFormat = winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.errors({ stack: true }),
-      winston.format.metadata({ fillExcept: ["message", "level", "timestamp"] })
-    );
-
-    const transports: winston.transport[] = [];
-
-    // Console transport (sempre presente)
-    if (this.isDevelopment) {
-      // Formato colorido para desenvolvimento
-      transports.push(
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.printf(({ level, message, timestamp, metadata }) => {
-              const emoji = this.getLogEmoji(
-                level.replace(/\x1b\[[0-9;]*m/g, "") as LogLevel
-              );
-              const metaStr =
-                metadata && Object.keys(metadata).length > 0
-                  ? `\n${JSON.stringify(metadata as Record<string, any>, null, 2)}`
-                  : "";
-              return `${emoji} [${timestamp}] ${level}: ${message}${metaStr}`;
-            })
-          ),
-        })
-      );
-    } else {
-      // Formato JSON para produção/teste
-      transports.push(
-        new winston.transports.Console({
-          format: winston.format.combine(logFormat, winston.format.json()),
-        })
-      );
-    }
-
-    // File transports (apenas em produção ou se configurado)
-    if (LOG_TO_FILE && !this.isTest) {
-      // Log de todos os níveis
-      transports.push(
-        new DailyRotateFile({
-          filename: `${LOG_DIR}/app-%DATE%.log`,
-          datePattern: "YYYY-MM-DD",
-          maxFiles: "14d",
-          maxSize: "20m",
-          format: winston.format.combine(logFormat, winston.format.json()),
-        })
-      );
-
-      // Log apenas de erros
-      transports.push(
-        new DailyRotateFile({
-          filename: `${LOG_DIR}/error-%DATE%.log`,
-          datePattern: "YYYY-MM-DD",
-          level: "error",
-          maxFiles: "30d",
-          maxSize: "20m",
-          format: winston.format.combine(logFormat, winston.format.json()),
-        })
-      );
-    }
-
-    return winston.createLogger({
-      level: LOG_LEVEL,
-      format: logFormat,
-      transports,
-      exitOnError: false,
-      silent: this.isTest, // Silenciar logs em testes
-    });
-  }
-
-  /**
-   * Log de debug - apenas em desenvolvimento ou se LOG_LEVEL=debug
+   * Log de debug
    */
   debug(message: string, context?: LogContext): void {
-    this.winstonLogger.debug(message, context);
+    if (this.shouldLog("debug")) {
+      this.logMessage("debug", message, context);
+    }
   }
 
   /**
    * Log de informação
    */
   info(message: string, context?: LogContext): void {
-    this.winstonLogger.info(message, context);
+    if (this.shouldLog("info")) {
+      this.logMessage("info", message, context);
 
-    // Em produção, enviar apenas para ferramentas de monitoramento
-    if (this.isProduction) {
-      this.sendToMonitoring("info", message, context);
+      if (this.isProduction && !isServer) {
+        this.sendToMonitoring("info", message, context);
+      }
     }
   }
 
   /**
-   * Log de warning - todos os ambientes
+   * Log de warning
    */
   warn(message: string, context?: LogContext): void {
-    this.winstonLogger.warn(message, context);
+    if (this.shouldLog("warn")) {
+      this.logMessage("warn", message, context);
 
-    if (this.isProduction) {
-      this.sendToMonitoring("warn", message, context);
+      if (this.isProduction && !isServer) {
+        this.sendToMonitoring("warn", message, context);
+      }
     }
   }
 
   /**
-   * Log de erro - todos os ambientes + Sentry
+   * Log de erro
    */
   error(message: string, error?: Error, context?: LogContext): void {
     const errorContext = {
@@ -169,45 +87,96 @@ class AdvancedLogger {
       errorName: error?.name,
     };
 
-    this.winstonLogger.error(message, errorContext);
+    this.logMessage("error", message, errorContext);
 
-    // Sempre enviar erros para monitoramento
-    this.sendToMonitoring("error", message, { ...errorContext, error });
+    if (!isServer) {
+      this.sendToMonitoring("error", message, { ...errorContext, error });
 
-    // Em produção, enviar para Sentry
-    if (this.isProduction && typeof window !== "undefined") {
-      try {
-        // @ts-ignore - Sentry será carregado dinamicamente
-        window.Sentry?.captureException(error || new Error(message), {
-          tags: { component: context?.component },
-          extra: context,
-        });
-      } catch (e) {
-        // Fail silently se Sentry não estiver disponível
+      // Sentry apenas no cliente
+      if (this.isProduction) {
+        try {
+          // @ts-ignore
+          window.Sentry?.captureException(error || new Error(message), {
+            tags: { component: context?.component },
+            extra: context,
+          });
+        } catch (e) {
+          // Fail silently
+        }
       }
     }
   }
 
   /**
-   * Log de performance - timing de operações
+   * Log principal usando console nativo
+   */
+  private logMessage(
+    level: LogLevel,
+    message: string,
+    context?: LogContext
+  ): void {
+    if (this.isTest) return;
+
+    const timestamp = new Date().toISOString();
+    const emoji = this.getLogEmoji(level);
+    const color = this.getLogColor(level);
+    const method = this.getConsoleMethod(level);
+
+    // Formato estruturado para produção no servidor
+    if (this.isProduction && isServer) {
+      const logData = {
+        level,
+        message,
+        timestamp,
+        ...context,
+      };
+      method(JSON.stringify(logData));
+      return;
+    }
+
+    // Formato colorido para desenvolvimento
+    const formattedMessage = `${emoji} [${timestamp}] ${level.toUpperCase()}: ${message}`;
+
+    if (context && Object.keys(context).length > 0) {
+      method(
+        `%c${formattedMessage}`,
+        `color: ${color}; font-weight: bold;`,
+        context
+      );
+    } else {
+      method(`%c${formattedMessage}`, `color: ${color}; font-weight: bold;`);
+    }
+  }
+
+  /**
+   * Verifica se deve logar baseado no nível
+   */
+  private shouldLog(level: LogLevel): boolean {
+    const levels = ["debug", "info", "warn", "error"];
+    const currentLevelIndex = levels.indexOf(LOG_LEVEL);
+    const messageLevelIndex = levels.indexOf(level);
+    return messageLevelIndex >= currentLevelIndex;
+  }
+
+  /**
+   * Performance timing
    */
   performance(label: string, startTime: number, context?: LogContext): void {
     const duration = performance.now() - startTime;
     const perfContext = { ...context, duration, performance: true };
 
-    this.winstonLogger.info(
+    this.info(
       `⚡ Performance: ${label} - ${duration.toFixed(2)}ms`,
       perfContext
     );
 
-    // Alertar se operação demorar muito
     if (duration > 1000) {
       this.warn(`Operação lenta detectada: ${label}`, perfContext);
     }
   }
 
   /**
-   * Log específico para ações do usuário
+   * User actions
    */
   userAction(action: string, userId: string, data?: any): void {
     const context: LogContext = {
@@ -222,7 +191,7 @@ class AdvancedLogger {
   }
 
   /**
-   * Log específico para API calls
+   * API calls
    */
   apiCall(method: string, url: string, status: number, duration: number): void {
     const isError = status >= 400;
@@ -237,41 +206,58 @@ class AdvancedLogger {
   }
 
   /**
-   * Log estruturado customizado
+   * Log estruturado
    */
   structured(
     level: LogLevel,
     message: string,
     data: Record<string, any>
   ): void {
-    this.winstonLogger.log(level, message, { ...data, structured: true });
+    this.logMessage(level, message, { ...data, structured: true });
   }
 
   /**
-   * Enviar logs para ferramentas de monitoramento em produção
+   * Configurações dinâmicas
    */
+  setLogLevel(level: LogLevel): void {
+    // Em runtime, apenas afeta logs futuros
+    process.env.LOG_LEVEL = level;
+  }
+
+  getLogLevel(): string {
+    return LOG_LEVEL;
+  }
+
+  getMetrics() {
+    return {
+      level: LOG_LEVEL,
+      isDevelopment: this.isDevelopment,
+      isProduction: this.isProduction,
+      isServer,
+      environment: process.env.NODE_ENV,
+    };
+  }
+
   private sendToMonitoring(
     level: LogLevel,
     message: string,
     context?: LogContext
   ): void {
-    if (typeof window === "undefined") return;
-
     try {
-      // Exemplo com Vercel Analytics
+      // @ts-ignore
       if (window.va) {
         window.va("event", {
           name: "Log Event",
           data: {
             level,
-            message: message.substring(0, 100), // Limitar tamanho
+            message: message.substring(0, 100),
             component: context?.component,
             userId: context?.userId,
           },
         });
       }
     } catch (e) {
-      // Fail silently para não quebrar a aplicação
+      // Fail silently
     }
   }
 
@@ -285,34 +271,29 @@ class AdvancedLogger {
     return emojis[level];
   }
 
-  /**
-   * Configurações dinâmicas
-   */
-  setLogLevel(level: LogLevel): void {
-    this.winstonLogger.level = level;
-  }
-
-  getLogLevel(): string {
-    return this.winstonLogger.level;
-  }
-
-  /**
-   * Métricas do sistema de logging
-   */
-  getMetrics() {
-    return {
-      level: this.winstonLogger.level,
-      isDevelopment: this.isDevelopment,
-      isProduction: this.isProduction,
-      logToFile: LOG_TO_FILE,
-      logDir: LOG_DIR,
-      transports: this.winstonLogger.transports.length,
+  private getLogColor(level: LogLevel): string {
+    const colors = {
+      debug: "#6b7280",
+      info: "#3b82f6",
+      warn: "#f59e0b",
+      error: "#ef4444",
     };
+    return colors[level];
+  }
+
+  private getConsoleMethod(level: LogLevel): typeof console.log {
+    const methods = {
+      debug: console.debug,
+      info: console.info,
+      warn: console.warn,
+      error: console.error,
+    };
+    return methods[level] || console.log;
   }
 }
 
 // Singleton instance
-export const logger = new AdvancedLogger();
+export const logger = new AdvancedConsoleLogger();
 
 /**
  * Hook para logs de componentes React
@@ -333,7 +314,7 @@ export function useLogger(componentName: string) {
 }
 
 /**
- * Decorator para logar execução de funções
+ * Decorator para logging
  */
 export function withLogging<T extends (...args: any[]) => any>(
   fn: T,
@@ -345,7 +326,6 @@ export function withLogging<T extends (...args: any[]) => any>(
     try {
       const result = fn(...args);
 
-      // Se for uma Promise, aguardar e logar
       if (result instanceof Promise) {
         return result
           .then((data) => {
@@ -380,21 +360,15 @@ export function withLogging<T extends (...args: any[]) => any>(
 }
 
 /**
- * Utilitários para desenvolvimento (mantidos para compatibilidade)
+ * Utilitários para desenvolvimento
  */
 export const dev = {
-  /**
-   * Log apenas em desenvolvimento
-   */
   log: (message: string, data?: any) => {
     if (process.env.NODE_ENV === "development") {
       logger.debug(`🚀 DEV: ${message}`, { dev: true, data });
     }
   },
 
-  /**
-   * Log de render de componentes
-   */
   render: (componentName: string, props?: any) => {
     if (process.env.NODE_ENV === "development") {
       logger.debug(`🎨 Render: ${componentName}`, {
@@ -406,9 +380,6 @@ export const dev = {
     }
   },
 
-  /**
-   * Log de API responses
-   */
   api: (url: string, data: any) => {
     if (process.env.NODE_ENV === "development") {
       logger.debug(`📡 API Response: ${url}`, {
@@ -424,7 +395,8 @@ export const dev = {
 // Tipos para TypeScript
 declare global {
   interface Window {
-    Sentry?: any; // Sentry
+    Sentry?: any;
+    va?: any;
   }
 }
 

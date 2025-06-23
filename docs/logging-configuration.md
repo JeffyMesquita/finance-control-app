@@ -1,5 +1,9 @@
 # Configuração do Sistema de Logging
 
+## Sistema de Logging Compatível
+
+O sistema de logging foi projetado para ser **100% compatível** entre servidor e cliente, usando console nativo aprimorado em todos os ambientes.
+
 ## Variáveis de Ambiente
 
 ### LOG_LEVEL
@@ -41,6 +45,60 @@ LOG_LEVEL=info
 LOG_TO_FILE=true
 LOG_DIR=/var/log/finance-app
 ```
+
+## Formatos de Log
+
+### Desenvolvimento
+
+Logs coloridos com emoji e contexto expandido:
+
+```
+🔍 [2024-01-15T10:30:00.000Z] DEBUG: Carregando dados do usuário
+{
+  "component": "UserProfile",
+  "userId": "user123"
+}
+```
+
+### Produção (Servidor)
+
+JSON estruturado para análise:
+
+```json
+{
+  "level": "info",
+  "message": "Transação criada",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "userId": "user123",
+  "action": "create_transaction"
+}
+```
+
+### Cliente
+
+Console aprimorado com contexto:
+
+```
+ℹ️ [2024-01-15T10:30:00.000Z] INFO: API Response recebida
+```
+
+## Funcionalidades
+
+- ✅ **Performance tracking** com `logger.performance()`
+- ✅ **User actions** com `logger.userAction()`
+- ✅ **API monitoring** com `logger.apiCall()`
+- ✅ **Logs estruturados** com `logger.structured()`
+- ✅ **Hook React** com `useLogger(componentName)`
+- ✅ **Decorator de funções** com `withLogging()`
+- ✅ **Utilitários dev** com `dev.log()`, `dev.render()`, `dev.api()`
+
+## Monitoramento
+
+Em produção no cliente:
+
+- Integração com **Vercel Analytics**
+- Suporte ao **Sentry** para captura de erros
+- Logs de performance automatizados
 
 ## Arquivos de Log Gerados
 

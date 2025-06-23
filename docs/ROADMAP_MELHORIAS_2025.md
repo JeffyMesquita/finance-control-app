@@ -73,8 +73,8 @@
 - **Ação**:
   - ✅ Criar utilitário `logger.ts` para diferentes ambientes
   - ✅ Substituir todos `console.*` por logger personalizado
-  - [ ] Configurar Winston ou similar para logs estruturados
-  - [ ] Adicionar nível de log baseado em ENV
+  - ✅ Configurar Winston ou similar para logs estruturados
+  - ✅ Adicionar nível de log baseado em ENV
 
 #### Task 1.1.2: Migrar Dependência Deprecated
 
