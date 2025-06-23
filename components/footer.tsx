@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { Logo } from "./logo";
-import {
-  FaGithub,
-  FaLinkedin,
-  FaEnvelope,
-  FaInstagram,
-  FaPhone,
-} from "react-icons/fa";
+import { Github, Linkedin, Mail, Instagram, Phone } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -148,7 +142,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-1 text-forest-green-700 hover:text-forest-green-800 text-base min-w-[60px]"
             >
-              <FaGithub size={22} />
+              <Github size={22} />
               <span className="text-xs hidden sm:block">GitHub</span>
             </a>
             <a
@@ -157,14 +151,14 @@ export function Footer() {
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-1 text-forest-green-700 hover:text-forest-green-800 text-base min-w-[60px]"
             >
-              <FaLinkedin size={22} />
+              <Linkedin size={22} />
               <span className="text-xs hidden sm:block">LinkedIn</span>
             </a>
             <a
               href="mailto:je_2742@hotmail.com"
               className="flex flex-col items-center gap-1 text-forest-green-700 hover:text-forest-green-800 text-base min-w-[60px]"
             >
-              <FaEnvelope size={22} />
+              <Mail size={22} />
               <span className="text-xs hidden sm:block">E-mail</span>
             </a>
             <a
@@ -173,14 +167,14 @@ export function Footer() {
               rel="noopener noreferrer"
               className="flex flex-col items-center gap-1 text-forest-green-700 hover:text-forest-green-800 text-base min-w-[60px]"
             >
-              <FaInstagram size={22} />
+              <Instagram size={22} />
               <span className="text-xs hidden sm:block">Instagram</span>
             </a>
             <a
               href="tel:+5517991305254"
               className="flex flex-col items-center gap-1 text-forest-green-700 hover:text-forest-green-800 text-base min-w-[60px]"
             >
-              <FaPhone size={22} />
+              <Phone size={22} />
               <span className="text-xs hidden sm:block">Telefone</span>
             </a>
           </div>

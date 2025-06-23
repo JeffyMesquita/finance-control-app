@@ -10,11 +10,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, X, Share2, Twitter, Facebook, Linkedin } from "lucide-react";
+import {
+  Copy,
+  X,
+  Share2,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Instagram,
+  Send,
+  MessageCircle,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { getReferralStats } from "@/app/actions/referrals";
-import { FaInstagram, FaTelegram, FaWhatsapp } from "react-icons/fa";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 const SESSION_KEY = "shareAlertDismissed";
@@ -241,7 +250,7 @@ export function ShareAppAlert() {
                     onClick={() => handleSocialShare("telegram")}
                     aria-label="Compartilhar no Telegram"
                   >
-                    <FaTelegram className="w-4 h-4" />
+                    <Send className="w-4 h-4" />
                   </Button>
                   <Button
                     size="icon"
@@ -250,7 +259,7 @@ export function ShareAppAlert() {
                     onClick={() => handleSocialShare("whatsapp")}
                     aria-label="Compartilhar no WhatsApp"
                   >
-                    <FaWhatsapp className="w-4 h-4" />
+                    <MessageCircle className="w-4 h-4" />
                   </Button>
                   <Button
                     size="icon"
@@ -259,7 +268,7 @@ export function ShareAppAlert() {
                     onClick={() => handleSocialShare("instagram")}
                     aria-label="Compartilhar no Instagram"
                   >
-                    <FaInstagram className="w-4 h-4" />
+                    <Instagram className="w-4 h-4" />
                   </Button>
                 </div>
               </CardDescription>
