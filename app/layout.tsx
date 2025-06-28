@@ -51,11 +51,163 @@ export const metadata: Metadata = {
   description:
     "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
   keywords: [
-    "financial management",
+    // Termos gerais da área
+    "controle financeiro",
+    "gestão financeira",
+    "controle de gastos",
+    "organização financeira",
+    "planejamento financeiro",
+    "sistema financeiro",
+    "app financeiro",
+    "aplicativo financeiro",
+
+    // Especialização - Progressão (Pessoal/Familiar)
+    "controle financeiro pessoal",
+    "gestão financeira pessoal",
+    "controle de gastos pessoais",
+    "orçamento pessoal",
+    "orçamento familiar",
+    "finanças pessoais",
+    "controle de despesas",
+    "controle de receitas",
+    "planilha financeira",
+
+    // Tipos de controle/funcionalidades
+    "controle de contas",
+    "controle de cartão de crédito",
+    "acompanhamento de gastos",
+    "categorização de gastos",
+    "relatórios financeiros",
+    "dashboard financeiro",
+    "análise de gastos",
+    "histórico financeiro",
+
+    // Objetivos/Benefícios
+    "como controlar gastos",
+    "como organizar finanças",
+    "como fazer orçamento",
+    "economizar dinheiro",
+    "reduzir gastos",
+    "controlar dívidas",
+    "planejamento de metas",
+    "educação financeira",
+
+    // Público-alvo específico
+    "controle financeiro para iniciantes",
+    "gestão financeira familiar",
+    "orçamento doméstico",
+    "finanças para jovens",
+    "controle de gastos estudantil",
+    "planejamento financeiro familiar",
+
+    // Tipos de produto/solução
+    "software de controle financeiro",
+    "aplicativo de orçamento",
+    "ferramenta financeira",
+    "sistema de gestão pessoal",
+    "plataforma financeira",
+    "app de finanças",
+    "calculadora financeira",
+
+    // Modalidades/Características
+    "controle financeiro online",
+    "gestão financeira digital",
+    "controle financeiro gratuito",
+    "sistema financeiro web",
+    "app financeiro mobile",
+    "controle financeiro em tempo real",
+
+    // Nome do produto - Progressão
+    "FinanceTrack",
+    "FinanceTrack app",
+    "FinanceTrack controle financeiro",
+    "FinanceTrack sistema",
+    "FinanceTrack Brasil",
+
+    // Localização geográfica
+    "controle financeiro Brasil",
+    "gestão financeira Brasil",
+    "app financeiro brasileiro",
+    "sistema financeiro nacional",
+    "controle de gastos BR",
+
+    // Funcionalidades específicas
+    "categorias de gastos",
+    "metas financeiras",
+    "alertas de gastos",
+    "relatórios mensais",
+    "gráficos financeiros",
+    "exportar dados financeiros",
+    "backup financeiro",
+    "sincronização de contas",
+
+    // Termos relacionados - Português
+    "conta corrente",
+    "poupança",
+    "investimentos",
+    "cartão de débito",
+    "cartão de crédito",
+    "PIX",
+    "transferências",
+    "pagamentos",
+
+    // Combinações qualificativas
+    "melhor app financeiro",
+    "controle financeiro eficiente",
+    "gestão financeira inteligente",
+    "sistema financeiro confiável",
+    "app financeiro completo",
+    "controle financeiro simples",
+
+    // Variações com preposições
+    "controle de finanças pessoais",
+    "gestão de orçamento familiar",
+    "aplicativo para controle financeiro",
+    "sistema para organizar gastos",
+    "ferramenta de planejamento financeiro",
+
+    // Problemas que resolve
+    "desorganização financeira",
+    "gastos excessivos",
+    "falta de controle financeiro",
+    "dificuldade em poupar",
+    "endividamento pessoal",
+    "orçamento apertado",
+
+    // Resultados esperados
+    "vida financeira organizada",
+    "estabilidade financeira",
+    "economia doméstica",
+    "consciência financeira",
+    "disciplina financeira",
+    "independência financeira",
+
+    // Termos técnicos da área
+    "fluxo de caixa pessoal",
+    "receitas e despesas",
+    "balanço financeiro",
+    "análise de custos",
+    "projeção financeira",
+    "indicadores financeiros",
+
+    // Variações em inglês (SEO internacional)
+    "personal finance",
     "expense tracking",
     "budget planning",
-    "personal finance",
-    "business finance",
+    "financial management",
+    "money management",
+    "financial control",
+    "budgeting app",
+    "expense tracker",
+
+    // Long-tail keywords
+    "como fazer controle financeiro pessoal",
+    "aplicativo para controlar gastos mensais",
+    "sistema para organizar orçamento familiar",
+    "ferramenta gratuita de controle financeiro",
+    "app brasileiro de gestão financeira",
+    "controle financeiro para celular",
+    "planilha digital de orçamento pessoal",
   ],
   authors: [{ name: "Jeferson Mesquita" }],
   creator: "Jeferson Mesquita",
