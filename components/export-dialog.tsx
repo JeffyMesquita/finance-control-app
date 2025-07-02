@@ -2,8 +2,8 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -21,24 +22,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import {
-  getTransactionsForExport,
-  getAccountsForExport,
-  getCategoriesForExport,
-  getGoalsForExport,
-  getMonthlySummaryForExport,
-} from "@/app/actions/export";
 import { convertToCSV, downloadCSV, generatePDF } from "@/lib/export-utils";
+import { useState } from "react";
+
+// Hook TanStack Query
+import { AccountData, CategoryData } from "@/lib/types/actions";
+import { useExportMutation } from "@/useCases/useExportMutation";
 
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  categories: any[];
-  accounts: any[];
+  categories: CategoryData[];
+  accounts: AccountData[];
 }
 
 export function ExportDialog({
@@ -48,7 +45,8 @@ export function ExportDialog({
   accounts,
 }: ExportDialogProps) {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const exportMutation = useExportMutation();
+
   const [exportType, setExportType] = useState("transactions");
   const [fileFormat, setFileFormat] = useState("csv");
   const [dateRange, setDateRange] = useState("all");
@@ -66,34 +64,40 @@ export function ExportDialog({
   const [includeNotes, setIncludeNotes] = useState(true);
 
   const handleExport = async () => {
-    setIsLoading(true);
-
     try {
-      let data: any[] = [];
+      // Prepare export request
+      const exportRequest: any = {
+        type: exportType,
+      };
+
+      // Add filters based on export type
+      if (exportType === "transactions") {
+        if (dateRange !== "all") {
+          exportRequest.dateFrom = dateFrom;
+          exportRequest.dateTo = dateTo;
+        }
+        if (transactionType !== "all") {
+          exportRequest.transactionType = transactionType;
+        }
+        if (selectedCategory) {
+          exportRequest.categoryId = selectedCategory;
+        }
+        if (selectedAccount) {
+          exportRequest.accountId = selectedAccount;
+        }
+      }
+
+      // Get data from API
+      const data = await exportMutation.mutateAsync(exportRequest);
+
+      // Prepare export configuration
       let headers: string[] = [];
       let fields: (string | ((item: any) => string))[] = [];
       let title = "";
       let filename = "";
 
-      // Get data based on export type
       switch (exportType) {
         case "transactions":
-          const transactionsResult = await getTransactionsForExport(
-            dateRange !== "all" ? dateFrom : undefined,
-            dateRange !== "all" ? dateTo : undefined,
-            transactionType !== "all" ? transactionType : undefined,
-            selectedCategory || undefined,
-            selectedAccount || undefined
-          );
-
-          if (!transactionsResult.success || !transactionsResult.data) {
-            throw new Error(
-              transactionsResult.error || "Falha ao exportar transações"
-            );
-          }
-
-          data = transactionsResult.data;
-
           headers = [
             "Data",
             "Descrição",
@@ -119,13 +123,6 @@ export function ExportDialog({
           break;
 
         case "accounts":
-          const accountsResult = await getAccountsForExport();
-
-          if (!accountsResult.success || !accountsResult.data) {
-            throw new Error(accountsResult.error || "Falha ao exportar contas");
-          }
-
-          data = accountsResult.data;
           headers = ["Nome da Conta", "Tipo", "Saldo", "Moeda"];
           fields = ["name", "type", "balance", "currency"];
           title = "Exportação de Contas";
@@ -133,15 +130,6 @@ export function ExportDialog({
           break;
 
         case "categories":
-          const categoriesResult = await getCategoriesForExport();
-
-          if (!categoriesResult.success || !categoriesResult.data) {
-            throw new Error(
-              categoriesResult.error || "Falha ao exportar categorias"
-            );
-          }
-
-          data = categoriesResult.data;
           headers = ["Nome da Categoria", "Tipo", "Cor"];
           fields = ["name", "type", "color"];
           title = "Exportação de Categorias";
@@ -149,13 +137,6 @@ export function ExportDialog({
           break;
 
         case "goals":
-          const goalsResult = await getGoalsForExport();
-
-          if (!goalsResult.success || !goalsResult.data) {
-            throw new Error(goalsResult.error || "Falha ao exportar metas");
-          }
-
-          data = goalsResult.data;
           headers = [
             "Nome da Meta",
             "Valor Alvo",
@@ -186,15 +167,6 @@ export function ExportDialog({
           break;
 
         case "monthly_summary":
-          const monthlyResult = await getMonthlySummaryForExport();
-
-          if (!monthlyResult.success || !monthlyResult.data) {
-            throw new Error(
-              monthlyResult.error || "Falha ao exportar resumo mensal"
-            );
-          }
-
-          data = monthlyResult.data;
           headers = ["Mês", "Receitas", "Despesas", "Economia"];
           fields = ["month", "income", "expenses", "savings"];
           title = "Resumo Mensal";
@@ -231,8 +203,6 @@ export function ExportDialog({
         description: (error as Error).message || "Falha ao exportar dados",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -413,8 +383,8 @@ export function ExportDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleExport} disabled={isLoading}>
-            {isLoading ? "Exportando..." : "Exportar"}
+          <Button onClick={handleExport} disabled={exportMutation.isPending}>
+            {exportMutation.isPending ? "Exportando..." : "Exportar"}
           </Button>
         </DialogFooter>
       </DialogContent>

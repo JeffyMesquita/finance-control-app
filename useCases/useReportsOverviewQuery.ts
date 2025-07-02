@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export interface MonthlyData {
   name: string;
@@ -47,18 +47,59 @@ export interface ReportsOverviewData {
 }
 
 async function fetchReportsOverview(): Promise<ReportsOverviewData> {
-  const [monthlyRes, expenseRes, goalsRes, savingsRes] = await Promise.all([
-    fetch("/api/dashboard").then((r) => r.json()),
-    fetch("/api/expense-breakdown").then((r) => r.json()),
-    fetch("/api/goals").then((r) => r.json()),
-    fetch("/api/savings-boxes-stats").then((r) => r.json()),
-  ]);
-  return {
-    monthlyData: monthlyRes.data || [],
-    expenseData: expenseRes.data || [],
-    goalsStats: goalsRes.data || null,
-    savingsBoxStats: savingsRes || null,
-  };
+  try {
+    const [monthlyRes, expenseRes, goalsRes, savingsRes] = await Promise.all([
+      fetch("/api/dashboard").then((r) => r.json()),
+      fetch("/api/expense-breakdown").then((r) => r.json()),
+      fetch("/api/goals/list").then((r) => r.json()),
+      fetch("/api/savings-boxes/stats").then((r) => r.json()),
+    ]);
+
+    // Processar dados das metas para estatísticas
+    let goalsStats: GoalsStats | null = null;
+    if (goalsRes.success && goalsRes.data) {
+      const goals = goalsRes.data;
+      const now = new Date();
+
+      goalsStats = {
+        total_goals: goals.length,
+        completed_goals: goals.filter((g: any) => g.is_completed).length,
+        overdue_goals: goals.filter(
+          (g: any) => !g.is_completed && new Date(g.target_date) < now
+        ).length,
+        linked_to_savings_boxes: goals.filter((g: any) => g.savings_box_id)
+          .length,
+        average_progress:
+          goals.length > 0
+            ? Math.round(
+                goals.reduce(
+                  (sum: number, g: any) =>
+                    sum + (g.current_amount / g.target_amount) * 100,
+                  0
+                ) / goals.length
+              )
+            : 0,
+        total_target_amount: goals.reduce(
+          (sum: number, g: any) => sum + g.target_amount,
+          0
+        ),
+        total_current_amount: goals.reduce(
+          (sum: number, g: any) => sum + g.current_amount,
+          0
+        ),
+        goals_by_month: [], // Pode ser implementado futuramente se necessário
+      };
+    }
+
+    return {
+      monthlyData: monthlyRes.success ? monthlyRes.data || [] : [],
+      expenseData: expenseRes.success ? expenseRes.data || [] : [],
+      goalsStats,
+      savingsBoxStats: savingsRes.success ? savingsRes.data : null,
+    };
+  } catch (error) {
+    throw new Error("Failed to fetch reports overview data");
+  }
 }
 
 export function useReportsOverviewQuery() {
@@ -69,7 +110,7 @@ export function useReportsOverviewQuery() {
   const query = useQuery<ReportsOverviewData, Error>({
     queryKey: ["reports-overview"],
     queryFn,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   useEffect(() => {

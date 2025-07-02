@@ -38,12 +38,11 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { useState, useMemo } from "react";
-import { GoalData } from "@/lib/types/actions";
+import { useMemo, useState } from "react";
 
 // Hooks TanStack Query
-import { useGoalsQuery } from "@/useCases/goals/useGoalsQuery";
 import { useDeleteGoalMutation } from "@/useCases/goals/useDeleteGoalMutation";
+import { useGoalsQuery } from "@/useCases/goals/useGoalsQuery";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "progress" | "target_date" | "target_amount" | "created";
