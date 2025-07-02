@@ -1,62 +1,49 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getAdminUsers } from "@/app/actions/admin";
+import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+// Hook TanStack Query
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { useAdminUsersQuery } from "@/useCases/admin/useAdminUsersQuery";
 import {
-  Users,
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  Target,
-  PiggyBank,
-  MessageSquare,
-  Loader2,
+  Activity,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  BarChart3,
   Calendar,
-  Mail,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  Activity,
-  BarChart3,
-  ArrowUpCircle,
-  ArrowDownCircle,
   Clock,
-  Star,
+  DollarSign,
+  Loader2,
+  Mail,
+  MessageSquare,
+  PiggyBank,
+  RefreshCw,
   Shield,
+  Star,
+  Target,
+  TrendingUp,
+  Users,
   Zap,
 } from "lucide-react";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6; // Menos usuarios por pagina para melhor visualizacao
 
-  const loadUsers = async () => {
-    try {
-      setLoading(true);
-      const result = await getAdminUsers(currentPage, pageSize);
-      if (result.success && result.data) {
-        setUsers(result.data.users);
-        setPagination(result.data.pagination);
-      }
-    } catch (error) {
-      toast.error("Erro ao carregar usuarios");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Hook TanStack Query
+  const {
+    data,
+    isLoading: loading,
+    refetch,
+  } = useAdminUsersQuery(currentPage, pageSize);
 
-  useEffect(() => {
-    loadUsers();
-  }, [currentPage]);
+  const users = data?.users || [];
+  const pagination = data?.pagination;
 
   // Função para obter badge de categoria
   const getCategoryBadge = (category: string) => {
@@ -131,7 +118,7 @@ export default function AdminUsersPage() {
             Analise detalhada do comportamento e performance dos usuarios
           </p>
         </div>
-        <Button onClick={loadUsers} variant="outline">
+        <Button onClick={() => refetch()} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           Atualizar
         </Button>
@@ -204,7 +191,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
         ) : (
-          users.map((user) => (
+          users.map((user: any) => (
             <Card key={user.id} className="overflow-hidden">
               <CardContent className="p-0">
                 {/* Header do Usuario */}
@@ -392,22 +379,38 @@ export default function AdminUsersPage() {
 
                       {/* 3. Saldo Líquido Real */}
                       <Card
-                        className={`border-2 ${(user.stats?.netBalance || 0) >= 0 ? "border-blue-500 dark:bg-blue-200/10 bg-blue-300/50" : "border-orange-500 dark:bg-orange-200/10 bg-orange-300/50"}`}
+                        className={`border-2 ${
+                          (user.stats?.netBalance || 0) >= 0
+                            ? "border-blue-500 dark:bg-blue-200/10 bg-blue-300/50"
+                            : "border-orange-500 dark:bg-orange-200/10 bg-orange-300/50"
+                        }`}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <DollarSign
-                                className={`h-4 w-4 ${(user.stats?.netBalance || 0) >= 0 ? "text-blue-600" : "text-orange-600"}`}
+                                className={`h-4 w-4 ${
+                                  (user.stats?.netBalance || 0) >= 0
+                                    ? "text-blue-600"
+                                    : "text-orange-600"
+                                }`}
                               />
                               <span
-                                className={`text-sm font-medium ${(user.stats?.netBalance || 0) >= 0 ? "text-blue-800" : "text-orange-800"}`}
+                                className={`text-sm font-medium ${
+                                  (user.stats?.netBalance || 0) >= 0
+                                    ? "text-blue-800"
+                                    : "text-orange-800"
+                                }`}
                               >
                                 Saldo Líquido Real
                               </span>
                             </div>
                             <Badge
-                              className={`text-white text-xs ${(user.stats?.netBalance || 0) >= 0 ? "bg-blue-600" : "bg-orange-600"}`}
+                              className={`text-white text-xs ${
+                                (user.stats?.netBalance || 0) >= 0
+                                  ? "bg-blue-600"
+                                  : "bg-orange-600"
+                              }`}
                             >
                               {(user.stats?.netBalance || 0) >= 0
                                 ? "Positivo"
@@ -415,7 +418,11 @@ export default function AdminUsersPage() {
                             </Badge>
                           </div>
                           <p
-                            className={`text-xl font-bold ${(user.stats?.netBalance || 0) >= 0 ? "text-blue-700" : "text-orange-700"}`}
+                            className={`text-xl font-bold ${
+                              (user.stats?.netBalance || 0) >= 0
+                                ? "text-blue-700"
+                                : "text-orange-700"
+                            }`}
                           >
                             R${" "}
                             {(user.stats?.netBalance || 0).toLocaleString(
@@ -427,7 +434,11 @@ export default function AdminUsersPage() {
                             )}
                           </p>
                           <div
-                            className={`text-xs mt-1 ${(user.stats?.netBalance || 0) >= 0 ? "text-blue-600" : "text-orange-600"}`}
+                            className={`text-xs mt-1 ${
+                              (user.stats?.netBalance || 0) >= 0
+                                ? "text-blue-600"
+                                : "text-orange-600"
+                            }`}
                           >
                             <span>Apenas transações passadas</span>
                           </div>
@@ -483,22 +494,38 @@ export default function AdminUsersPage() {
 
                       {/* 5. Balanço Mensal */}
                       <Card
-                        className={`border-2 ${(user.stats?.thisMonthBalance || 0) >= 0 ? "border-cyan-500 dark:bg-cyan-200/10 bg-cyan-300/50" : "border-yellow-500 dark:bg-yellow-200/10 bg-yellow-300/50"}`}
+                        className={`border-2 ${
+                          (user.stats?.thisMonthBalance || 0) >= 0
+                            ? "border-cyan-500 dark:bg-cyan-200/10 bg-cyan-300/50"
+                            : "border-yellow-500 dark:bg-yellow-200/10 bg-yellow-300/50"
+                        }`}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <TrendingUp
-                                className={`h-4 w-4 ${(user.stats?.thisMonthBalance || 0) >= 0 ? "text-cyan-600" : "text-yellow-600"}`}
+                                className={`h-4 w-4 ${
+                                  (user.stats?.thisMonthBalance || 0) >= 0
+                                    ? "text-cyan-600"
+                                    : "text-yellow-600"
+                                }`}
                               />
                               <span
-                                className={`text-sm font-medium ${(user.stats?.thisMonthBalance || 0) >= 0 ? "text-cyan-800" : "text-yellow-800"}`}
+                                className={`text-sm font-medium ${
+                                  (user.stats?.thisMonthBalance || 0) >= 0
+                                    ? "text-cyan-800"
+                                    : "text-yellow-800"
+                                }`}
                               >
                                 Balanço Mensal
                               </span>
                             </div>
                             <Badge
-                              className={`text-white text-xs ${(user.stats?.thisMonthBalance || 0) >= 0 ? "bg-cyan-600" : "bg-yellow-600"}`}
+                              className={`text-white text-xs ${
+                                (user.stats?.thisMonthBalance || 0) >= 0
+                                  ? "bg-cyan-600"
+                                  : "bg-yellow-600"
+                              }`}
                             >
                               {(user.stats?.thisMonthBalance || 0) >= 0
                                 ? "Positivo"
@@ -506,7 +533,11 @@ export default function AdminUsersPage() {
                             </Badge>
                           </div>
                           <p
-                            className={`text-xl font-bold ${(user.stats?.thisMonthBalance || 0) >= 0 ? "text-cyan-700" : "text-yellow-700"}`}
+                            className={`text-xl font-bold ${
+                              (user.stats?.thisMonthBalance || 0) >= 0
+                                ? "text-cyan-700"
+                                : "text-yellow-700"
+                            }`}
                           >
                             R${" "}
                             {(user.stats?.thisMonthBalance || 0).toLocaleString(
@@ -518,7 +549,11 @@ export default function AdminUsersPage() {
                             )}
                           </p>
                           <div
-                            className={`text-xs mt-1 ${(user.stats?.thisMonthBalance || 0) >= 0 ? "text-cyan-600" : "text-yellow-600"}`}
+                            className={`text-xs mt-1 ${
+                              (user.stats?.thisMonthBalance || 0) >= 0
+                                ? "text-cyan-600"
+                                : "text-yellow-600"
+                            }`}
                           >
                             <span>Performance deste mês</span>
                           </div>

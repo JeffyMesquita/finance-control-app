@@ -1,55 +1,32 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAdminGuard } from "@/hooks/use-admin-guard";
 import {
-  Users,
-  UserPlus,
-  TrendingUp,
   Award,
   Calendar,
-  Mail,
   CheckCircle,
   Clock,
+  Crown,
   Loader2,
+  Mail,
   RefreshCw,
   Target,
-  Crown,
 } from "lucide-react";
-import { toast } from "sonner";
-import { useAdminGuard } from "@/hooks/use-admin-guard";
-import { getReferralsData } from "@/app/actions/admin";
+// Hook TanStack Query
+import { useAdminReferralsQuery } from "@/useCases/admin/useAdminReferralsQuery";
 
 export default function AdminReferralsPage() {
   useAdminGuard();
 
-  const [loading, setLoading] = useState(true);
-  const [referralsData, setReferralsData] = useState<any>(null);
-
-  const loadReferralsData = async () => {
-    try {
-      setLoading(true);
-      const result = await getReferralsData();
-      if (result.success && result.data) {
-        setReferralsData(result.data);
-      } else {
-        toast.error("Erro ao carregar dados de referências");
-      }
-    } catch (error) {
-      logger.error("Error loading referrals:", error as Error);
-      toast.error("Erro ao carregar dados de referências");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadReferralsData();
-  }, []);
+  // Hook TanStack Query
+  const {
+    data: referralsData,
+    isLoading: loading,
+    refetch,
+  } = useAdminReferralsQuery();
 
   const getBadgeInfo = (count: number) => {
     if (count >= 10)
@@ -115,7 +92,7 @@ export default function AdminReferralsPage() {
         <p className="text-muted-foreground">
           Erro ao carregar dados de referências
         </p>
-        <Button onClick={loadReferralsData} className="mt-4">
+        <Button onClick={() => refetch()} className="mt-4">
           <RefreshCw className="h-4 w-4 mr-2" />
           Tentar Novamente
         </Button>
@@ -133,7 +110,7 @@ export default function AdminReferralsPage() {
             Análise do sistema de convites e gamificação
           </p>
         </div>
-        <Button onClick={loadReferralsData} variant="outline">
+        <Button onClick={() => refetch()} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           Atualizar
         </Button>

@@ -1,20 +1,8 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,26 +11,37 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getAdminFeedbacks, updateFeedbackStatus } from "@/app/actions/admin";
+import { Input } from "@/components/ui/input";
 import {
-  MessageSquare,
-  Filter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useState } from "react";
+// Hooks TanStack Query
+import {
+  useAdminFeedbacksQuery,
+  useUpdateFeedbackMutation,
+} from "@/useCases/admin/useAdminFeedbacksQuery";
+import {
+  AlertTriangle,
+  Bug,
+  Calendar,
   CheckCircle,
   Clock,
-  Loader2,
-  Calendar,
-  User,
-  Globe,
-  Bug,
-  Lightbulb,
-  Star,
-  AlertTriangle,
   ExternalLink,
-  Edit,
   Eye,
+  Filter,
+  Globe,
+  Lightbulb,
+  Loader2,
+  MessageSquare,
+  Star,
+  User,
 } from "lucide-react";
-import { toast } from "sonner";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 // Types
 interface Feedback {
@@ -108,8 +107,6 @@ const feedbackTypes = [
 ];
 
 export default function AdminFeedbacksPage() {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
     null
   );
@@ -121,81 +118,39 @@ export default function AdminFeedbacksPage() {
     search: "",
   });
 
-  const loadFeedbacks = async () => {
-    try {
-      setLoading(true);
-
-      // Converter "all" para undefined para não filtrar
-      const apiFilters = {
-        type: filters.type === "all" ? undefined : filters.type,
-        status: filters.status === "all" ? undefined : filters.status,
-        priority: filters.priority === "all" ? undefined : filters.priority,
-      };
-
-      const result = await getAdminFeedbacks(apiFilters);
-
-      if (result.success && "data" in result && result.data) {
-        setFeedbacks(result.data.feedbacks);
-      } else {
-        const errorMessage =
-          "error" in result ? result.error : "Erro desconhecido";
-        toast.error(`Erro ao carregar feedbacks: ${errorMessage}`);
-      }
-    } catch (error) {
-      logger.error("Erro inesperado ao carregar feedbacks:", error as Error);
-      toast.error(
-        `Erro inesperado: ${error instanceof Error ? error.message : "Erro desconhecido"}`
-      );
-    } finally {
-      setLoading(false);
-    }
+  // Hooks TanStack Query
+  const apiFilters = {
+    type: filters.type === "all" ? undefined : filters.type,
+    status: filters.status === "all" ? undefined : filters.status,
+    priority: filters.priority === "all" ? undefined : filters.priority,
   };
+
+  const { data, isLoading: loading } = useAdminFeedbacksQuery(apiFilters);
+  const updateFeedbackMutation = useUpdateFeedbackMutation();
+
+  const feedbacks = data?.feedbacks || [];
 
   const handleStatusUpdate = async (feedbackId: string, newStatus: string) => {
     try {
-      const result = await updateFeedbackStatus(feedbackId, {
-        status: newStatus,
-        resolved_at:
-          newStatus === "RESOLVED" ? new Date().toISOString() : undefined,
-        admin_notes: adminNotes || undefined,
+      updateFeedbackMutation.mutate({
+        feedbackId,
+        updates: {
+          status: newStatus,
+          resolved_at:
+            newStatus === "RESOLVED" ? new Date().toISOString() : undefined,
+          admin_notes: adminNotes || undefined,
+        },
       });
 
-      if (result.success) {
-        toast.success("Status atualizado!");
-        loadFeedbacks();
-        setSelectedFeedback(null);
-        setAdminNotes("");
-      } else {
-        toast.error("Erro ao atualizar status");
-      }
+      setSelectedFeedback(null);
+      setAdminNotes("");
     } catch (error) {
-      toast.error("Erro ao atualizar feedback");
+      console.error("Erro ao atualizar feedback:", error);
     }
   };
 
-  useEffect(() => {
-    // Debug: verificar usuário atual
-    const checkCurrentUser = async () => {
-      const supabase = createClientComponentClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      logger.info("Usuário atual na página:", {
-        data: [user ? { id: user.id, email: user.email } : "null"],
-      });
-    };
-
-    checkCurrentUser();
-    loadFeedbacks();
-  }, []);
-
-  // Aplicar filtros
-  useEffect(() => {
-    loadFeedbacks();
-  }, [filters.type, filters.status, filters.priority]);
-
   // Filtrar por busca localmente
-  const filteredFeedbacks = feedbacks.filter((feedback) => {
+  const filteredFeedbacks = feedbacks.filter((feedback: Feedback) => {
     if (!filters.search) return true;
     const searchLower = filters.search.toLowerCase();
     return (
@@ -392,7 +347,7 @@ export default function AdminFeedbacksPage() {
           </div>
 
           <div className="grid gap-4">
-            {filteredFeedbacks.map((feedback) => {
+            {filteredFeedbacks.map((feedback: Feedback) => {
               const typeConfig = getTypeConfig(feedback.type);
               const IconComponent = typeConfig.icon;
 

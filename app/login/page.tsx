@@ -24,7 +24,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import ReCAPTCHA from "react-google-recaptcha";
-import { handleReferral } from "@/app/actions/referrals";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,8 +1,7 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useState, useEffect } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,16 +10,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { logger } from "@/lib/utils/logger";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import {
-  InfoIcon,
   CheckCircle,
-  XCircle,
+  InfoIcon,
   RefreshCw,
   UserPlus,
+  XCircle,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function AuthDebugPage() {
   const [authUser, setAuthUser] = useState<any>(null);

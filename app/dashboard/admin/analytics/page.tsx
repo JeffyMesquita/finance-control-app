@@ -1,46 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { getUsageAnalytics } from "@/app/actions/admin";
-import {
-  BarChart3,
-  Users,
-  Monitor,
-  Smartphone,
-  Tablet,
-  Globe,
-  TrendingUp,
-  Eye,
-  Clock,
-  RefreshCw,
-  Loader2,
-} from "lucide-react";
-import { toast } from "sonner";
+// Hook TanStack Query
+import { useAdminAnalyticsQuery } from "@/useCases/admin/useAdminAnalyticsQuery";
+import { Loader2 } from "lucide-react";
 
 export default function AdminAnalyticsPage() {
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  const loadAnalytics = async () => {
-    try {
-      setLoading(true);
-      const result = await getUsageAnalytics();
-      if (result.success && result.data) {
-        setAnalytics(result.data);
-      }
-    } catch (error) {
-      toast.error("Erro ao carregar analytics");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
+  // Hook TanStack Query
+  const { data: analytics, isLoading: loading } = useAdminAnalyticsQuery();
 
   if (loading) {
     return (

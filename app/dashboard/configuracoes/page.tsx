@@ -32,64 +32,41 @@ import {
   Globe,
   DollarSign,
 } from "lucide-react";
-import { getUserSettings, updateUserSettings } from "@/app/actions/settings";
 import type { UserSettings } from "@/lib/types";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
 
+// Hooks TanStack Query
+import {
+  useUserSettingsQuery,
+  useUpdateUserSettingsMutation,
+} from "@/useCases/useUserSettingsQuery";
+
 export default function ConfiguracoesPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClientComponentClient();
   const user = useProtectedRoute();
 
+  // Hooks TanStack Query
+  const { data: settingsData, isLoading } = useUserSettingsQuery();
+  const updateSettingsMutation = useUpdateUserSettingsMutation();
+
+  // Sincronizar dados do hook com estado local
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        setIsLoading(true);
-        // Obter configurações do usuário
-        const settingsData = await getUserSettings();
-        setSettings(settingsData.data || null);
-      } catch (error) {
-        logger.error("Erro ao carregar configurações:", error as Error);
-        toast({
-          title: "Erro",
-          description:
-            "Não foi possível carregar suas configurações. Tente novamente mais tarde.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSettings();
-  }, [supabase, toast]);
+    if (settingsData) {
+      setSettings(settingsData);
+    }
+  }, [settingsData]);
 
   const handleSettingsUpdate = async () => {
     if (!settings) return;
 
     try {
-      setIsSaving(true);
-
-      await updateUserSettings(settings);
-
-      toast({
-        title: "Configurações atualizadas",
-        description: "Suas preferências foram atualizadas com sucesso.",
-        variant: "success",
-      });
+      await updateSettingsMutation.mutateAsync(settings);
     } catch (error) {
+      // Error handling is done in the mutation hook
       logger.error("Erro ao atualizar configurações:", error as Error);
-      toast({
-        title: "Erro",
-        description:
-          "Não foi possível atualizar suas configurações. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -320,8 +297,11 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div className="mt-6 flex justify-end">
-        <Button onClick={handleSettingsUpdate} disabled={isSaving}>
-          {isSaving ? (
+        <Button
+          onClick={handleSettingsUpdate}
+          disabled={updateSettingsMutation.isPending}
+        >
+          {updateSettingsMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Salvando...

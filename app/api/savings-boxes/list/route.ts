@@ -19,13 +19,13 @@ export async function GET() {
     }
 
     try {
-      // Primeiro, tentar a query completa com relacionamentos
+      // Primeiro, tentar a query completa com relacionamentos específicos
       const { data, error } = await supabase
         .from("savings_boxes")
         .select(
           `
           *,
-          savings_transactions(
+          savings_transactions!savings_transactions_savings_box_id_fkey(
             id,
             amount,
             type,

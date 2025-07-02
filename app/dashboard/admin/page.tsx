@@ -1,59 +1,43 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { useEffect, useState } from "react";
 import { AdminStatsCards } from "@/components/admin/admin-stats-cards";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getAdminStats, AdminStats } from "@/app/actions/admin";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Hooks TanStack Query
+import { useAdminStatsQuery } from "@/useCases/admin/useAdminStatsQuery";
 import {
-  Loader2,
-  RefreshCw,
-  TrendingUp,
-  Users,
-  MessageSquare,
   AlertTriangle,
   CheckCircle,
   ExternalLink,
+  Loader2,
+  MessageSquare,
+  RefreshCw,
+  TrendingUp,
+  Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  // Hooks TanStack Query
+  const {
+    data: stats,
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useAdminStatsQuery();
 
-  const loadData = async (showRefreshToast = false) => {
+  const loading = isLoading;
+  const refreshing = isRefetching;
+
+  const handleRefresh = async () => {
     try {
-      setRefreshing(true);
-
-      const statsResult = await getAdminStats();
-      if (statsResult.success && statsResult.data) {
-        setStats(statsResult.data);
-        if (showRefreshToast) {
-          toast.success("Dados atualizados com sucesso!");
-        }
-      } else {
-        toast.error("Erro ao carregar estatísticas");
-      }
+      await refetch();
+      toast.success("Dados atualizados com sucesso!");
     } catch (error) {
-      logger.error("Erro ao carregar dados:", error as Error);
-      toast.error("Erro ao carregar dados do dashboard");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      toast.error("Erro ao atualizar dados");
     }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleRefresh = () => {
-    loadData(true);
   };
 
   if (loading) {

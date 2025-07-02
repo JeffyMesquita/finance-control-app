@@ -36,18 +36,25 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
-import { getUserProfile, updateUserProfile } from "@/app/actions/profile";
 import type { UserProfile } from "@/lib/types";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useCepSearch } from "@/hooks/use-cep-search";
 
+// Hooks TanStack Query
+import {
+  useUserProfileQuery,
+  useUpdateUserProfileMutation,
+} from "@/useCases/useUserProfileQuery";
+
 export default function PerfilPage() {
   const { user, loading: userLoading } = useCurrentUser();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  // Hooks TanStack Query
+  const { data: profileData, isLoading } = useUserProfileQuery();
+  const updateProfileMutation = useUpdateUserProfileMutation();
   const supabase = createClientComponentClient();
 
   // Hook para busca de CEP com debounce
@@ -108,29 +115,14 @@ export default function PerfilPage() {
       router.push("/login");
       return;
     }
-    setIsLoading(true);
-    getUserProfile()
-      .then((profileData) => {
-        if (profileData) {
-          setProfile(profileData.data || null);
-        } else {
-          // Se não há perfil, usa o perfil inicial
-          setProfile(initialProfile);
-        }
-      })
-      .catch((error) => {
-        logger.error("Erro ao carregar perfil:", error as Error);
-        // Em caso de erro, usa o perfil inicial
-        setProfile(initialProfile);
-        toast({
-          title: "Aviso",
-          description:
-            "Perfil não encontrado. Você pode criar um novo preenchendo as informações abaixo.",
-          variant: "default",
-        });
-      })
-      .finally(() => setIsLoading(false));
-  }, [user, userLoading, router, toast, initialProfile]);
+  }, [user, userLoading, router]);
+
+  // Sincronizar dados do hook com estado local
+  useEffect(() => {
+    if (profileData !== undefined) {
+      setProfile(profileData || initialProfile);
+    }
+  }, [profileData, initialProfile]);
 
   // Efeito para tratar dados do CEP quando obtidos
   useEffect(() => {
@@ -173,28 +165,10 @@ export default function PerfilPage() {
     if (!profile) return;
 
     try {
-      setIsSaving(true);
-
-      const result = await updateUserProfile(profile);
-
-      if (result.success) {
-        toast({
-          title: "Sucesso",
-          description: "Perfil atualizado com sucesso",
-          variant: "success",
-        });
-      } else {
-        throw new Error("Falha ao atualizar perfil");
-      }
+      await updateProfileMutation.mutateAsync(profile);
     } catch (error) {
+      // Error handling is done in the mutation hook
       logger.error("Erro ao atualizar perfil:", error as Error);
-      toast({
-        title: "Erro",
-        description: (error as Error).message || "Falha ao atualizar perfil",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -492,11 +466,11 @@ export default function PerfilPage() {
                           cepError && !isCepLoading && !isCepSearching
                             ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                             : cepData &&
-                                !cepError &&
-                                !isCepLoading &&
-                                !isCepSearching
-                              ? "border-green-300 focus:border-green-500 focus:ring-green-500"
-                              : ""
+                              !cepError &&
+                              !isCepLoading &&
+                              !isCepSearching
+                            ? "border-green-300 focus:border-green-500 focus:ring-green-500"
+                            : ""
                         }`}
                       />
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -573,8 +547,11 @@ export default function PerfilPage() {
               </CardContent>
 
               <CardFooter className="flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? (
+                <Button
+                  type="submit"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  {updateProfileMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Salvando...
