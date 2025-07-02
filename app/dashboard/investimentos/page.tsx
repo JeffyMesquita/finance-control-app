@@ -2,7 +2,7 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +27,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  getInvestments,
-  getInvestmentSummary,
-  deleteInvestment,
-} from "@/app/actions/investments";
-import {
   Investment,
   InvestmentSummary,
   InvestmentCategoryStats,
@@ -41,85 +36,32 @@ import {
 } from "@/lib/types/investments";
 import { InvestmentsPageSkeleton } from "@/components/skeletons";
 
+// Hooks TanStack Query
+import { useInvestmentsQuery } from "@/useCases/investments/useInvestmentsQuery";
+import { useInvestmentSummaryQuery } from "@/useCases/investments/useInvestmentSummaryQuery";
+
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "return" | "amount" | "category" | "date";
 type FilterCategory = "all" | InvestmentCategory;
 
-export default function InvestmentosPage() {
+export default function InvestimentosPage() {
   const { toast } = useToast();
-  const [investments, setInvestments] = useState<Investment[]>([]);
-  const [summary, setSummary] = useState<InvestmentSummary>({
-    total_invested: 0,
-    current_value: 0,
-    total_return: 0,
-    return_percentage: 0,
-    monthly_contributions: 0,
-    active_investments: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Hooks TanStack Query
+  const {
+    data: investments = [],
+    isLoading,
+    error,
+    refetch,
+  } = useInvestmentsQuery();
+  const { data: summary, isLoading: isSummaryLoading } =
+    useInvestmentSummaryQuery();
 
   // Estados da interface
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  async function fetchData() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [investmentsResult, summaryResult] = await Promise.all([
-        getInvestments(),
-        getInvestmentSummary(),
-      ]);
-
-      if (investmentsResult.success && investmentsResult.data) {
-        setInvestments(investmentsResult.data || []);
-      } else {
-        setInvestments([]);
-        toast({
-          title: "Erro",
-          description:
-            investmentsResult.error || "Falha ao carregar investimentos",
-          variant: "destructive",
-        });
-      }
-
-      if (summaryResult.success && summaryResult.data) {
-        setSummary(summaryResult.data);
-      } else {
-        setSummary({
-          total_invested: 0,
-          current_value: 0,
-          total_return: 0,
-          return_percentage: 0,
-          monthly_contributions: 0,
-          active_investments: 0,
-        });
-        toast({
-          title: "Erro",
-          description:
-            summaryResult.error || "Falha ao carregar resumo dos investimentos",
-          variant: "destructive",
-        });
-      }
-    } catch (err) {
-      logger.error("Erro ao carregar dados:", err as Error);
-      setError("Erro ao carregar dados dos investimentos");
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar investimentos",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -128,49 +70,58 @@ export default function InvestmentosPage() {
     }).format(value);
   };
 
-  // Filtros e ordenação
-  const filteredAndSortedInvestments = investments
-    .filter((investment) => {
-      // Filtro por busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        if (!investment.name.toLowerCase().includes(searchLower)) {
-          return false;
-        }
-      }
+  // Filtros e ordenação com useMemo para otimização
+  const filteredAndSortedInvestments = useMemo(
+    () =>
+      investments
+        .filter((investment) => {
+          // Filtro por busca
+          if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            if (!investment.name.toLowerCase().includes(searchLower)) {
+              return false;
+            }
+          }
 
-      // Filtro por categoria
-      if (filterCategory !== "all" && investment.category !== filterCategory) {
-        return false;
-      }
+          // Filtro por categoria
+          if (
+            filterCategory !== "all" &&
+            investment.category !== filterCategory
+          ) {
+            return false;
+          }
 
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "return":
-          const returnA =
-            ((a.current_amount - a.initial_amount) / a.initial_amount) * 100;
-          const returnB =
-            ((b.current_amount - b.initial_amount) / b.initial_amount) * 100;
-          return returnB - returnA;
-        case "amount":
-          return b.current_amount - a.current_amount;
-        case "category":
-          return INVESTMENT_CATEGORIES[a.category].localeCompare(
-            INVESTMENT_CATEGORIES[b.category]
-          );
-        case "date":
-          return (
-            new Date(b.investment_date).getTime() -
-            new Date(a.investment_date).getTime()
-          );
-        default:
-          return 0;
-      }
-    });
+          return true;
+        })
+        .sort((a, b) => {
+          switch (sortBy) {
+            case "name":
+              return a.name.localeCompare(b.name);
+            case "return":
+              const returnA =
+                ((a.current_amount - a.initial_amount) / a.initial_amount) *
+                100;
+              const returnB =
+                ((b.current_amount - b.initial_amount) / b.initial_amount) *
+                100;
+              return returnB - returnA;
+            case "amount":
+              return b.current_amount - a.current_amount;
+            case "category":
+              return INVESTMENT_CATEGORIES[a.category].localeCompare(
+                INVESTMENT_CATEGORIES[b.category]
+              );
+            case "date":
+              return (
+                new Date(b.investment_date).getTime() -
+                new Date(a.investment_date).getTime()
+              );
+            default:
+              return 0;
+          }
+        }),
+    [investments, searchTerm, filterCategory, sortBy]
+  );
 
   // Estados de carregamento
   if (isLoading) {
@@ -187,8 +138,10 @@ export default function InvestmentosPage() {
             <h3 className="text-lg font-semibold mb-2">
               Erro ao carregar investimentos
             </h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchData}>Tentar Novamente</Button>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : "Erro inesperado"}
+            </p>
+            <Button onClick={() => refetch()}>Tentar Novamente</Button>
           </CardContent>
         </Card>
       </div>
@@ -235,13 +188,13 @@ export default function InvestmentosPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Investimentos</h1>
           <p className="text-muted-foreground">
-            {summary.active_investments}{" "}
-            {summary.active_investments === 1
+            {summary?.active_investments || 0}{" "}
+            {(summary?.active_investments || 0) === 1
               ? "investimento"
               : "investimentos"}{" "}
-            •{formatCurrency(summary.current_value)} •
-            {summary.return_percentage >= 0 ? "+" : ""}
-            {summary.return_percentage.toFixed(2)}%
+            •{formatCurrency(summary?.current_value || 0)} •
+            {(summary?.return_percentage || 0) >= 0 ? "+" : ""}
+            {(summary?.return_percentage || 0).toFixed(2)}%
           </p>
         </div>
         <Button>
@@ -251,70 +204,78 @@ export default function InvestmentosPage() {
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Valor Investido
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(summary.total_invested)}
-            </div>
-          </CardContent>
-        </Card>
+      {summary && !isSummaryLoading && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Valor Investido
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(summary.total_invested)}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Valor Atual</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(summary.current_value)}
-            </div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valor Atual</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(summary.current_value)}
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rentabilidade</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(summary.total_return)}
-            </div>
-            <p
-              className={`text-xs ${summary.return_percentage >= 0 ? "text-green-600" : "text-red-600"}`}
-            >
-              {summary.return_percentage >= 0 ? "+" : ""}
-              {summary.return_percentage.toFixed(2)}%
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Rentabilidade
+              </CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {formatCurrency(summary.total_return)}
+              </div>
+              <p
+                className={`text-xs ${
+                  summary.return_percentage >= 0
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
+                {summary.return_percentage >= 0 ? "+" : ""}
+                {summary.return_percentage.toFixed(2)}%
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Investimentos Ativos
-            </CardTitle>
-            <PiggyBank className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {summary.active_investments}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {summary.active_investments === 1
-                ? "investimento"
-                : "investimentos"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Investimentos Ativos
+              </CardTitle>
+              <PiggyBank className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {summary.active_investments}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {summary.active_investments === 1
+                  ? "investimento"
+                  : "investimentos"}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Filtros e Controles */}
       <div className="space-y-4">
@@ -462,10 +423,14 @@ export default function InvestmentosPage() {
                         {formatCurrency(investment.current_amount)}
                       </p>
                       <div
-                        className={`flex items-center text-sm ${isPositive ? "text-green-600" : "text-red-600"}`}
+                        className={`flex items-center text-sm ${
+                          isPositive ? "text-green-600" : "text-red-600"
+                        }`}
                       >
                         <TrendingUp
-                          className={`h-3 w-3 mr-1 ${!isPositive ? "rotate-180" : ""}`}
+                          className={`h-3 w-3 mr-1 ${
+                            !isPositive ? "rotate-180" : ""
+                          }`}
                         />
                         {isPositive ? "+" : ""}
                         {formatCurrency(returnAmount)} (

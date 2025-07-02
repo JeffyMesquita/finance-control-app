@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  getSavingsBoxes,
-  getSavingsBoxesStats,
-} from "@/app/actions/savings-boxes";
 import { SavingsBoxCard } from "@/components/savings-box-card";
 import { SavingsBoxDialog } from "@/components/savings-box-dialog";
 import { SavingsHistoryList } from "@/components/savings-history-list";
@@ -29,19 +25,26 @@ import {
   Plus,
   Search,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
+
+// Hooks TanStack Query
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
+import { useSavingsBoxesStatsQuery } from "@/useCases/savings-boxes/useSavingsBoxesStatsQuery";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "amount" | "progress" | "created";
 
 export default function CofrinhosDashboard() {
-  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBoxWithRelations[]>(
-    []
-  );
-  const [stats, setStats] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Hooks TanStack Query
+  const {
+    data: savingsBoxes = [],
+    isLoading,
+    error,
+    refetch,
+  } = useSavingsBoxesQuery();
+  const { data: stats, isLoading: isStatsLoading } =
+    useSavingsBoxesStatsQuery();
 
   // Estados da interface
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -50,98 +53,70 @@ export default function CofrinhosDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [boxesResult, statsResult] = await Promise.all([
-        getSavingsBoxes(),
-        getSavingsBoxesStats(),
-      ]);
-
-      if (boxesResult.success && boxesResult.data) {
-        setSavingsBoxes(boxesResult.data || []);
-      } else {
-        setSavingsBoxes([]);
-        toast.error(boxesResult.error || "Erro ao carregar cofrinhos");
-      }
-
-      if (statsResult.success && statsResult.data) {
-        setStats(statsResult.data);
-      } else {
-        setStats(null);
-        toast.error(statsResult.error || "Erro ao carregar estatísticas");
-      }
-    } catch (err) {
-      setError("Erro ao carregar dados dos cofrinhos");
-      toast.error("Erro ao carregar dados dos cofrinhos");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleCreateSuccess = () => {
-    loadData();
+    refetch();
     setIsCreateDialogOpen(false);
   };
 
   const handleUpdateSuccess = () => {
-    loadData();
+    refetch();
   };
 
-  // Filtros e ordenação
-  const filteredAndSortedBoxes = savingsBoxes
-    .filter((box) => {
-      // Filtro por busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        if (
-          !box.name.toLowerCase().includes(searchLower) &&
-          !box.description?.toLowerCase().includes(searchLower)
-        ) {
-          return false;
-        }
-      }
+  // Filtros e ordenação com useMemo para otimização
+  const filteredAndSortedBoxes = useMemo(
+    () =>
+      savingsBoxes
+        .filter((box) => {
+          // Filtro por busca
+          if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            if (
+              !box.name.toLowerCase().includes(searchLower) &&
+              !box.description?.toLowerCase().includes(searchLower)
+            ) {
+              return false;
+            }
+          }
 
-      // Filtro por status
-      if (filterStatus === "with-goal" && !box.target_amount) return false;
-      if (filterStatus === "without-goal" && box.target_amount) return false;
-      if (
-        filterStatus === "completed" &&
-        (!box.target_amount || (box.current_amount || 0) < box.target_amount)
-      )
-        return false;
-      if (filterStatus === "empty" && (box.current_amount || 0) > 0)
-        return false;
+          // Filtro por status
+          if (filterStatus === "with-goal" && !box.target_amount) return false;
+          if (filterStatus === "without-goal" && box.target_amount)
+            return false;
+          if (
+            filterStatus === "completed" &&
+            (!box.target_amount ||
+              (box.current_amount || 0) < box.target_amount)
+          )
+            return false;
+          if (filterStatus === "empty" && (box.current_amount || 0) > 0)
+            return false;
 
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "amount":
-          return (b.current_amount || 0) - (a.current_amount || 0);
-        case "progress":
-          const progressA = a.target_amount
-            ? ((a.current_amount || 0) / a.target_amount) * 100
-            : 0;
-          const progressB = b.target_amount
-            ? ((b.current_amount || 0) / b.target_amount) * 100
-            : 0;
-          return progressB - progressA;
-        case "created":
-          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return dateB - dateA;
-        default:
-          return 0;
-      }
-    });
+          return true;
+        })
+        .sort((a, b) => {
+          switch (sortBy) {
+            case "name":
+              return a.name.localeCompare(b.name);
+            case "amount":
+              return (b.current_amount || 0) - (a.current_amount || 0);
+            case "progress":
+              const progressA = a.target_amount
+                ? ((a.current_amount || 0) / a.target_amount) * 100
+                : 0;
+              const progressB = b.target_amount
+                ? ((b.current_amount || 0) / b.target_amount) * 100
+                : 0;
+              return progressB - progressA;
+            case "created":
+              const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+              const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return dateB - dateA;
+            default:
+              return 0;
+          }
+        }),
+    [savingsBoxes, searchTerm, filterStatus, sortBy]
+  );
 
   // Estado de carregamento
   if (isLoading) {
@@ -158,8 +133,10 @@ export default function CofrinhosDashboard() {
             <h3 className="text-lg font-semibold mb-2">
               Erro ao carregar cofrinhos
             </h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={loadData}>Tentar Novamente</Button>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : "Erro inesperado"}
+            </p>
+            <Button onClick={() => refetch()}>Tentar Novamente</Button>
           </CardContent>
         </Card>
       </div>
@@ -232,7 +209,7 @@ export default function CofrinhosDashboard() {
       </div>
 
       {/* Estatísticas Rápidas */}
-      {stats && (
+      {stats && !isStatsLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-stone-100 dark:bg-stone-900">
             <CardContent className="p-4 text-center">
