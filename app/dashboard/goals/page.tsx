@@ -2,7 +2,6 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { deleteGoal, getGoals } from "@/app/actions/goals";
 import { ContributeDialog } from "@/components/contribute-dialog";
 import { GoalCard } from "@/components/goal-card";
 import { GoalDialog } from "@/components/goal-dialog";
@@ -39,8 +38,12 @@ import {
   Search,
   Target,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { GoalData } from "@/lib/types/actions";
+
+// Hooks TanStack Query
+import { useGoalsQuery } from "@/useCases/goals/useGoalsQuery";
+import { useDeleteGoalMutation } from "@/useCases/goals/useDeleteGoalMutation";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "progress" | "target_date" | "target_amount" | "created";
@@ -73,9 +76,10 @@ type Goal = {
 
 export default function GoalsPage() {
   const { toast } = useToast();
-  const [goals, setGoals] = useState<GoalData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Hooks TanStack Query
+  const { data: goals = [], isLoading, error, refetch } = useGoalsQuery();
+  const deleteGoalMutation = useDeleteGoalMutation();
 
   // Estados da interface
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -88,29 +92,6 @@ export default function GoalsPage() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
-
-  useEffect(() => {
-    fetchGoals();
-  }, []);
-
-  async function fetchGoals() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await getGoals();
-      setGoals(data.data || ([] as GoalData[]));
-    } catch (err) {
-      logger.error("Erro ao carregar metas:", err as Error);
-      setError("Erro ao carregar dados das metas");
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar metas",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   const handleCreateGoal = () => {
     setSelectedGoal(null);
@@ -134,25 +115,10 @@ export default function GoalsPage() {
     if (!goalToDelete) return;
 
     try {
-      const result = await deleteGoal(goalToDelete.id);
-      if (result.success) {
-        toast({
-          title: "Sucesso",
-          description: "Meta excluída com sucesso",
-          variant: "success",
-        });
-        fetchGoals();
-      } else {
-        throw new Error(result.error || "Falha ao excluir meta");
-      }
+      await deleteGoalMutation.mutateAsync(goalToDelete.id);
     } catch (error) {
+      // Error handling is done in the mutation hook
       logger.error("Erro ao excluir meta:", error as Error);
-      toast({
-        title: "Erro",
-        description:
-          error instanceof Error ? error.message : "Falha ao excluir meta",
-        variant: "destructive",
-      });
     } finally {
       setIsDeleteAlertOpen(false);
       setGoalToDelete(null);
@@ -170,75 +136,82 @@ export default function GoalsPage() {
   };
 
   const handleSuccess = () => {
-    fetchGoals();
+    refetch();
   };
 
-  // Calcular estatísticas
-  const stats = {
-    total_goals: goals.length,
-    active_goals: goals.filter((g) => !g.is_completed).length,
-    completed_goals: goals.filter((g) => g.is_completed).length,
-    total_target: goals.reduce((sum, g) => sum + g.target_amount, 0),
-    total_saved: goals.reduce((sum, g) => sum + g.current_amount, 0),
-    average_progress:
-      goals.length > 0
-        ? Math.round(
-            goals.reduce(
-              (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
-              0
-            ) / goals.length
+  // Calcular estatísticas com useMemo para otimização
+  const stats = useMemo(
+    () => ({
+      total_goals: goals.length,
+      active_goals: goals.filter((g) => !g.is_completed).length,
+      completed_goals: goals.filter((g) => g.is_completed).length,
+      total_target: goals.reduce((sum, g) => sum + g.target_amount, 0),
+      total_saved: goals.reduce((sum, g) => sum + g.current_amount, 0),
+      average_progress:
+        goals.length > 0
+          ? Math.round(
+              goals.reduce(
+                (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
+                0
+              ) / goals.length
+            )
+          : 0,
+      overdue_goals: goals.filter(
+        (g) => !g.is_completed && new Date(g.target_date) < new Date()
+      ).length,
+    }),
+    [goals]
+  );
+
+  // Filtros e ordenação com useMemo para otimização
+  const filteredAndSortedGoals = useMemo(
+    () =>
+      goals
+        .filter((goal) => {
+          // Filtro por busca
+          if (searchTerm) {
+            const searchLower = searchTerm.toLowerCase();
+            if (!goal.name.toLowerCase().includes(searchLower)) {
+              return false;
+            }
+          }
+
+          // Filtro por status
+          if (filterStatus === "active" && goal.is_completed) return false;
+          if (filterStatus === "completed" && !goal.is_completed) return false;
+          if (
+            filterStatus === "overdue" &&
+            (goal.is_completed || new Date(goal.target_date) >= new Date())
           )
-        : 0,
-    overdue_goals: goals.filter(
-      (g) => !g.is_completed && new Date(g.target_date) < new Date()
-    ).length,
-  };
+            return false;
 
-  // Filtros e ordenação
-  const filteredAndSortedGoals = goals
-    .filter((goal) => {
-      // Filtro por busca
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        if (!goal.name.toLowerCase().includes(searchLower)) {
-          return false;
-        }
-      }
-
-      // Filtro por status
-      if (filterStatus === "active" && goal.is_completed) return false;
-      if (filterStatus === "completed" && !goal.is_completed) return false;
-      if (
-        filterStatus === "overdue" &&
-        (goal.is_completed || new Date(goal.target_date) >= new Date())
-      )
-        return false;
-
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "progress":
-          const progressA = (a.current_amount / a.target_amount) * 100;
-          const progressB = (b.current_amount / b.target_amount) * 100;
-          return progressB - progressA;
-        case "target_amount":
-          return b.target_amount - a.target_amount;
-        case "target_date":
-          return (
-            new Date(a.target_date).getTime() -
-            new Date(b.target_date).getTime()
-          );
-        case "created":
-          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return dateB - dateA;
-        default:
-          return 0;
-      }
-    });
+          return true;
+        })
+        .sort((a, b) => {
+          switch (sortBy) {
+            case "name":
+              return a.name.localeCompare(b.name);
+            case "progress":
+              const progressA = (a.current_amount / a.target_amount) * 100;
+              const progressB = (b.current_amount / b.target_amount) * 100;
+              return progressB - progressA;
+            case "target_amount":
+              return b.target_amount - a.target_amount;
+            case "target_date":
+              return (
+                new Date(a.target_date).getTime() -
+                new Date(b.target_date).getTime()
+              );
+            case "created":
+              const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+              const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return dateB - dateA;
+            default:
+              return 0;
+          }
+        }),
+    [goals, searchTerm, filterStatus, sortBy]
+  );
 
   // Estado de carregamento
   if (isLoading) {
@@ -255,8 +228,10 @@ export default function GoalsPage() {
             <h3 className="text-lg font-semibold mb-2">
               Erro ao carregar metas
             </h3>
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchGoals}>Tentar Novamente</Button>
+            <p className="text-muted-foreground mb-4">
+              {error instanceof Error ? error.message : "Erro inesperado"}
+            </p>
+            <Button onClick={() => refetch()}>Tentar Novamente</Button>
           </CardContent>
         </Card>
       </div>
@@ -527,8 +502,9 @@ export default function GoalsPage() {
             <AlertDialogAction
               onClick={confirmDeleteGoal}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteGoalMutation.isPending}
             >
-              Excluir
+              {deleteGoalMutation.isPending ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
