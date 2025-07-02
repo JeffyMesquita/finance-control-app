@@ -25,10 +25,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
-import { createTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
 import { Switch } from "@/components/ui/switch";
+import { useCreateTransactionMutation } from "@/useCases/transactions/useCreateTransactionMutation";
 
 interface AddTransactionDialogProps {
   open: boolean;
@@ -106,6 +106,31 @@ export function AddTransactionDialog({
     ...INITIAL_FORM_DATA,
     category_id: categories[0]?.id,
     account_id: accounts[0]?.id,
+  });
+
+  const createMutation = useCreateTransactionMutation({
+    onSuccess: () => {
+      toast({
+        title: "Transação Criada",
+        description:
+          "Sua transação foi registrada com sucesso e já está disponível no histórico.",
+        variant: "success",
+      });
+      onSuccess?.();
+      onOpenChange(false);
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      logger.error("Erro ao criar transação:", error);
+      toast({
+        title: "Erro ao Criar",
+        description:
+          error.message ||
+          "Não foi possível registrar a transação. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    },
   });
 
   useEffect(() => {
@@ -231,16 +256,10 @@ export function AddTransactionDialog({
         Number(formData.installment_number) > 1
       ) {
         const installments = Number(formData.installment_number);
-
         const installmentPromises = [];
-
         for (let i = 0; i < installments; i++) {
-          // Calcular a data da parcela (mesmo dia em meses subsequentes)
           const installmentDate = new Date(brasiliaDate);
           installmentDate.setMonth(installmentDate.getMonth() + i);
-
-          // Ajustar o valor da última parcela para incluir o resto da divisão
-
           const installmentTransaction = {
             ...baseTransaction,
             type: baseTransaction.type as "EXPENSE" | "INCOME",
@@ -252,24 +271,25 @@ export function AddTransactionDialog({
             installment_number: i + 1,
             total_installments: installments,
           };
-
-          installmentPromises.push(createTransaction(installmentTransaction));
+          installmentPromises.push(
+            createMutation.mutateAsync(installmentTransaction)
+          );
         }
-
-        const results = await Promise.all(installmentPromises);
-        const hasError = results.some((result) => !result.success);
-
+        const results = await Promise.allSettled(installmentPromises);
+        const hasError = results.some((r) => r.status === "rejected");
         if (hasError) {
           throw new Error("Ocorreu um erro ao criar algumas parcelas");
         }
-
         toast({
           title: "Sucesso",
           description: `Transação parcelada em ${installments}x criada com sucesso`,
           variant: "success",
         });
+        onSuccess?.();
+        onOpenChange(false);
+        setIsSubmitting(false);
       } else {
-        // Transação única (não parcelada)
+        // Transação única
         const transaction = {
           ...baseTransaction,
           amount: Math.round(Number(baseTransaction.amount)),
@@ -277,31 +297,17 @@ export function AddTransactionDialog({
           total_installments: null,
           type: baseTransaction.type as "EXPENSE" | "INCOME",
         };
-
-        const result = await createTransaction(transaction);
-
-        if (result.success) {
-          toast({
-            title: "Transação Criada",
-            description:
-              "Sua transação foi registrada com sucesso e já está disponível no histórico.",
-            variant: "success",
-          });
-          onSuccess?.();
-          onOpenChange(false);
-        } else {
-          throw new Error(result.error || "Falha ao criar transação");
-        }
+        await createMutation.mutateAsync(transaction);
       }
     } catch (error) {
       logger.error("Erro ao criar transação:", error as Error);
       toast({
         title: "Erro ao Criar",
         description:
+          (error as Error).message ||
           "Não foi possível registrar a transação. Tente novamente mais tarde.",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };

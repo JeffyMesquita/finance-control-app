@@ -15,6 +15,7 @@ import { getRecentTransactions } from "@/app/actions/transactions";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
 import { RecentTransactionsSkeleton } from "@/components/skeletons";
 import { TransactionData } from "@/lib/types/actions";
+import { useRecentTransactionsQuery } from "@/useCases/useRecentTransactionsQuery";
 
 type Category = {
   id: string;
@@ -64,36 +65,13 @@ interface RecentTransactionsProps {
 }
 
 export function RecentTransactions({ className }: RecentTransactionsProps) {
-  const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchTransactions() {
-      try {
-        const result = await getRecentTransactions(7);
-        if (result.success && result.data) {
-          setTransactions(result.data);
-        } else {
-          logger.error(
-            "Erro ao carregar transações:",
-            new Error(result.error || "Falha ao carregar transações recentes")
-          );
-        }
-      } catch (error) {
-        logger.error("Erro ao carregar transações:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchTransactions();
-  }, []);
+  const { data: transactions, isLoading } = useRecentTransactionsQuery(7);
 
   if (isLoading) {
     return <RecentTransactionsSkeleton className={className} />;
   }
 
-  if (transactions.length === 0) {
+  if (!transactions || transactions.length === 0) {
     return (
       <Card className={cn("bg-stone-100 dark:bg-stone-900", className)}>
         <CardHeader>

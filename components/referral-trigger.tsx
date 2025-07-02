@@ -1,42 +1,26 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { useEffect, useState } from "react";
+import { useProcessReferral } from "@/useCases/useProcessReferral";
+import { useEffect } from "react";
 
 export function ReferralTrigger() {
-  const [processed, setProcessed] = useState(false);
+  const { mutate } = useProcessReferral();
 
   useEffect(() => {
-    // Evita processamento múltiplo
-    if (processed) return;
-
-    const processReferral = async () => {
-      const referralId = localStorage.getItem("referral_id");
-      if (!referralId) return;
-
-      try {
-        const response = await fetch("/api/referrals", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ referralId }),
-        });
-
-        const result = await response.json();
-
-        // Remove do localStorage após processar
-        localStorage.removeItem("referral_id");
-        setProcessed(true);
-      } catch (error) {
-        logger.error("Erro ao processar referral:", error as Error);
-      }
-    };
+    const referralId = localStorage.getItem("referral_id");
+    if (!referralId) return;
 
     // Aguarda 2 segundos para garantir que o usuário está autenticado
-    const timer = setTimeout(processReferral, 2000);
+    const timer = setTimeout(() => {
+      mutate(referralId, {
+        onSuccess: () => {
+          localStorage.removeItem("referral_id");
+        },
+      });
+    }, 2000);
+
     return () => clearTimeout(timer);
-  }, [processed]);
+  }, [mutate]);
 
   return null; // Componente invisível
 }
-

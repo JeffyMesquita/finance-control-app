@@ -1,35 +1,37 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useEffect, useState } from "react";
+import { DashboardCardsSkeleton } from "@/components/skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
+import { useDashboardDataQuery } from "@/useCases/useDashboardDataQuery";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  DollarSign,
-  CreditCard,
   Calendar,
-  TrendingUp,
-  TrendingDown,
-  PiggyBank,
+  CreditCard,
+  DollarSign,
   Eye,
   EyeOff,
+  PiggyBank,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
-import { getDashboardData } from "@/app/actions/dashboard";
-import { formatCurrency } from "@/lib/utils";
-import { supabaseCache } from "@/lib/supabase/cache";
-import { DashboardCardsSkeleton } from "@/components/skeletons";
-import { DashboardData } from "@/lib/types/actions";
-
-const CACHE_KEY = "dashboard-data";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+import { useState } from "react";
 
 export function DashboardCards() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+  const { toast } = useToast();
   const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>({});
+
+  const { data, isLoading, error } = useDashboardDataQuery({
+    onError(error) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const toggleVisibility = (cardId: string) => {
     setVisibleCards((prev) => ({
@@ -38,52 +40,11 @@ export function DashboardCards() {
     }));
   };
 
-  const fetchData = async () => {
-    try {
-      // Check cache first
-      const cachedData = supabaseCache.get(CACHE_KEY);
-      if (
-        cachedData &&
-        typeof cachedData === "object" &&
-        "totalBalance" in cachedData
-      ) {
-        setData(cachedData as DashboardData);
-        setLoading(false);
-        return;
-      }
-
-      const result = await getDashboardData();
-
-      if (!result.success || !result.data) {
-        if (retryCount < MAX_RETRIES) {
-          setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            fetchData();
-          }, RETRY_DELAY);
-          return;
-        }
-        throw new Error(result.error || "Failed to fetch dashboard data");
-      }
-
-      setData(result.data);
-      // Cache the data
-      supabaseCache.set(CACHE_KEY, result.data);
-    } catch (error) {
-      logger.error("Error fetching dashboard data:", error as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return <DashboardCardsSkeleton />;
   }
 
-  if (!data) return null;
+  if (error || !data) return null;
 
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-4">
@@ -100,7 +61,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-orange-500 dark:text-orange-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.totalBalance)
@@ -154,7 +115,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-green-500 dark:text-green-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlyIncome)
@@ -208,7 +169,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-red-500 dark:text-red-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlyExpenses)
@@ -262,7 +223,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.monthlySavings)
@@ -318,7 +279,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-red-500 dark:text-red-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.nextMonthExpenses)
@@ -372,7 +333,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.nextMonthIncome)
@@ -426,7 +387,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.gastosFuturos)
@@ -478,7 +439,7 @@ export function DashboardCards() {
         </CardHeader>
         <CardContent>
           <div className="text-lg font-bold text-emerald-500 dark:text-emerald-400">
-            {loading ? (
+            {isLoading ? (
               <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
             ) : (
               `${data.incomeCount} entradas`
@@ -486,7 +447,7 @@ export function DashboardCards() {
           </div>
           <div className="text-xs text-emerald-700 dark:text-emerald-300">
             Maior entrada:{" "}
-            {loading ? (
+            {isLoading ? (
               <span className="h-4 w-12 inline-block animate-pulse rounded bg-muted"></span>
             ) : (
               formatCurrency(data.maxIncome)
@@ -506,7 +467,7 @@ export function DashboardCards() {
         </CardHeader>
         <CardContent>
           <div className="text-lg font-bold text-rose-500 dark:text-rose-400">
-            {loading ? (
+            {isLoading ? (
               <div className="h-5 w-16 animate-pulse rounded bg-muted"></div>
             ) : (
               `${data.expenseCount} despesas`
@@ -514,7 +475,7 @@ export function DashboardCards() {
           </div>
           <div className="text-xs text-rose-700 dark:text-rose-300">
             Maior despesa:{" "}
-            {loading ? (
+            {isLoading ? (
               <span className="h-4 w-12 inline-block animate-pulse rounded bg-muted"></span>
             ) : (
               formatCurrency(data.maxExpense)
@@ -537,7 +498,7 @@ export function DashboardCards() {
           <div className="flex justify-between items-start mb-2">
             <div className="relative w-full">
               <div className="text-2xl font-bold text-yellow-500 dark:text-yellow-400">
-                {loading ? (
+                {isLoading ? (
                   <div className="h-7 w-24 animate-pulse rounded bg-muted"></div>
                 ) : (
                   formatCurrency(data.savings)

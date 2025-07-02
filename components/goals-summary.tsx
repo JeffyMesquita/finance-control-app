@@ -1,12 +1,12 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { getGoals } from "@/app/actions/goals";
+import { useGoalsQuery } from "@/useCases/useGoalsQuery";
+import { useToast } from "@/hooks/use-toast";
 import {
   Target,
   Plus,
@@ -48,71 +48,50 @@ interface GoalsSummaryProps {
 }
 
 export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
-  const [goals, setGoals] = useState<GoalData[]>([]);
-  const [stats, setStats] = useState<GoalsStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
   const pathname = usePathname();
 
   // Verifica se estamos na página de metas
   const isOnGoalsPage = pathname === "/dashboard/goals";
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const {
+    data: goals,
+    isLoading,
+    error,
+  } = useGoalsQuery({
+    onError(error) {
+      toast({
+        title: "Erro ao carregar metas",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const result = await getGoals();
-      if (result.success && result.data) {
-        const goalsData = result.data as GoalData[];
-        setGoals(goalsData || []);
+  // Calcular estatísticas usando useMemo para otimização
+  const stats = useMemo((): GoalsStats | null => {
+    if (!goals || goals.length === 0) return null;
 
-        // Calcular estatísticas
-        const stats: GoalsStats = {
-          total_goals: goalsData.length,
-          active_goals: goalsData.filter((g) => !g.is_completed).length,
-          completed_goals: goalsData.filter((g) => g.is_completed).length,
-          total_target: goalsData.reduce(
-            (sum, g) => sum + g.target_amount / 100,
-            0
-          ),
-          total_saved: goalsData.reduce(
-            (sum, g) => sum + g.current_amount / 100,
-            0
-          ),
-          average_progress:
-            goalsData.length > 0
-              ? Math.round(
-                  goalsData.reduce(
-                    (sum, g) =>
-                      sum + (g.current_amount / g.target_amount) * 100,
-                    0
-                  ) / goalsData.length
-                )
-              : 0,
-          overdue_goals: goalsData.filter(
-            (g) => !g.is_completed && new Date(g.target_date) < new Date()
-          ).length,
-        };
-
-        setStats(stats);
-      } else {
-        logger.error(
-          "Erro ao carregar dados das metas:",
-          new Error(result.error || "Falha ao carregar metas")
-        );
-        setGoals([]);
-        setStats(null);
-      }
-    } catch (error) {
-      logger.error("Erro ao carregar dados das metas:", error as Error);
-      setGoals([]);
-      setStats(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return {
+      total_goals: goals.length,
+      active_goals: goals.filter((g) => !g.is_completed).length,
+      completed_goals: goals.filter((g) => g.is_completed).length,
+      total_target: goals.reduce((sum, g) => sum + g.target_amount / 100, 0),
+      total_saved: goals.reduce((sum, g) => sum + g.current_amount / 100, 0),
+      average_progress:
+        goals.length > 0
+          ? Math.round(
+              goals.reduce(
+                (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
+                0
+              ) / goals.length
+            )
+          : 0,
+      overdue_goals: goals.filter(
+        (g) => !g.is_completed && new Date(g.target_date) < new Date()
+      ).length,
+    };
+  }, [goals]);
 
   if (isLoading) {
     return (
@@ -134,7 +113,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
     );
   }
 
-  if (!stats || goals.length === 0) {
+  if (error || !goals || !stats || goals.length === 0) {
     return (
       <Card className="bg-stone-100 dark:bg-stone-900">
         <CardHeader>

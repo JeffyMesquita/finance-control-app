@@ -18,19 +18,18 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AddTransactionDialog } from "./add-transaction-dialog";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useUserProfileQuery } from "@/useCases/useUserProfileQuery";
 
 const SESSION_KEY = "welcomeCardDismissed";
 
 export function WelcomeCard() {
   const { user, loading: userLoading } = useCurrentUser();
-  const [userName, setUserName] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: profile, isLoading: profileLoading } = useUserProfileQuery();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
 
   const router = useRouter();
-  const supabase = useMemo(() => createClientComponentClient(), []);
 
   const handleClose = () => {
     setVisible(false);
@@ -41,33 +40,6 @@ export function WelcomeCard() {
     const isDismissed = localStorage.getItem(SESSION_KEY) === "true";
     setVisible(!isDismissed);
   }, []);
-
-  useEffect(() => {
-    async function fetchUserProfile() {
-      if (!user) return;
-      try {
-        const { data: profile } = await supabase
-          .from("user_profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .single();
-        if (profile?.full_name) {
-          setUserName(profile.full_name);
-        } else if (user.user_metadata?.full_name) {
-          setUserName(user.user_metadata.full_name);
-        } else {
-          setUserName("usuário");
-        }
-      } catch (error) {
-        logger.error("Erro ao buscar perfil:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    if (user && !userLoading) {
-      fetchUserProfile();
-    }
-  }, [user, userLoading, supabase]);
 
   const handleAddTransaction = () => {
     router.push("/dashboard/transactions");
@@ -81,9 +53,12 @@ export function WelcomeCard() {
   };
 
   // Não renderiza se não está visível, se não tem usuário ou está carregando
-  if (!visible || !user || isLoading || userLoading) {
+  if (!visible || !user || profileLoading || userLoading) {
     return null;
   }
+
+  const userName =
+    profile?.full_name || user.user_metadata?.full_name || "usuário";
 
   return (
     <AnimatePresence>
@@ -150,4 +125,3 @@ export function WelcomeCard() {
     </AnimatePresence>
   );
 }
-

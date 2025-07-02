@@ -40,6 +40,7 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@supabase/auth-helpers-nextjs": "latest",
     "@supabase/supabase-js": "latest",
+    "@tanstack/react-query": "^5.81.5",
     "@vercel/analytics": "^1.5.0",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -80,5 +81,6 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@10.0.0+sha512.b8fef5494bd3fe4cbd4edabd0745df2ee5be3e4b0b8b08fa643aa3e4c6702ccc0f00d68fa8a8c9858a735a0032485a44990ed2810526c875e416f001b17df12b"
 }

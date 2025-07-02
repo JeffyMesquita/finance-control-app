@@ -1,18 +1,17 @@
 "use client";
 
+import { AuthGuard } from "@/components/auth-guard";
 import { DashboardCards } from "@/components/dashboard-cards";
-import { RecentTransactions } from "@/components/recent-transactions";
+import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart";
 import { FinancialOverview } from "@/components/financial-overview";
 import { GoalsSummary } from "@/components/goals-summary";
-import { SavingsSummary } from "@/components/savings-summary";
-import { WelcomeCard } from "@/components/welcome-card";
-import { ExpensesByCategoryChart } from "@/components/expenses-by-category-chart";
 import { PixSupportAlert } from "@/components/pix-support-alert";
-import { ShareAppAlert } from "@/components/share-app-alert";
-import { PaymentReminders } from "@/components/payment-reminders";
-import { AuthGuard } from "@/components/auth-guard";
-import { useEffect } from "react";
+import { RecentTransactions } from "@/components/recent-transactions";
 import { ReferralTrigger } from "@/components/referral-trigger";
+import { SavingsSummary } from "@/components/savings-summary";
+import { ShareAppAlert } from "@/components/share-app-alert";
+import { WelcomeCard } from "@/components/welcome-card";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   useEffect(() => {

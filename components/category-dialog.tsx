@@ -2,7 +2,6 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { createCategory, updateCategory } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +26,8 @@ import React, { useEffect, useState } from "react";
 import { DynamicIcon, LucideIcon } from "./dynamic-icon";
 import { lucideIconList } from "./lucide-icon-list";
 import { CreateCategoryData } from "@/lib/types/actions";
+import { useCreateCategoryMutation } from "@/useCases/categories/useCreateCategoryMutation";
+import { useUpdateCategoryMutation } from "@/useCases/categories/useUpdateCategoryMutation";
 
 interface CategoryDialogProps {
   open: boolean;
@@ -44,13 +45,60 @@ export function CategoryDialog({
   onSuccess,
 }: CategoryDialogProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     type: "EXPENSE" as "EXPENSE" | "INCOME",
     color: "#64748b",
     icon: null,
   });
+
+  // Use TanStack Query hooks
+  const createMutation = useCreateCategoryMutation({
+    onSuccess: () => {
+      toast({
+        title: "Categoria Criada",
+        description:
+          "Sua nova categoria foi criada com sucesso e já está disponível para uso.",
+        variant: "success",
+      });
+      onSuccess?.();
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      logger.error("Erro ao criar categoria:", error);
+      toast({
+        title: "Erro ao Criar",
+        description:
+          error.message ||
+          "Não foi possível criar a categoria. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useUpdateCategoryMutation({
+    onSuccess: () => {
+      toast({
+        title: "Categoria Atualizada",
+        description: "A categoria foi atualizada com sucesso.",
+        variant: "success",
+      });
+      onSuccess?.();
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      logger.error("Erro ao atualizar categoria:", error);
+      toast({
+        title: "Erro ao Atualizar",
+        description:
+          error.message ||
+          "Não foi possível atualizar a categoria. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
   useEffect(() => {
     if (open && category) {
@@ -81,44 +129,20 @@ export function CategoryDialog({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     try {
-      let result;
-
       if (category) {
-        result = await updateCategory(
-          category.id,
-          formData as unknown as CreateCategoryData
-        );
-      } else {
-        result = await createCategory(
-          formData as unknown as CreateCategoryData
-        );
-      }
-
-      if (result.success) {
-        toast({
-          title: "Categoria Criada",
-          description:
-            "Sua nova categoria foi criada com sucesso e já está disponível para uso.",
-          variant: "success",
+        await updateMutation.mutateAsync({
+          id: category.id,
+          ...(formData as unknown as CreateCategoryData),
         });
-        onSuccess?.();
-        onOpenChange(false);
       } else {
-        throw new Error(result.error || "Falha ao criar categoria");
+        await createMutation.mutateAsync(
+          formData as unknown as CreateCategoryData
+        );
       }
     } catch (error) {
-      logger.error("Erro ao criar categoria:", error as Error);
-      toast({
-        title: "Erro ao Criar",
-        description:
-          "Não foi possível criar a categoria. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+      // Error handling é feito nos callbacks dos hooks
     }
   };
 
@@ -228,8 +252,8 @@ export function CategoryDialog({
                   ? "Atualizando..."
                   : "Adicionando..."
                 : category
-                  ? "Atualizar"
-                  : "Adicionar"}
+                ? "Atualizar"
+                : "Adicionar"}
             </Button>
           </DialogFooter>
         </form>

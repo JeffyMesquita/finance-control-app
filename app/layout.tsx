@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { QueryProvider } from "@/components/query-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { PerformanceMonitor } from "@/components/performance-monitor";
 import { Analytics } from "@vercel/analytics/next";
@@ -289,17 +290,19 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <PerformanceMonitor />
-          {children}
-          <Toaster />
-          <Analytics />
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <PerformanceMonitor />
+            {children}
+            <Toaster />
+            <Analytics />
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

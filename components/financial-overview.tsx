@@ -1,7 +1,5 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -10,21 +8,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn, formatCurrency } from "@/lib/utils";
+import { useFinancialOverviewQuery } from "@/useCases/useFinancialOverviewQuery";
 import {
-  ResponsiveContainer,
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  LineChart,
-  Line,
 } from "recharts";
-import { getMonthlyData } from "@/app/actions/dashboard";
-import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils";
 
 interface FinancialOverviewProps {
   className?: string;
@@ -107,30 +104,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function FinancialOverview({ className }: FinancialOverviewProps) {
-  const [data, setData] = useState<MonthlyData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const result = await getMonthlyData();
-        if (result.success && result.data) {
-          setData(result.data);
-        } else {
-          logger.error(
-            "Erro ao carregar dados mensais:",
-            new Error(result.error || "Falha ao carregar dados")
-          );
-        }
-      } catch (error) {
-        logger.error("Erro ao carregar dados mensais:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
+  const { data, isLoading } = useFinancialOverviewQuery();
+  const monthlyData = data || [];
 
   if (isLoading) {
     return (
@@ -165,7 +140,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
           </TabsList>
           <TabsContent value="monthly" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"
@@ -190,7 +165,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
           </TabsContent>
           <TabsContent value="quarterly" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
+              <LineChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"
@@ -231,7 +206,7 @@ export function FinancialOverview({ className }: FinancialOverviewProps) {
           </TabsContent>
           <TabsContent value="yearly" className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"

@@ -2,7 +2,7 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -42,7 +42,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getCategories, deleteCategory } from "@/app/actions/categories";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/components/ui/use-mobile";
@@ -55,20 +54,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabaseCache } from "@/lib/supabase/cache";
 import { DynamicIcon } from "@/components/dynamic-icon";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
+import { useDeleteCategoryMutation } from "@/useCases/categories/useDeleteCategoryMutation";
+import type { CategoryData } from "@/lib/types/actions";
 
-const CACHE_KEY = "categories-data";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  color: string;
-  icon?: string;
-};
+type Category = CategoryData;
 
 export function CategoriesTable() {
   const { toast } = useToast();
@@ -76,22 +67,58 @@ export function CategoriesTable() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
     null
   );
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const isMobile = useIsMobile();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  // Use TanStack Query hooks
+  const {
+    data: categoriesResponse,
+    isLoading,
+    error,
+    isError,
+    refetch,
+  } = useCategoriesQuery();
+  const deleteCategory = useDeleteCategoryMutation({
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Categoria excluída com sucesso.",
+        variant: "success",
+      });
+      setDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
+  const categories = categoriesResponse?.data || [];
+
+  // Handle errors with toast
   useEffect(() => {
-    if (!categories.length) return;
+    if (isError && error) {
+      toast({
+        title: "Erro",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Falha ao carregar categorias",
+        variant: "destructive",
+      });
+    }
+  }, [isError, error, toast]);
+
+  // Filter categories based on type and search
+  const filteredCategories = useMemo(() => {
+    if (!categories.length) return [];
 
     let filtered = [...categories];
 
@@ -108,38 +135,8 @@ export function CategoriesTable() {
       );
     }
 
-    setFilteredCategories(filtered);
+    return filtered;
   }, [categories, filter, search]);
-
-  async function fetchCategories() {
-    try {
-      setIsLoading(true);
-      const result = await getCategories();
-      if (result.success && result.data) {
-        setCategories(result.data);
-        setFilteredCategories(result.data);
-      } else {
-        logger.error(
-          "Erro ao carregar categorias:",
-          new Error(result.error || "Falha ao carregar categorias")
-        );
-        toast({
-          title: "Erro",
-          description: result.error || "Falha ao carregar categorias",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      logger.error("Erro ao carregar categorias:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar categorias",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   const handleAdd = () => {
     setSelectedCategory(null);
@@ -160,22 +157,22 @@ export function CategoriesTable() {
     if (!categoryToDelete) return;
 
     try {
-      await deleteCategory(categoryToDelete);
-      setDeleteDialogOpen(false);
-      setCategoryToDelete(null);
-      fetchCategories();
-      toast({
-        title: "Sucesso",
-        description: "Categoria excluída com sucesso.",
-      });
+      await deleteCategory.mutateAsync(categoryToDelete);
     } catch (error) {
       logger.error("Error deleting category:", error as Error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir a categoria.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível excluir a categoria.",
         variant: "destructive",
       });
     }
+  };
+
+  const handleDialogSuccess = () => {
+    refetch();
   };
 
   // Traduzir tipos de categoria
@@ -282,7 +279,11 @@ export function CategoriesTable() {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={deleteCategory.isPending}
+                      >
                         <Trash className="h-4 w-4 mr-1" /> Excluir
                       </Button>
                     </AlertDialogTrigger>
@@ -375,6 +376,7 @@ export function CategoriesTable() {
                             <DropdownMenuItem
                               onSelect={(e) => e.preventDefault()}
                               className="text-red-600"
+                              disabled={deleteCategory.isPending}
                             >
                               <Trash className="mr-2 h-4 w-4" />
                               Excluir
@@ -413,7 +415,7 @@ export function CategoriesTable() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         category={selectedCategory}
-        onSuccess={fetchCategories}
+        onSuccess={handleDialogSuccess}
       />
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -432,7 +434,11 @@ export function CategoriesTable() {
             >
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteCategory.isPending}
+            >
               Excluir
             </Button>
           </DialogFooter>

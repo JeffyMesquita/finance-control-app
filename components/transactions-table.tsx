@@ -2,48 +2,9 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { useState, useEffect } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  ArrowUpDown,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Trash,
-  Pencil,
-  ArrowUp,
-  ArrowDown,
-  ChevronLeft,
-  ChevronRight,
-  Info,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { AddTransactionDialog } from "@/components/add-transaction-dialog";
 import { EditTransactionDialog } from "@/components/edit-transaction-dialog";
+import TransactionsSkeleton from "@/components/TransactionsSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,35 +16,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  getTransactions,
-  deleteTransaction,
-  deleteTransactions,
-} from "@/app/actions/transactions";
-import { getCategories } from "@/app/actions/categories";
-import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import TransactionsSkeleton from "@/components/TransactionsSkeleton";
-import { Category } from "@/app/actions/dashboard";
-import { Transaction } from "@/app/actions/dashboard";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -93,13 +34,63 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { supabaseCache } from "@/lib/supabase/cache";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
+import {
+  CategoryData,
+  CreateTransactionData,
+  TransactionData,
+  UpdateTransactionData,
+} from "@/lib/types/actions";
+import { cn, formatCurrency, formatDate } from "@/lib/utils";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
+import { useCreateTransactionMutation } from "@/useCases/transactions/useCreateTransactionMutation";
+import { useDeleteTransactionMutation } from "@/useCases/transactions/useDeleteTransactionMutation";
+import { useTransactionQuery } from "@/useCases/transactions/useTransactionQuery";
+import { useUpdateTransactionMutation } from "@/useCases/transactions/useUpdateTransactionMutation";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Search,
+  Trash,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { DynamicIcon, LucideIcon } from "./dynamic-icon";
-import { TransactionData } from "@/lib/types/actions";
-
-const CACHE_KEY = "transactions-data";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
 
 export function TransactionsTable() {
   const { toast } = useToast();
@@ -107,24 +98,171 @@ export function TransactionsTable() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionData | null>(null);
-  const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<
-    TransactionData[]
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("all");
-  const [categories, setCategories] = useState<Category[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalTransactions, setTotalTransactions] = useState(0);
   const pageSize = 10;
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>(
     []
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+
+  // Fetch categories usando hook
+  const { data: categoriesResponse, error: categoriesError } =
+    useCategoriesQuery();
+  const categories: CategoryData[] = categoriesResponse?.data || [];
+
+  // Toast para erro de categorias
+  useEffect(() => {
+    if (categoriesError) {
+      toast({
+        title: "Erro ao Carregar Categorias",
+        description:
+          categoriesError instanceof Error
+            ? categoriesError.message
+            : "Não foi possível carregar as categorias. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    }
+  }, [categoriesError, toast]);
+
+  // Query de transações
+  const {
+    data: transactionsResult,
+    isLoading,
+    isError,
+    error,
+  } = useTransactionQuery({
+    page: currentPage,
+    pageSize,
+    month: selectedMonth,
+    type: filter,
+    category: selectedCategory,
+    search,
+  });
+
+  const transactions: TransactionData[] = transactionsResult?.data || [];
+  const totalTransactions = transactionsResult?.total || 0;
+
+  // Mutations
+  const createMutation = useCreateTransactionMutation();
+  const updateMutation = useUpdateTransactionMutation();
+  const deleteMutation = useDeleteTransactionMutation();
+
+  // Toasts para erro de query
+  useEffect(() => {
+    if (isError) {
+      toast({
+        title: "Erro ao Carregar",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Erro desconhecido ao buscar transações.",
+        variant: "destructive",
+      });
+    }
+  }, [isError, error, toast]);
+
+  // Handlers CRUD
+  const handleAdd = async (data: CreateTransactionData) => {
+    try {
+      await createMutation.mutateAsync(data);
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: "Transação criada com sucesso.",
+        variant: "success",
+      });
+    } catch (error) {
+      logger.error("Erro ao criar transação:", error as Error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a transação.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEdit = (transaction: TransactionData) => {
+    setSelectedTransaction(transaction);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdate = async (data: { id: string } & UpdateTransactionData) => {
+    try {
+      await updateMutation.mutateAsync(data);
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: "Transação atualizada com sucesso.",
+        variant: "success",
+      });
+    } catch (error) {
+      logger.error("Erro ao atualizar transação:", error as Error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a transação.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteMutation.mutateAsync({ id });
+      toast({
+        title: "Sucesso",
+        description: "Transação excluída com sucesso.",
+        variant: "success",
+      });
+    } catch (error) {
+      logger.error("Erro ao excluir transação:", error as Error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a transação.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    try {
+      await deleteMutation.mutateAsync({ ids: selectedTransactions });
+      setSelectedTransactions([]);
+      setIsDeleteDialogOpen(false);
+      toast({
+        title: "Sucesso",
+        description: `${selectedTransactions.length} transações excluídas com sucesso.`,
+        variant: "success",
+      });
+    } catch (error) {
+      logger.error("Erro ao excluir transações:", error as Error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir as transações.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Seleção de transações
+  const handleSelectTransaction = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions((prev) => [...prev, id]);
+    } else {
+      setSelectedTransactions((prev) => prev.filter((t) => t !== id));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedTransactions(transactions.map((t) => t.id));
+    } else {
+      setSelectedTransactions([]);
+    }
+  };
 
   const months = [
     { value: "all", label: "Todos os Meses" },
@@ -141,120 +279,6 @@ export function TransactionsTable() {
     { value: "10", label: "Novembro" },
     { value: "11", label: "Dezembro" },
   ];
-
-  useEffect(() => {
-    fetchTransactions();
-    fetchCategories();
-  }, [currentPage, selectedMonth, filter, selectedCategory, search]);
-
-  useEffect(() => {
-    if (!transactions.length) return;
-    setFilteredTransactions(transactions);
-  }, [transactions]);
-
-  async function fetchTransactions() {
-    try {
-      setIsLoading(true);
-      const result = await getTransactions(
-        currentPage,
-        pageSize,
-        selectedMonth,
-        filter,
-        selectedCategory,
-        search
-      );
-      setTransactions(result.data || []);
-      setFilteredTransactions(result.data || []);
-      setTotalTransactions(result.total);
-      supabaseCache.set(CACHE_KEY, result.data);
-    } catch (error) {
-      logger.error("Erro ao carregar transações:", error as Error);
-      toast({
-        title: "Erro ao Carregar",
-        description:
-          "Não foi possível carregar as transações. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function fetchCategories() {
-    try {
-      const data = await getCategories();
-      setCategories(data.data || []);
-    } catch (error) {
-      logger.error("Erro ao carregar categorias:", error as Error);
-      toast({
-        title: "Erro ao Carregar",
-        description:
-          "Não foi possível carregar as categorias. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
-  }
-
-  const handleEdit = (transaction: TransactionData) => {
-    setSelectedTransaction(transaction);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteTransaction(id);
-      toast({
-        title: "Sucesso",
-        description: "Transação excluída com sucesso.",
-        variant: "success",
-      });
-      fetchTransactions();
-    } catch (error) {
-      logger.error("Error deleting transaction:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível excluir a transação.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedTransactions(filteredTransactions.map((t) => t.id));
-    } else {
-      setSelectedTransactions([]);
-    }
-  };
-
-  const handleSelectTransaction = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedTransactions([...selectedTransactions, id]);
-    } else {
-      setSelectedTransactions(selectedTransactions.filter((t) => t !== id));
-    }
-  };
-
-  const handleBatchDelete = async () => {
-    try {
-      await deleteTransactions(selectedTransactions);
-      setSelectedTransactions([]);
-      setIsDeleteDialogOpen(false);
-      toast({
-        title: "Sucesso",
-        description: `${selectedTransactions.length} transações excluídas com sucesso.`,
-        variant: "success",
-      });
-      fetchTransactions();
-    } catch (error) {
-      logger.error("Error deleting transactions:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível excluir as transações.",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -396,7 +420,7 @@ export function TransactionsTable() {
                     Transações a serem excluídas:
                   </p>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    {filteredTransactions
+                    {transactions
                       .filter((t) => selectedTransactions.includes(t.id))
                       .map((t) => (
                         <li key={t.id} className="flex items-center gap-2">
@@ -429,7 +453,7 @@ export function TransactionsTable() {
 
       {isLoading ? (
         <TransactionsSkeleton />
-      ) : filteredTransactions.length === 0 ? (
+      ) : transactions.length === 0 ? (
         <div className="rounded-md border p-8 flex flex-col items-center justify-center">
           <p className="text-muted-foreground mb-4">
             Nenhuma transação encontrada
@@ -444,7 +468,7 @@ export function TransactionsTable() {
           {/* Mobile: hidden on md+ | Desktop: hidden below md */}
           <div className="md:hidden">
             <div className="flex flex-col gap-4">
-              {filteredTransactions.map((transaction) => (
+              {transactions.map((transaction) => (
                 <Card
                   key={transaction.id}
                   className={cn(
@@ -624,8 +648,7 @@ export function TransactionsTable() {
                     <TableHead className="w-[50px]">
                       <Checkbox
                         checked={
-                          selectedTransactions.length ===
-                          filteredTransactions.length
+                          selectedTransactions.length === transactions.length
                         }
                         onCheckedChange={handleSelectAll}
                       />
@@ -645,7 +668,7 @@ export function TransactionsTable() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTransactions.map((transaction) => (
+                  {transactions.map((transaction) => (
                     <TableRow
                       key={transaction.id}
                       className={cn(
@@ -841,7 +864,6 @@ export function TransactionsTable() {
       <AddTransactionDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
-        onSuccess={fetchTransactions}
       />
 
       {selectedTransaction && (
@@ -849,19 +871,7 @@ export function TransactionsTable() {
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           transaction={selectedTransaction}
-          onSuccess={fetchTransactions}
         />
-      )}
-
-      {selectedTransactions.length > 0 && (
-        <div className="mt-4 flex justify-end">
-          <Button
-            variant="destructive"
-            onClick={() => setIsDeleteDialogOpen(true)}
-          >
-            Excluir Selecionados ({selectedTransactions.length})
-          </Button>
-        </div>
       )}
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

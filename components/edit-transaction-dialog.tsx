@@ -25,11 +25,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
-import { updateTransaction } from "@/app/actions/transactions";
 import { getCategories } from "@/app/actions/categories";
 import { getAccounts } from "@/app/actions/accounts";
 import { Switch } from "@/components/ui/switch";
 import { CategoryData } from "@/lib/types/actions";
+import { useUpdateTransactionMutation } from "@/useCases/transactions/useUpdateTransactionMutation";
 
 interface EditTransactionDialogProps {
   open: boolean;
@@ -61,7 +61,7 @@ interface Account {
 }
 
 // Função utilitária para converter data para formato local sem problemas de timezone
-const formatDateToLocal = (dateString: string) => {
+const formatDateToLocal = (dateString: string): string => {
   const date = new Date(dateString);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -93,6 +93,28 @@ export function EditTransactionDialog({
     recurring_interval: transaction.recurring_interval || null,
     installment_number: transaction.installment_number || "1",
     total_installments: transaction.total_installments || null,
+  });
+
+  const updateMutation = useUpdateTransactionMutation({
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Transação atualizada com sucesso",
+        variant: "success",
+      });
+      onSuccess?.();
+      onOpenChange(false);
+      setIsSubmitting(false);
+    },
+    onError: (error) => {
+      logger.error("Erro ao atualizar transação:", error);
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao atualizar transação",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    },
   });
 
   useEffect(() => {
@@ -203,22 +225,10 @@ export function EditTransactionDialog({
           : null,
       };
 
-      const result = await updateTransaction(
-        transaction.id,
-        updatedTransaction
-      );
-
-      if (result.success) {
-        toast({
-          title: "Sucesso",
-          description: "Transação atualizada com sucesso",
-          variant: "success",
-        });
-        onSuccess?.();
-        onOpenChange(false);
-      } else {
-        throw new Error(result.error || "Falha ao atualizar transação");
-      }
+      await updateMutation.mutateAsync({
+        id: transaction.id,
+        ...updatedTransaction,
+      });
     } catch (error) {
       logger.error("Erro ao atualizar transação:", error as Error);
       toast({
@@ -226,7 +236,6 @@ export function EditTransactionDialog({
         description: (error as Error).message || "Falha ao atualizar transação",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };

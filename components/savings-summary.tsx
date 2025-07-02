@@ -15,6 +15,7 @@ import { Coins, PiggyBank, Plus, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSavingsSummaryQuery } from "@/useCases/useSavingsSummaryQuery";
 
 interface SavingsBoxSummaryItem {
   id: string;
@@ -41,37 +42,14 @@ interface SavingsSummaryProps {
 }
 
 export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
-  const [summary, setSummary] = useState<SavingsBoxSummaryItem[]>([]);
-  const [stats, setStats] = useState<SavingsStats | null>(null);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useSavingsSummaryQuery();
+  const summary = data?.summary || [];
+  const stats = data?.stats || null;
+  const totalAmount = data?.totalAmount || 0;
   const pathname = usePathname();
 
   // Verifica se estamos na página de cofrinhos
   const isOnCofrinhoPage = pathname === "/dashboard/cofrinhos";
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [summaryData, statsData, totalData] = await Promise.all([
-        getSavingsBoxesSummary(),
-        getSavingsBoxesStats(),
-        getSavingsBoxesTotal(),
-      ]);
-
-      setSummary(summaryData.data || []);
-      setStats(statsData.data || null);
-      setTotalAmount(totalData || 0);
-    } catch (error) {
-      logger.error("Erro ao carregar dados dos cofrinhos:", error as Error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (isLoading) {
     return (

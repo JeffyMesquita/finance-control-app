@@ -53,6 +53,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useReportsOverviewQuery } from "@/useCases/useReportsOverviewQuery";
 
 const COLORS = [
   "#0088FE",
@@ -195,38 +196,13 @@ const YAxisCustomTick = (props: any) => {
 };
 
 export function ReportsOverview() {
-  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
-  const [expenseData, setExpenseData] = useState<ExpenseData[]>([]);
-  const [goalsStats, setGoalsStats] = useState<GoalsStats | null>(null);
-  const [savingsBoxStats, setSavingsBoxStats] =
-    useState<SavingsBoxStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useReportsOverviewQuery();
+
+  const monthlyData = data?.monthlyData || [];
+  const expenseData = data?.expenseData || [];
+  const goalsStats = data?.goalsStats || null;
+  const savingsBoxStats = data?.savingsBoxStats || null;
   const [selectedPieIndex, setSelectedPieIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [monthlyResult, expenseResult, goalsResult, savingsResult] =
-          await Promise.all([
-            getMonthlyData(),
-            getExpenseBreakdown(),
-            getGoalsStats(),
-            getSavingsBoxesStats(),
-          ]);
-
-        setMonthlyData(monthlyResult.data || ([] as MonthlyData[]));
-        setExpenseData(expenseResult.data || []);
-        setGoalsStats(goalsResult.data || null);
-        setSavingsBoxStats(savingsResult.data || null);
-      } catch (error) {
-        logger.error("Error fetching report data:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
 
   const totalExpenses = expenseData.reduce((sum, e) => sum + e.value, 0);
 
@@ -398,10 +374,8 @@ export function ReportsOverview() {
         <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-sm font-medium">
-                Cofrinhos Digitais
-              </CardTitle>
-              <CardDescription>Resumo dos seus cofrinhos</CardDescription>
+              <CardTitle className="text-sm font-medium">Cofrinhos</CardTitle>
+              <CardDescription>Visão geral dos cofrinhos</CardDescription>
             </div>
             <PiggyBank className="h-4 w-4 text-blue-600" />
           </CardHeader>
@@ -411,13 +385,15 @@ export function ReportsOverview() {
                 <div className="text-2xl font-bold text-blue-600">
                   {savingsBoxStats.total_boxes}
                 </div>
-                <p className="text-xs text-muted-foreground">Cofrinhos</p>
+                <p className="text-xs text-muted-foreground">
+                  Total de Cofrinhos
+                </p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {formatCurrency(savingsBoxStats.total_amount / 100)}
+                  {formatCurrency(savingsBoxStats.total_amount)}
                 </div>
-                <p className="text-xs text-muted-foreground">Total Poupado</p>
+                <p className="text-xs text-muted-foreground">Total Guardado</p>
               </div>
             </div>
             <div className="mt-4">
@@ -435,10 +411,10 @@ export function ReportsOverview() {
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Badge variant="secondary" className="justify-center">
                 <Link className="h-3 w-3 mr-1" />
-                {savingsBoxStats.total_with_goals} c/ metas
+                {savingsBoxStats.total_with_goals} com metas
               </Badge>
               <Badge variant="outline" className="justify-center">
-                {savingsBoxStats.total_completed_goals} completos
+                Concluídos: {savingsBoxStats.total_completed_goals}
               </Badge>
             </div>
           </CardContent>

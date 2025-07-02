@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, X, Heart } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SESSION_KEY = "pixAlertDismissed";
@@ -111,4 +111,3 @@ export function PixSupportAlert() {
     </AnimatePresence>
   );
 }
-

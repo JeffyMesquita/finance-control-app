@@ -1,30 +1,23 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/utils";
+import { useExpenseBreakdownQuery } from "@/useCases/useExpenseBreakdownQuery";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
-import { useEffect, useState } from "react";
-import { getExpenseBreakdown } from "@/app/actions/dashboard";
-import { formatCurrency } from "@/lib/utils";
-
-interface ExpenseData {
-  name: string;
-  value: number;
-  color: string;
-}
 
 interface ExpensesByCategoryChartProps {
   className?: string;
+  month?: "current" | "previous";
 }
 
 const CATEGORY_LABEL_MAX = 10;
@@ -71,31 +64,24 @@ const YAxisCustomTick = (props: any) => {
 
 export function ExpensesByCategoryChart({
   className,
+  month = "current",
 }: ExpensesByCategoryChartProps) {
-  const [expenseData, setExpenseData] = useState<ExpenseData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const result = await getExpenseBreakdown();
-        if (result.success && result.data) {
-          setExpenseData(result.data);
-        } else {
-          logger.error(
-            "Error fetching expense data:",
-            new Error(result.error || "Falha ao carregar dados de despesas")
-          );
-        }
-      } catch (error) {
-        logger.error("Error fetching expense data:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
+  const {
+    data: expenseData,
+    isLoading,
+    error,
+  } = useExpenseBreakdownQuery({
+    month,
+    onError(error) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -108,6 +94,8 @@ export function ExpensesByCategoryChart({
     );
   }
 
+  if (error || !expenseData) return null;
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -115,7 +103,7 @@ export function ExpensesByCategoryChart({
       </CardHeader>
       <CardContent>
         <div className="h-[300px]">
-          {expenseData?.length === 0 ? (
+          {expenseData.length === 0 ? (
             <div className="flex h-full items-center justify-center">
               <p className="text-sm text-muted-foreground">
                 Nenhuma despesa disponível
