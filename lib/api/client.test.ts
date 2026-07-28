@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { apiRequest } from "./client";
+import { ApiError, apiRequest } from "./client";
 
 const success = (data: unknown, status = 200) =>
   new Response(JSON.stringify({ success: true, data }), { status });
@@ -66,5 +66,26 @@ describe("apiRequest", () => {
     expect(
       fetchMock.mock.calls.filter(([url]) => url === "/api/backend/auth/refresh")
     ).toHaveLength(1);
+  });
+  it("preserves Retry-After in typed API errors", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: false, error: "Tente novamente" }), {
+        headers: { "retry-after": "7" },
+        status: 429,
+      })
+    );
+
+    let caughtError: unknown;
+    try {
+      await apiRequest("/accounts");
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError).toBeInstanceOf(ApiError);
+    expect(caughtError).toMatchObject({
+      retryAfterMs: 7_000,
+      status: 429,
+    });
   });
 });
