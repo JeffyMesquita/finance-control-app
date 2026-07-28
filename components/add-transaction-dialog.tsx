@@ -334,7 +334,7 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
                 />
               </div>
             </div>
-            <div className="space-y-2 hidden">
+            <div className="space-y-2">
               <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}

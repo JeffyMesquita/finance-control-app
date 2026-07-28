@@ -1,8 +1,10 @@
 "use client";
 
-import { sessionApi } from "@/lib/api/session";
-import { logger } from "@/lib/utils/logger";
-
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,12 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-
-import ReCAPTCHA from "react-google-recaptcha";
+import { sessionApi } from "@/lib/api/session";
+import { logger } from "@/lib/utils/logger";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +33,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const e2eRecaptchaToken =
+    process.env.NEXT_PUBLIC_E2E_MODE === "true"
+      ? (process.env.NEXT_PUBLIC_E2E_RECAPTCHA_TOKEN ?? null)
+      : null;
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(e2eRecaptchaToken);
 
   useEffect(() => {
     localStorage.removeItem("googleLogin");
@@ -237,8 +239,8 @@ export default function LoginPage() {
                       {isLoading
                         ? "Processando..."
                         : isRegister
-                        ? "Criar conta"
-                        : "Entrar com Email"}
+                          ? "Criar conta"
+                          : "Entrar com Email"}
                     </span>
                   </Button>
                 </form>
@@ -262,7 +264,7 @@ export default function LoginPage() {
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -285,10 +287,16 @@ export default function LoginPage() {
                 </Button>
 
                 <div className="flex justify-center mt-4">
-                  <ReCAPTCHA
-                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
-                    onChange={handleRecaptcha}
-                  />
+                  {e2eRecaptchaToken ? (
+                    <p className="text-xs text-muted-foreground" data-testid="e2e-recaptcha-ready">
+                      Verificação de teste local ativa
+                    </p>
+                  ) : (
+                    <ReCAPTCHA
+                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                      onChange={handleRecaptcha}
+                    />
+                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
@@ -297,9 +305,7 @@ export default function LoginPage() {
                   className="text-sm text-muted-foreground"
                   onClick={() => setIsRegister(!isRegister)}
                 >
-                  {isRegister
-                    ? "Já tem uma conta? Faça login"
-                    : "Não tem uma conta? Registre-se"}
+                  {isRegister ? "Já tem uma conta? Faça login" : "Não tem uma conta? Registre-se"}
                 </Button>
                 <div className="text-center text-sm text-muted-foreground">
                   Ao continuar, você concorda com nossos{" "}
