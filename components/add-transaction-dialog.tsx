@@ -1,8 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
-import { getCategories } from "@/app/actions/categories";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -27,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/lib/utils/logger";
 import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
 import { useCreateTransactionMutation } from "@/useCases/transactions/useCreateTransactionMutation";
 
 interface AddTransactionDialogProps {
@@ -34,17 +34,6 @@ interface AddTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
 }
-
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  color: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-};
 
 type FormData = {
   type: "EXPENSE" | "INCOME";
@@ -86,9 +75,11 @@ const INITIAL_FORM_DATA: FormData = {
 export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTransactionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
   const accountsQuery = useAccountsQuery();
+  const categoriesQuery = useCategoriesQuery();
   const accounts = accountsQuery.data?.data ?? [];
+  const categories = categoriesQuery.data?.data ?? [];
+  const initializedForOpen = useRef(false);
 
   const [formData, setFormData] = useState({
     ...INITIAL_FORM_DATA,
@@ -119,59 +110,23 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
     },
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Legacy dialog initialization remains until the category form flow is migrated.
   useEffect(() => {
-    if (open) {
-      fetchData();
-      // Reset form when dialog opens
-      setFormData({
-        type: "EXPENSE",
-        amount: "",
-        description: "",
-        category_id: "",
-        account_id: "",
-        date: getCurrentLocalDate(),
-        notes: "",
-        is_recurring: false,
-        recurring_interval: null,
-        installment_number: "1",
-        total_installments: null,
-      });
+    if (!open) {
+      initializedForOpen.current = false;
+      return;
     }
-  }, [open]);
 
-  async function fetchData() {
-    try {
-      const [categoriesResult, accountsQueryResult] = await Promise.all([
-        getCategories(),
-        accountsQuery.refetch(),
-      ]);
-      const accountsResult = accountsQueryResult.data;
-
-      if (categoriesResult.success && categoriesResult.data) {
-        setCategories(categoriesResult.data);
-      }
-
-      if (accountsResult?.success && accountsResult.data) {
-        // Set default account if available
-        if (accountsResult.data.length > 0) {
-          setFormData((prev) => ({
-            ...prev,
-            account_id: accountsResult.data?.[0]?.id || "",
-            category_id: categoriesResult.data?.[0]?.id || "",
-          }));
-        }
-      }
-    } catch (error) {
-      logger.error("Erro ao carregar dados:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar categorias e contas",
-        variant: "destructive",
-      });
+    if (initializedForOpen.current || accountsQuery.isPending || categoriesQuery.isPending) {
+      return;
     }
-  }
 
+    initializedForOpen.current = true;
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      account_id: accounts[0]?.id ?? "",
+      category_id: categories[0]?.id ?? "",
+    });
+  }, [accounts, accountsQuery.isPending, categories, categoriesQuery.isPending, open]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
