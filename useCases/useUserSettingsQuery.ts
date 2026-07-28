@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api/client";
@@ -53,26 +52,11 @@ async function updateUserSettings(settingsData: UserSettings): Promise<UserSetti
 }
 
 export function useUserSettingsQuery() {
-  const { toast } = useToast();
-  const queryFn = useCallback(fetchUserSettings, []);
-
-  const query = useQuery<UserSettings, Error>({
+  return useQuery<UserSettings, Error>({
     queryKey: queryKeys.profile.settings,
-    queryFn,
+    queryFn: fetchUserSettings,
     staleTime: 1000 * 60 * 5,
   });
-
-  useEffect(() => {
-    if (query.isError && query.error) {
-      toast({
-        title: "Erro ao carregar configurações",
-        description: query.error.message,
-        variant: "destructive",
-      });
-    }
-  }, [query.isError, query.error, toast]);
-
-  return query;
 }
 
 interface UpdateUserSettingsOptions {
