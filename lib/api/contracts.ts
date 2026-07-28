@@ -29,6 +29,7 @@ interface ApiAppMetadata {
 
 interface ApiUserMetadata {
   avatar_url?: string;
+  full_name?: string;
 }
 
 export interface ApiSession {

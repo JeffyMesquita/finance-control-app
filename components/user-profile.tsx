@@ -23,6 +23,9 @@ export function UserProfile() {
 
   if (!user) return null;
 
+  const formatDate = (value?: string | null) =>
+    value ? new Date(value).toLocaleDateString() : "N?o informado";
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-4">
@@ -40,13 +43,13 @@ export function UserProfile() {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Membro desde</span>
             <span className="text-sm">
-              {new Date(user.created_at).toLocaleDateString()}
+              {formatDate(user.created_at)}
             </span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Último login</span>
             <span className="text-sm">
-              {new Date(user.last_sign_in_at).toLocaleDateString()}
+              {formatDate(user.last_sign_in_at)}
             </span>
           </div>
         </div>
