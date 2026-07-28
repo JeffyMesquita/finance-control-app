@@ -1,8 +1,8 @@
 "use client";
 
+import { sessionApi } from "@/lib/api/session";
 import { logger } from "@/lib/utils/logger";
 
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,11 @@ export function UserNav({ user }: { user?: any }) {
   };
 
   const router = useRouter();
-  const supabase = createClientComponentClient();
 
   const handleSignOut = async () => {
     try {
       setTheme("dark");
-      await supabase.auth.signOut();
+      await sessionApi.logout();
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -50,9 +49,9 @@ export function UserNav({ user }: { user?: any }) {
   };
 
   const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : "U";
-  const userName = user?.user_metadata?.full_name || user?.email || "Usuário";
+  const userName = user?.email || "Usuário";
   const userEmail = user?.email || "";
-  const avatarUrl = user?.user_metadata?.avatar_url || "";
+  const avatarUrl = "";
 
   const [openAlertModal, setOpenAlertModal] = useState(false);
 

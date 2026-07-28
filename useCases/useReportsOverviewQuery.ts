@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/api/client";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 
 // Função para gerar dados de metas por mês
 function generateGoalsByMonth(goals: any[]) {
@@ -29,9 +31,7 @@ function generateGoalsByMonth(goals: any[]) {
   // Inicializar últimos 6 meses
   for (let i = 5; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthKey = `${date.getFullYear()}-${String(
-      date.getMonth() + 1
-    ).padStart(2, "0")}`;
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     const monthName = monthNames[date.getMonth()];
 
     monthsData[monthKey] = {
@@ -46,9 +46,10 @@ function generateGoalsByMonth(goals: any[]) {
     // Contar metas criadas por mês
     if (goal.created_at) {
       const createdDate = new Date(goal.created_at);
-      const monthKey = `${createdDate.getFullYear()}-${String(
-        createdDate.getMonth() + 1
-      ).padStart(2, "0")}`;
+      const monthKey = `${createdDate.getFullYear()}-${String(createdDate.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}`;
 
       if (monthsData[monthKey]) {
         monthsData[monthKey].created++;
@@ -129,9 +130,14 @@ export interface ReportsOverviewData {
 
 async function fetchReportsOverview(): Promise<ReportsOverviewData> {
   try {
+    const useNestDashboard = isNestDomainEnabled("dashboard");
     const [monthlyRes, expenseRes, goalsRes, savingsRes] = await Promise.all([
-      fetch("/api/monthly-data").then((r) => r.json()),
-      fetch("/api/expense-breakdown").then((r) => r.json()),
+      useNestDashboard
+        ? apiRequest<MonthlyData[]>("/dashboard/monthly")
+        : fetch("/api/monthly-data").then((response) => response.json()),
+      useNestDashboard
+        ? apiRequest<ExpenseData[]>("/dashboard/expense-breakdown")
+        : fetch("/api/expense-breakdown").then((response) => response.json()),
       fetch("/api/goals/list").then((r) => r.json()),
       fetch("/api/savings-boxes/stats").then((r) => r.json()),
     ]);
@@ -145,29 +151,20 @@ async function fetchReportsOverview(): Promise<ReportsOverviewData> {
       goalsStats = {
         total_goals: goals.length,
         completed_goals: goals.filter((g: any) => g.is_completed).length,
-        overdue_goals: goals.filter(
-          (g: any) => !g.is_completed && new Date(g.target_date) < now
-        ).length,
-        linked_to_savings_boxes: goals.filter((g: any) => g.savings_box_id)
+        overdue_goals: goals.filter((g: any) => !g.is_completed && new Date(g.target_date) < now)
           .length,
+        linked_to_savings_boxes: goals.filter((g: any) => g.savings_box_id).length,
         average_progress:
           goals.length > 0
             ? Math.round(
                 goals.reduce(
-                  (sum: number, g: any) =>
-                    sum + (g.current_amount / g.target_amount) * 100,
+                  (sum: number, g: any) => sum + (g.current_amount / g.target_amount) * 100,
                   0
                 ) / goals.length
               )
             : 0,
-        total_target_amount: goals.reduce(
-          (sum: number, g: any) => sum + g.target_amount,
-          0
-        ),
-        total_current_amount: goals.reduce(
-          (sum: number, g: any) => sum + g.current_amount,
-          0
-        ),
+        total_target_amount: goals.reduce((sum: number, g: any) => sum + g.target_amount, 0),
+        total_current_amount: goals.reduce((sum: number, g: any) => sum + g.current_amount, 0),
         goals_by_month: generateGoalsByMonth(goals),
       };
     }
@@ -176,13 +173,13 @@ async function fetchReportsOverview(): Promise<ReportsOverviewData> {
       monthlyData: Array.isArray(monthlyRes)
         ? monthlyRes
         : monthlyRes.success
-        ? monthlyRes.data || []
-        : [],
+          ? monthlyRes.data || []
+          : [],
       expenseData: Array.isArray(expenseRes)
         ? expenseRes
         : expenseRes.success
-        ? expenseRes.data || []
-        : [],
+          ? expenseRes.data || []
+          : [],
       goalsStats,
       savingsBoxStats: savingsRes.success ? savingsRes.data : null,
     };

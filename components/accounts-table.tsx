@@ -1,13 +1,7 @@
-import { useEffect, useState } from "react";
-import { logger } from "@/lib/utils/logger";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+"use client";
+
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,27 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
-import { deleteAccount } from "@/app/actions/accounts";
-import { supabaseCache } from "@/lib/supabase/cache";
+import type { AccountData } from "@/lib/types/actions";
+import { useDeleteAccountMutation } from "@/useCases/accounts/useDeleteAccountMutation";
 
-const CACHE_KEY = "accounts-data";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-
-export function AccountsTable({
-  accounts,
-  onDelete,
-}: {
-  accounts: any[];
+interface AccountsTableProps {
+  accounts: AccountData[];
   onDelete: () => void;
-}) {
+}
+
+export function AccountsTable({ accounts, onDelete }: AccountsTableProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const deleteMutation = useDeleteAccountMutation();
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     setAccountToDelete(id);
     setDeleteDialogOpen(true);
   };
@@ -46,7 +43,7 @@ export function AccountsTable({
     if (!accountToDelete) return;
 
     try {
-      await deleteAccount(accountToDelete);
+      await deleteMutation.mutateAsync(accountToDelete);
       setDeleteDialogOpen(false);
       setAccountToDelete(null);
       onDelete();
@@ -55,8 +52,7 @@ export function AccountsTable({
         description: "Conta excluída com sucesso.",
         variant: "success",
       });
-    } catch (error) {
-      logger.error("Error deleting account:", error as Error);
+    } catch {
       toast({
         title: "Erro",
         description: "Não foi possível excluir a conta.",
@@ -84,11 +80,7 @@ export function AccountsTable({
                 <TableCell>{account.type}</TableCell>
                 <TableCell>${account.balance}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(account.id)}
-                  >
+                  <Button onClick={() => handleDelete(account.id)} size="sm" variant="ghost">
                     Excluir
                   </Button>
                 </TableCell>
@@ -98,23 +90,23 @@ export function AccountsTable({
         </Table>
       </div>
 
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <Dialog onOpenChange={setDeleteDialogOpen} open={deleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmar Exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir esta conta? Esta ação não pode ser
-              desfeita.
+              Tem certeza que deseja excluir esta conta? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
+            <Button onClick={() => setDeleteDialogOpen(false)} variant="outline">
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button
+              disabled={deleteMutation.isPending}
+              onClick={confirmDelete}
+              variant="destructive"
+            >
               Excluir
             </Button>
           </DialogFooter>
@@ -123,4 +115,3 @@ export function AccountsTable({
     </>
   );
 }
-

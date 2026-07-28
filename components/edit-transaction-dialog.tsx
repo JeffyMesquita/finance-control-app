@@ -1,10 +1,10 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getCategories } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -22,43 +22,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { useToast } from "@/hooks/use-toast";
-import { getCategories } from "@/app/actions/categories";
-import { getAccounts } from "@/app/actions/accounts";
 import { Switch } from "@/components/ui/switch";
-import { CategoryData } from "@/lib/types/actions";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import type { CategoryData, TransactionData } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
+import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
 import { useUpdateTransactionMutation } from "@/useCases/transactions/useUpdateTransactionMutation";
 
 interface EditTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: any;
+  transaction: EditableTransaction;
   onSuccess?: () => void;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  color: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Account {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currency: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
+type EditableTransaction = TransactionData & {
+  recurring_interval?: string | null;
+};
 
 // Função utilitária para converter data para formato local sem problemas de timezone
 const formatDateToLocal = (dateString: string): string => {
@@ -78,7 +59,8 @@ export function EditTransactionDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const accountsQuery = useAccountsQuery();
+  const accounts = accountsQuery.data?.data ?? [];
   const [formData, setFormData] = useState({
     type: transaction.type || "EXPENSE",
     amount: (transaction.amount / 100)?.toString() || "",
@@ -117,6 +99,7 @@ export function EditTransactionDialog({
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Legacy dialog initialization remains until the category form flow is migrated.
   useEffect(() => {
     if (open) {
       fetchData();
@@ -145,13 +128,9 @@ export function EditTransactionDialog({
 
   async function fetchData() {
     try {
-      const [categoriesData, accountsData] = await Promise.all([
-        getCategories(),
-        getAccounts(),
-      ]);
+      const [categoriesData] = await Promise.all([getCategories(), accountsQuery.refetch()]);
 
       setCategories(categoriesData.data || []);
-      setAccounts(accountsData.data || []);
     } catch (error) {
       logger.error("Erro ao carregar dados:", error as Error);
       toast({
@@ -162,9 +141,7 @@ export function EditTransactionDialog({
     }
   }
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -207,9 +184,7 @@ export function EditTransactionDialog({
       // Formatar recurring_interval se existir
       let formattedRecurringInterval = null;
       if (formData.is_recurring && formData.recurring_interval) {
-        const [intervalYear, intervalMonth] = formData.recurring_interval
-          .split("-")
-          .map(Number);
+        const [intervalYear, intervalMonth] = formData.recurring_interval.split("-").map(Number);
         formattedRecurringInterval = new Date(
           Date.UTC(intervalYear, intervalMonth - 1, 1, 3, 0, 0)
         ).toISOString();
@@ -220,9 +195,8 @@ export function EditTransactionDialog({
         amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
         type: formData.type as "EXPENSE" | "INCOME",
-        recurring_interval: formData.is_recurring
-          ? formattedRecurringInterval || null
-          : null,
+        installment_number: Number(formData.installment_number),
+        recurring_interval: formData.is_recurring ? formattedRecurringInterval || null : null,
       };
 
       await updateMutation.mutateAsync({
@@ -241,9 +215,7 @@ export function EditTransactionDialog({
   };
 
   // Filter categories based on transaction type
-  const filteredCategories = categories.filter(
-    (category) => category.type === formData.type
-  );
+  const filteredCategories = categories.filter((category) => category.type === formData.type);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -251,9 +223,7 @@ export function EditTransactionDialog({
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Editar Transação</DialogTitle>
-            <DialogDescription>
-              Atualize os detalhes da transação selecionada.
-            </DialogDescription>
+            <DialogDescription>Atualize os detalhes da transação selecionada.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
@@ -300,9 +270,7 @@ export function EditTransactionDialog({
                 <Label htmlFor="category">Categoria</Label>
                 <Select
                   value={formData.category_id}
-                  onValueChange={(value) =>
-                    handleSelectChange("category_id", value)
-                  }
+                  onValueChange={(value) => handleSelectChange("category_id", value)}
                   required
                   defaultValue={formData.category_id}
                 >
@@ -334,9 +302,7 @@ export function EditTransactionDialog({
               <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
-                onValueChange={(value) =>
-                  handleSelectChange("account_id", value)
-                }
+                onValueChange={(value) => handleSelectChange("account_id", value)}
                 required
                 defaultValue={formData.account_id}
               >
@@ -354,30 +320,21 @@ export function EditTransactionDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="notes">Observações (Opcional)</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-              />
+              <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} />
             </div>
 
             <div className="flex items-center space-x-2">
               <Switch
                 id="is_recurring"
                 checked={formData.is_recurring}
-                onCheckedChange={(checked) =>
-                  handleSwitchChange("is_recurring", checked)
-                }
+                onCheckedChange={(checked) => handleSwitchChange("is_recurring", checked)}
               />
               <Label htmlFor="is_recurring">Transação Recorrente</Label>
             </div>
 
             {formData.is_recurring && (
               <div className="space-y-2">
-                <Label htmlFor="recurring_interval">
-                  Data da Finalização da Recorrência
-                </Label>
+                <Label htmlFor="recurring_interval">Data da Finalização da Recorrência</Label>
                 <Input
                   id="recurring_interval"
                   name="recurring_interval"
@@ -389,11 +346,7 @@ export function EditTransactionDialog({
             )}
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>

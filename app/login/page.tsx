@@ -1,5 +1,6 @@
 "use client";
 
+import { sessionApi } from "@/lib/api/session";
 import { logger } from "@/lib/utils/logger";
 
 import { HeroVisual } from "@/components/hero-visual";
@@ -17,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -35,7 +35,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClientComponentClient();
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,12 +54,8 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         setIsCheckingSession(true);
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-          router.push("/dashboard");
-        }
+        await sessionApi.getCurrentUser();
+        router.push("/dashboard");
       } catch (error) {
         logger.error("Erro ao verificar sessão:", error as Error);
       } finally {
@@ -69,7 +64,7 @@ export default function LoginPage() {
     };
 
     checkSession();
-  }, [router, supabase.auth]);
+  }, [router]);
 
   // Monitorar retorno do Google Auth
   useEffect(() => {
@@ -118,58 +113,35 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
 
-      const res = await fetch("/api/auth/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, recaptchaToken, isRegister }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Erro desconhecido.");
-        setIsLoading(false);
+      if (!recaptchaToken) {
+        setError("Confirme o reCAPTCHA antes de continuar.");
         return;
       }
-      if (isRegister) {
+
+      const result = await sessionApi.loginWithEmail({
+        email,
+        password,
+        recaptchaToken,
+        isRegister,
+      });
+
+      if (isRegister && result.requiresEmailConfirmation) {
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
         router.push("/dashboard");
       }
-    } catch (error: any) {
-      logger.error("Erro na autenticação:", error);
-      setError(error.message);
+    } catch (error) {
+      logger.error("Erro na autenticação:", error as Error);
+      setError(error instanceof Error ? error.message : "Erro ao autenticar.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      localStorage.setItem("googleLogin", "true");
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Após login Google, processa referência
-      // O redirecionamento será tratado pelo Supabase
-    } catch (error: any) {
-      logger.error("Erro ao fazer login:", error);
-      setError("Falha ao fazer login com Google. Por favor, tente novamente.");
-      setIsLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    setError(null);
+    window.location.assign(sessionApi.googleLoginUrl);
   };
 
   useEffect(() => {

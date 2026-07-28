@@ -1,6 +1,8 @@
-import type { BaseActionResult, DashboardData } from "@/lib/types/actions";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+import { apiRequest } from "@/lib/api/client";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { BaseActionResult, DashboardData } from "@/lib/types/actions";
 
 interface DashboardDataQueryOptions {
   onSuccess?: (data: DashboardData) => void;
@@ -17,6 +19,10 @@ export function useDashboardDataQuery(options: DashboardDataQueryOptions = {}) {
     staleTime: 60 * 1000, // 1 minuto
     gcTime: 5 * 60 * 1000, // 5 minutos
     queryFn: async (): Promise<DashboardData> => {
+      if (isNestDomainEnabled("dashboard")) {
+        return apiRequest<DashboardData>("/dashboard/data");
+      }
+
       const response = await fetch("/api/dashboard");
 
       if (!response.ok) {

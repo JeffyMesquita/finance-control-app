@@ -1,10 +1,10 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getCategories } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { useToast } from "@/hooks/use-toast";
-import { getCategories } from "@/app/actions/categories";
-import { getAccounts } from "@/app/actions/accounts";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/lib/utils/logger";
+import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
 import { useCreateTransactionMutation } from "@/useCases/transactions/useCreateTransactionMutation";
 
 interface AddTransactionDialogProps {
@@ -45,14 +44,6 @@ type Category = {
   user_id: string;
   created_at: string;
   updated_at: string;
-};
-
-type Account = {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currency: string;
 };
 
 type FormData = {
@@ -92,28 +83,24 @@ const INITIAL_FORM_DATA: FormData = {
   total_installments: null,
 };
 
-export function AddTransactionDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-}: AddTransactionDialogProps) {
+export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTransactionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const accountsQuery = useAccountsQuery();
+  const accounts = accountsQuery.data?.data ?? [];
 
   const [formData, setFormData] = useState({
     ...INITIAL_FORM_DATA,
-    category_id: categories[0]?.id,
-    account_id: accounts[0]?.id,
+    category_id: "",
+    account_id: "",
   });
 
   const createMutation = useCreateTransactionMutation({
     onSuccess: () => {
       toast({
         title: "Transação Criada",
-        description:
-          "Sua transação foi registrada com sucesso e já está disponível no histórico.",
+        description: "Sua transação foi registrada com sucesso e já está disponível no histórico.",
         variant: "success",
       });
       onSuccess?.();
@@ -125,14 +112,14 @@ export function AddTransactionDialog({
       toast({
         title: "Erro ao Criar",
         description:
-          error.message ||
-          "Não foi possível registrar a transação. Tente novamente mais tarde.",
+          error.message || "Não foi possível registrar a transação. Tente novamente mais tarde.",
         variant: "destructive",
       });
       setIsSubmitting(false);
     },
   });
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Legacy dialog initialization remains until the category form flow is migrated.
   useEffect(() => {
     if (open) {
       fetchData();
@@ -141,8 +128,8 @@ export function AddTransactionDialog({
         type: "EXPENSE",
         amount: "",
         description: "",
-        category_id: categories[0]?.id,
-        account_id: accounts[0]?.id,
+        category_id: "",
+        account_id: "",
         date: getCurrentLocalDate(),
         notes: "",
         is_recurring: false,
@@ -155,18 +142,17 @@ export function AddTransactionDialog({
 
   async function fetchData() {
     try {
-      const [categoriesResult, accountsResult] = await Promise.all([
+      const [categoriesResult, accountsQueryResult] = await Promise.all([
         getCategories(),
-        getAccounts(),
+        accountsQuery.refetch(),
       ]);
+      const accountsResult = accountsQueryResult.data;
 
       if (categoriesResult.success && categoriesResult.data) {
         setCategories(categoriesResult.data);
       }
 
-      if (accountsResult.success && accountsResult.data) {
-        setAccounts(accountsResult.data);
-
+      if (accountsResult?.success && accountsResult.data) {
         // Set default account if available
         if (accountsResult.data.length > 0) {
           setFormData((prev) => ({
@@ -186,9 +172,7 @@ export function AddTransactionDialog({
     }
   }
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -231,9 +215,7 @@ export function AddTransactionDialog({
       // Formatar recurring_interval se existir
       let formattedRecurringInterval = null;
       if (formData.is_recurring && formData.recurring_interval) {
-        const [intervalYear, intervalMonth] = formData.recurring_interval
-          .split("-")
-          .map(Number);
+        const [intervalYear, intervalMonth] = formData.recurring_interval.split("-").map(Number);
         formattedRecurringInterval = new Date(
           Date.UTC(intervalYear, intervalMonth - 1, 1, 3, 0, 0)
         ).toISOString();
@@ -245,16 +227,11 @@ export function AddTransactionDialog({
         amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
         account_id: accountIdValue,
-        recurring_interval: formData.is_recurring
-          ? formattedRecurringInterval || null
-          : null,
+        recurring_interval: formData.is_recurring ? formattedRecurringInterval || null : null,
       };
 
       // Se for parcelado, criar múltiplas transações
-      if (
-        formData.type === "EXPENSE" &&
-        Number(formData.installment_number) > 1
-      ) {
+      if (formData.type === "EXPENSE" && Number(formData.installment_number) > 1) {
         const installments = Number(formData.installment_number);
         const installmentPromises = [];
         for (let i = 0; i < installments; i++) {
@@ -263,17 +240,13 @@ export function AddTransactionDialog({
           const installmentTransaction = {
             ...baseTransaction,
             type: baseTransaction.type as "EXPENSE" | "INCOME",
-            description: `${baseTransaction.description} (${
-              i + 1
-            }/${installments})`,
+            description: `${baseTransaction.description} (${i + 1}/${installments})`,
             date: installmentDate.toISOString(),
             is_recurring: false,
             installment_number: i + 1,
             total_installments: installments,
           };
-          installmentPromises.push(
-            createMutation.mutateAsync(installmentTransaction)
-          );
+          installmentPromises.push(createMutation.mutateAsync(installmentTransaction));
         }
         const results = await Promise.allSettled(installmentPromises);
         const hasError = results.some((r) => r.status === "rejected");
@@ -313,9 +286,7 @@ export function AddTransactionDialog({
   };
 
   // Filter categories based on transaction type
-  const filteredCategories = categories.filter(
-    (category) => category.type === formData.type
-  );
+  const filteredCategories = categories.filter((category) => category.type === formData.type);
 
   useEffect(() => {
     if (categories.length > 0) {
@@ -380,9 +351,7 @@ export function AddTransactionDialog({
                 <Label htmlFor="category">Categoria</Label>
                 <Select
                   value={formData.category_id}
-                  onValueChange={(value) =>
-                    handleSelectChange("category_id", value)
-                  }
+                  onValueChange={(value) => handleSelectChange("category_id", value)}
                   required
                   defaultValue={categories[0]?.id || ""}
                 >
@@ -414,9 +383,7 @@ export function AddTransactionDialog({
               <Label htmlFor="account">Conta</Label>
               <Select
                 value={formData.account_id}
-                onValueChange={(value) =>
-                  handleSelectChange("account_id", value)
-                }
+                onValueChange={(value) => handleSelectChange("account_id", value)}
                 defaultValue={accounts[0]?.id || ""}
                 required
               >
@@ -438,9 +405,7 @@ export function AddTransactionDialog({
                 <Label htmlFor="installment_number">Parcelas</Label>
                 <Select
                   value={formData.installment_number}
-                  onValueChange={(value) =>
-                    handleSelectChange("installment_number", value)
-                  }
+                  onValueChange={(value) => handleSelectChange("installment_number", value)}
                 >
                   <SelectTrigger id="installments">
                     <SelectValue placeholder="Selecione o número de parcelas" />
@@ -467,30 +432,21 @@ export function AddTransactionDialog({
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observações (Opcional)</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-              />
+              <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} />
             </div>
 
             <div className="flex items-center space-x-2">
               <Switch
                 id="is_recurring"
                 checked={formData.is_recurring}
-                onCheckedChange={(checked) =>
-                  handleSwitchChange("is_recurring", checked)
-                }
+                onCheckedChange={(checked) => handleSwitchChange("is_recurring", checked)}
               />
               <Label htmlFor="is_recurring">Transação Recorrente</Label>
             </div>
 
             {formData.is_recurring && (
               <div className="space-y-2">
-                <Label htmlFor="recurring_interval">
-                  Data da Finalização da Recorrência
-                </Label>
+                <Label htmlFor="recurring_interval">Data da Finalização da Recorrência</Label>
                 <Input
                   id="recurring_interval"
                   name="recurring_interval"
@@ -502,11 +458,7 @@ export function AddTransactionDialog({
             )}
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>

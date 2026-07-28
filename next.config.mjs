@@ -1,14 +1,14 @@
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: false,
+  turbopack: {
+    root: projectRoot,
   },
   images: {
-    unoptimized: true,
-    domains: ["images.unsplash.com", "via.placeholder.com"],
     remotePatterns: [
       {
         protocol: "https",
@@ -59,6 +59,20 @@ const nextConfig = {
             value: "default-src 'self'; script-src 'self'",
           },
         ],
+      },
+    ];
+  },
+  async rewrites() {
+    const backendOrigin = process.env.BACKEND_API_ORIGIN?.replace(/\/$/, "");
+
+    if (!backendOrigin) {
+      return [];
+    }
+
+    return [
+      {
+        source: "/api/backend/:path*",
+        destination: `${backendOrigin}/api/v1/:path*`,
       },
     ];
   },

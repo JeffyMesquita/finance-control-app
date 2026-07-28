@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { SavingsBoxData } from "@/lib/types/actions";
+import { apiRequest } from "@/lib/api/client";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { SavingsBoxData } from "@/lib/types/actions";
 
 interface SavingsBoxesResponse {
   success: boolean;
@@ -8,6 +10,10 @@ interface SavingsBoxesResponse {
 }
 
 async function fetchSavingsBoxes(): Promise<SavingsBoxData[]> {
+  if (isNestDomainEnabled("savings-boxes")) {
+    return apiRequest<SavingsBoxData[]>("/savings-boxes/list?limit=100");
+  }
+
   const response = await fetch("/api/savings-boxes/list");
   const result: SavingsBoxesResponse = await response.json();
 

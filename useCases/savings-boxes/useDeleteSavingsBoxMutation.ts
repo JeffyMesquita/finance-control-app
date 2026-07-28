@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/api/client";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 
 interface DeleteSavingsBoxResponse {
   success: boolean;
@@ -7,6 +9,14 @@ interface DeleteSavingsBoxResponse {
 }
 
 async function deleteSavingsBox(id: string): Promise<void> {
+  if (isNestDomainEnabled("savings-boxes")) {
+    await apiRequest<void>("/savings-boxes/delete", {
+      body: { id },
+      method: "DELETE",
+    });
+    return;
+  }
+
   const response = await fetch("/api/savings-boxes/delete", {
     method: "DELETE",
     headers: {

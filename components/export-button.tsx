@@ -7,6 +7,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 
 // Hooks TanStack Query
+import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
 import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
 
 interface ExportButtonProps {
@@ -22,12 +23,10 @@ interface ExportButtonProps {
 export function ExportButton({ variant = "outline" }: ExportButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Hooks TanStack Query
-  const { data: categoriesData, isLoading, error } = useCategoriesQuery();
+  const { data: categoriesData } = useCategoriesQuery();
+  const { data: accountsData } = useAccountsQuery();
   const categories = categoriesData?.data || ([] as CategoryData[]);
-
-  // Mock accounts data - você pode criar um hook similar para accounts
-  const accounts: AccountData[] = [];
+  const accounts = accountsData?.data || ([] as AccountData[]);
 
   return (
     <>

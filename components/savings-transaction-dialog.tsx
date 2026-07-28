@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Minus, PiggyBank, Plus, Wallet } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { depositToSavingsBox, withdrawFromSavingsBox } from "@/app/actions/savings-transactions";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -27,27 +34,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import {
-  depositToSavingsBox,
-  withdrawFromSavingsBox,
-} from "@/app/actions/savings-transactions";
-import { getAccounts } from "@/app/actions/accounts";
-import type { SavingsBox } from "@/lib/types/savings-boxes";
-import type { SavingsTransactionType } from "@/lib/types/savings-boxes";
-import { Plus, Minus, Wallet, PiggyBank } from "lucide-react";
+import type { BaseActionResult, SavingsTransactionData } from "@/lib/types/actions";
+import type { SavingsBox, SavingsTransactionType } from "@/lib/types/savings-boxes";
+import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
 
 const formSchema = z.object({
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
   source_account_id: z.string().optional(),
-  description: z
-    .string()
-    .max(500, "Descrição deve ter no máximo 500 caracteres")
-    .optional(),
+  description: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -68,8 +62,9 @@ export function SavingsTransactionDialog({
   onSuccess,
 }: SavingsTransactionDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+  const accountsQuery = useAccountsQuery();
+  const accounts = accountsQuery.data?.data ?? [];
+  const isLoadingAccounts = accountsQuery.isLoading;
 
   const isDeposit = transactionType === "DEPOSIT";
   const isWithdraw = transactionType === "WITHDRAW";
@@ -83,35 +78,10 @@ export function SavingsTransactionDialog({
     },
   });
 
-  // Carregar contas quando o dialog abre
-  useEffect(() => {
-    if (open) {
-      loadAccounts();
-    }
-  }, [open]);
-
-  const loadAccounts = async () => {
-    setIsLoadingAccounts(true);
-    try {
-      const result = await getAccounts();
-      if (result.success && result.data) {
-        setAccounts(result.data || []);
-      } else {
-        toast.error("Erro ao carregar contas");
-        setAccounts([]);
-      }
-    } catch (error) {
-      toast.error("Erro ao carregar contas");
-      setAccounts([]);
-    } finally {
-      setIsLoadingAccounts(false);
-    }
-  };
-
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      let result;
+      let result: BaseActionResult<SavingsTransactionData>;
 
       if (isDeposit) {
         result = await depositToSavingsBox(
@@ -141,7 +111,7 @@ export function SavingsTransactionDialog({
       } else {
         toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado. Tente novamente.");
     } finally {
       setIsSubmitting(false);
@@ -155,9 +125,7 @@ export function SavingsTransactionDialog({
     onOpenChange(newOpen);
   };
 
-  const selectedAccount = accounts.find(
-    (acc) => acc.id === form.watch("source_account_id")
-  );
+  const selectedAccount = accounts.find((acc) => acc.id === form.watch("source_account_id"));
   const currentAmount = (savingsBox.current_amount || 0) / 100;
 
   return (
@@ -240,9 +208,7 @@ export function SavingsTransactionDialog({
               name="source_account_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>
-                    {isDeposit ? "Origem (Conta)" : "Destino (Conta)"}
-                  </FormLabel>
+                  <FormLabel>{isDeposit ? "Origem (Conta)" : "Destino (Conta)"}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -264,12 +230,9 @@ export function SavingsTransactionDialog({
                               <div className="font-medium">{account.name}</div>
                               <div className="text-xs text-muted-foreground">
                                 Saldo: R${" "}
-                                {((account.balance || 0) / 100)?.toLocaleString(
-                                  "pt-BR",
-                                  {
-                                    minimumFractionDigits: 2,
-                                  }
-                                ) || "0,00"}
+                                {((account.balance || 0) / 100)?.toLocaleString("pt-BR", {
+                                  minimumFractionDigits: 2,
+                                }) || "0,00"}
                               </div>
                             </div>
                           </div>
@@ -312,9 +275,7 @@ export function SavingsTransactionDialog({
                   <FormControl>
                     <Textarea
                       placeholder={
-                        isDeposit
-                          ? "Motivo do depósito (opcional)"
-                          : "Motivo do saque (opcional)"
+                        isDeposit ? "Motivo do depósito (opcional)" : "Motivo do saque (opcional)"
                       }
                       className="resize-none"
                       {...field}
@@ -338,9 +299,7 @@ export function SavingsTransactionDialog({
                 type="submit"
                 disabled={isSubmitting}
                 className={
-                  isDeposit
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
+                  isDeposit ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
                 }
               >
                 {isSubmitting
