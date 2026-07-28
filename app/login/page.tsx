@@ -118,12 +118,14 @@ export default function LoginPage() {
         return;
       }
 
-      const result = await sessionApi.loginWithEmail({
-        email,
-        password,
-        recaptchaToken,
-        isRegister,
-      });
+      const referralId = localStorage.getItem("referral_id") ?? undefined;
+      const credentials = { email, password, recaptchaToken };
+      const result = isRegister
+        ? await sessionApi.register({
+            ...credentials,
+            referralId,
+          })
+        : await sessionApi.login(credentials);
 
       if (isRegister && result.requiresEmailConfirmation) {
         setError("Por favor, verifique seu email para confirmar o registro.");
@@ -141,7 +143,8 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setError(null);
-    window.location.assign(sessionApi.googleLoginUrl);
+    const referralId = localStorage.getItem("referral_id") ?? undefined;
+    window.location.assign(sessionApi.googleLoginUrl(referralId));
   };
 
   useEffect(() => {

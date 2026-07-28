@@ -2,6 +2,17 @@ import type { ApiFailure, ApiResponse, PaginatedApiResponse } from "./contracts"
 
 const API_BASE_PATH = "/api/backend";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const AUTH_CSRF_BOOTSTRAP_PATHS = new Set([
+  "/auth/csrf",
+  "/auth/email",
+  "/auth/login",
+  "/auth/register",
+]);
+const AUTH_REFRESH_EXCLUDED_PATHS = new Set([
+  ...AUTH_CSRF_BOOTSTRAP_PATHS,
+  "/auth/refresh",
+  "/auth/logout",
+]);
 let refreshPromise: Promise<void> | undefined;
 
 export class ApiError extends Error {
@@ -51,7 +62,7 @@ async function ensureCsrfToken(): Promise<string> {
 
   const response = await fetch(`${API_BASE_PATH}/auth/csrf`, {
     credentials: "include",
-    method: "POST",
+    method: "GET",
   });
   const payload = (await response.json()) as ApiResponse<{ token: string }>;
 
@@ -110,7 +121,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     headers.set("content-type", "application/json");
   }
 
-  if (isUnsafeMethod && !path.startsWith("/auth/")) {
+  if (isUnsafeMethod && !AUTH_CSRF_BOOTSTRAP_PATHS.has(path)) {
     headers.set("x-csrf-token", await ensureCsrfToken());
   }
 
@@ -123,7 +134,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   });
   const payload = (await response.json()) as ApiResponse<T>;
 
-  if (response.status === 401 && retryAfterRefresh && !path.startsWith("/auth/")) {
+  if (response.status === 401 && retryAfterRefresh && !AUTH_REFRESH_EXCLUDED_PATHS.has(path)) {
     await refreshSession();
     return apiRequest<T>(path, { ...options, retryAfterRefresh: false });
   }
@@ -151,7 +162,7 @@ export async function apiPaginatedRequest<T>(
     headers.set("content-type", "application/json");
   }
 
-  if (isUnsafeMethod && !path.startsWith("/auth/")) {
+  if (isUnsafeMethod && !AUTH_CSRF_BOOTSTRAP_PATHS.has(path)) {
     headers.set("x-csrf-token", await ensureCsrfToken());
   }
 
@@ -164,7 +175,7 @@ export async function apiPaginatedRequest<T>(
   });
   const payload = (await response.json()) as PaginatedApiResponse<T>;
 
-  if (response.status === 401 && retryAfterRefresh && !path.startsWith("/auth/")) {
+  if (response.status === 401 && retryAfterRefresh && !AUTH_REFRESH_EXCLUDED_PATHS.has(path)) {
     await refreshSession();
     return apiPaginatedRequest<T>(path, {
       ...options,

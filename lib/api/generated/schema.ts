@@ -52,6 +52,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Autentica por e-mail e senha */
+        post: operations["AuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cria uma conta por e-mail e senha */
+        post: operations["AuthController_register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/email": {
         parameters: {
             query?: never;
@@ -61,6 +95,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Adaptador tempor?rio para login e cadastro por e-mail
+         * @deprecated
+         */
         post: operations["AuthController_email"];
         delete?: never;
         options?: never;
@@ -107,7 +145,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Emite um token CSRF para muta??es autenticadas */
+        get: operations["AuthController_getCsrf"];
         put?: never;
         post: operations["AuthController_csrf"];
         delete?: never;
@@ -318,6 +357,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/transactions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["TransactionController_getById"];
+        put: operations["TransactionController_update[1]"];
+        post?: never;
+        delete: operations["TransactionController_remove[1]"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/transactions/create": {
         parameters: {
             query?: never;
@@ -345,22 +400,6 @@ export interface paths {
         put: operations["TransactionController_update[0]"];
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/transactions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put: operations["TransactionController_update[1]"];
-        post?: never;
-        delete: operations["TransactionController_remove[1]"];
         options?: never;
         head?: never;
         patch?: never;
@@ -882,7 +921,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        EmailAuthDto: Record<string, never>;
+        LoginRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+        };
+        RegisterRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+            /**
+             * Format: uuid
+             * @description Identificador do usu?rio que fez a indica??o (first-touch)
+             */
+            referralId?: string;
+        };
+        LegacyEmailAuthRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+            /** @description Adaptador tempor?rio para o fluxo legado */
+            isRegister: boolean;
+        };
         Function: Record<string, never>;
         CreateTransactionRequestDto: Record<string, never>;
         UpdateTransactionRequestDto: Record<string, never>;
@@ -1106,6 +1172,48 @@ export interface operations {
             };
         };
     };
+    AuthController_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AuthController_email: {
         parameters: {
             query?: never;
@@ -1115,7 +1223,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EmailAuthDto"];
+                "application/json": components["schemas"]["LegacyEmailAuthRequestDto"];
             };
         };
         responses: {
@@ -1149,6 +1257,23 @@ export interface operations {
             query: {
                 code: string;
             };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_getCsrf: {
+        parameters: {
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -1476,39 +1601,16 @@ export interface operations {
             };
         };
     };
-    "TransactionController_create[1]": {
+    TransactionController_getById: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateTransactionRequestDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    "TransactionController_update[0]": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateTransactionRequestDto"];
-            };
-        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -1549,6 +1651,48 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DeleteTransactionRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "TransactionController_create[1]": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTransactionRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    "TransactionController_update[0]": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTransactionRequestDto"];
             };
         };
         responses: {

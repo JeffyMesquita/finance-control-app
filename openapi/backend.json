@@ -43,16 +43,16 @@
         ]
       }
     },
-    "/auth/email": {
+    "/auth/login": {
       "post": {
-        "operationId": "AuthController_email",
+        "operationId": "AuthController_login",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EmailAuthDto"
+                "$ref": "#/components/schemas/LoginRequestDto"
               }
             }
           }
@@ -62,6 +62,58 @@
             "description": ""
           }
         },
+        "summary": "Autentica por e-mail e senha",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Cria uma conta por e-mail e senha",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/email": {
+      "post": {
+        "deprecated": true,
+        "operationId": "AuthController_email",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegacyEmailAuthRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Adaptador tempor?rio para login e cadastro por e-mail",
         "tags": [
           "Auth"
         ]
@@ -105,6 +157,19 @@
       }
     },
     "/auth/csrf": {
+      "get": {
+        "operationId": "AuthController_getCsrf",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Emite um token CSRF para muta??es autenticadas",
+        "tags": [
+          "Auth"
+        ]
+      },
       "post": {
         "operationId": "AuthController_csrf",
         "parameters": [],
@@ -477,6 +542,88 @@
         ]
       }
     },
+    "/transactions/{id}": {
+      "get": {
+        "operationId": "TransactionController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ]
+      },
+      "put": {
+        "operationId": "TransactionController_update[1]",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTransactionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ]
+      },
+      "delete": {
+        "operationId": "TransactionController_remove[1]",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteTransactionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ]
+      }
+    },
     "/transactions/create": {
       "post": {
         "operationId": "TransactionController_create[1]",
@@ -516,62 +663,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateTransactionRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Transactions"
-        ]
-      }
-    },
-    "/transactions/{id}": {
-      "put": {
-        "operationId": "TransactionController_update[1]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTransactionRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "Transactions"
-        ]
-      },
-      "delete": {
-        "operationId": "TransactionController_remove[1]",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeleteTransactionRequestDto"
               }
             }
           }
@@ -1725,9 +1816,81 @@
       }
     },
     "schemas": {
-      "EmailAuthDto": {
+      "LoginRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken"
+        ]
+      },
+      "RegisterRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          },
+          "referralId": {
+            "type": "string",
+            "description": "Identificador do usu?rio que fez a indica??o (first-touch)",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken"
+        ]
+      },
+      "LegacyEmailAuthRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          },
+          "isRegister": {
+            "type": "boolean",
+            "description": "Adaptador tempor?rio para o fluxo legado"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken",
+          "isRegister"
+        ]
       },
       "Function": {
         "type": "object",
