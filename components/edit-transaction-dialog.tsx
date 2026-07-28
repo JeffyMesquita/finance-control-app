@@ -2,7 +2,6 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { getCategories } from "@/app/actions/categories";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -25,9 +24,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import type { CategoryData, TransactionData } from "@/lib/types/actions";
+import type { TransactionData } from "@/lib/types/actions";
 import { logger } from "@/lib/utils/logger";
 import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
 import { useUpdateTransactionMutation } from "@/useCases/transactions/useUpdateTransactionMutation";
 
 interface EditTransactionDialogProps {
@@ -58,9 +58,10 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [categories, setCategories] = useState<CategoryData[]>([]);
   const accountsQuery = useAccountsQuery();
+  const categoriesQuery = useCategoriesQuery();
   const accounts = accountsQuery.data?.data ?? [];
+  const categories = categoriesQuery.data?.data ?? [];
   const [formData, setFormData] = useState({
     type: transaction.type || "EXPENSE",
     amount: (transaction.amount / 100)?.toString() || "",
@@ -99,13 +100,6 @@ export function EditTransactionDialog({
     },
   });
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Legacy dialog initialization remains until the category form flow is migrated.
-  useEffect(() => {
-    if (open) {
-      fetchData();
-    }
-  }, [open]);
-
   useEffect(() => {
     if (transaction && open) {
       setFormData({
@@ -125,21 +119,6 @@ export function EditTransactionDialog({
       });
     }
   }, [transaction, open]);
-
-  async function fetchData() {
-    try {
-      const [categoriesData] = await Promise.all([getCategories(), accountsQuery.refetch()]);
-
-      setCategories(categoriesData.data || []);
-    } catch (error) {
-      logger.error("Erro ao carregar dados:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Falha ao carregar categorias e contas",
-        variant: "destructive",
-      });
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

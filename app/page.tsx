@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { LandingPage } from "@/components/landing-page";
 import { SchemaOrg } from "@/components/schema-org";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
@@ -9,7 +11,9 @@ export default function Home() {
       <SchemaOrg type="Organization" data={organizationData} />
       <SchemaOrg type="WebSite" data={websiteData} />
       <ServiceWorkerRegistration />
-      <LandingPage />
+      <Suspense fallback={null}>
+        <LandingPage />
+      </Suspense>
     </>
   );
 }

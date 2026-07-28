@@ -252,7 +252,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/CreateAccountRequestDto"
               }
             }
           }
@@ -358,7 +358,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/UpdateAccountRequestDto"
               }
             }
           }
@@ -406,7 +406,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/CreateAccountRequestDto"
               }
             }
           }
@@ -436,7 +436,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/UpdateAccountRequestDto"
               }
             }
           }
@@ -1911,21 +1911,181 @@
           "isRegister"
         ]
       },
-      "Function": {
+      "CreateAccountRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Conta principal"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CHECKING",
+              "SAVINGS",
+              "CREDIT_CARD",
+              "INVESTMENT"
+            ],
+            "example": "CHECKING"
+          },
+          "balance": {
+            "type": "number",
+            "example": 1200.5,
+            "minimum": 0
+          },
+          "currency": {
+            "type": "string",
+            "example": "BRL",
+            "default": "BRL"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "UpdateAccountRequestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Conta principal"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CHECKING",
+              "SAVINGS",
+              "CREDIT_CARD",
+              "INVESTMENT"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "example": "BRL"
+          }
+        }
       },
       "CreateTransactionRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "example": 120.5,
+            "minimum": 0.01
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "example": "Mercado"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "INCOME",
+              "EXPENSE"
+            ]
+          },
+          "is_recurring": {
+            "type": "boolean"
+          },
+          "installment_number": {
+            "type": "number",
+            "minimum": 1
+          },
+          "total_installments": {
+            "type": "number",
+            "minimum": 1
+          },
+          "notes": {
+            "type": "string",
+            "example": "Compra mensal"
+          }
+        },
+        "required": [
+          "account_id",
+          "amount",
+          "category_id",
+          "date",
+          "description",
+          "type"
+        ]
       },
       "UpdateTransactionRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "number",
+            "example": 120.5,
+            "minimum": 0.01
+          },
+          "category_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "example": "Mercado"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "INCOME",
+              "EXPENSE"
+            ]
+          },
+          "is_recurring": {
+            "type": "boolean"
+          },
+          "installment_number": {
+            "type": "number",
+            "minimum": 1
+          },
+          "total_installments": {
+            "type": "number",
+            "minimum": 1
+          },
+          "notes": {
+            "type": "string",
+            "example": "Compra mensal"
+          }
+        }
       },
       "DeleteTransactionRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
       },
       "CreateCategoryCommand": {
         "type": "object",
@@ -2289,6 +2449,10 @@
           "offset",
           "hasMore"
         ]
+      },
+      "Function": {
+        "type": "object",
+        "properties": {}
       },
       "CreateSavingsBoxResponse": {
         "type": "object",
