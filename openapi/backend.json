@@ -542,6 +542,25 @@
         ]
       }
     },
+    "/transactions/stats": {
+      "get": {
+        "operationId": "TransactionController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Transactions"
+        ]
+      }
+    },
     "/transactions/{id}": {
       "get": {
         "operationId": "TransactionController_getById",
