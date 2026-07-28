@@ -83,7 +83,7 @@ export function DashboardNav() {
   const { user } = useCurrentUser();
 
   // Verificar se o usuário é admin
-  const isAdmin = user?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+  const isAdmin = user?.role === "ADMIN";
 
   // Adicionar item admin ao final da lista se for admin
   const allNavItems = isAdmin

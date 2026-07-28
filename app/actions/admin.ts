@@ -1,11 +1,10 @@
 "use server";
 
-import { logger } from "@/lib/utils/logger";
-
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 import type { BaseActionResult } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
 
 // Types para dados administrativos
 export interface AdminStats {
@@ -60,26 +59,20 @@ export interface AdminStats {
 
 // Verificar se usuário é admin
 async function verifyAdmin() {
-  try {
-    const supabase = createServerComponentClient({ cookies });
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const supabase = createServerComponentClient({ cookies });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const adminId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
-    if (user.id !== adminId) {
-      throw new Error("Unauthorized: Admin access required");
-    }
-
-    return user;
-  } catch (error) {
-    throw error;
+  if (!user) {
+    throw new Error("User not authenticated");
   }
+
+  if (user.app_metadata?.role !== "admin") {
+    throw new Error("Unauthorized: Admin access required");
+  }
+
+  return user;
 }
 
 // Buscar estatísticas gerais
@@ -94,14 +87,10 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
     const thisWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     // Users statistics
-    const { data: users } = await supabase
-      .from("users")
-      .select("id, created_at");
+    const { data: users } = await supabase.from("users").select("id, created_at");
     const totalUsers = users?.length || 0;
-    const newThisMonth =
-      users?.filter((u) => new Date(u.created_at) >= thisMonth).length || 0;
-    const newThisWeek =
-      users?.filter((u) => new Date(u.created_at) >= thisWeek).length || 0;
+    const newThisMonth = users?.filter((u) => new Date(u.created_at) >= thisMonth).length || 0;
+    const newThisWeek = users?.filter((u) => new Date(u.created_at) >= thisWeek).length || 0;
 
     // Active users (users with transactions this month)
     const { data: activeUsersData } = await supabase
@@ -109,9 +98,7 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
       .select("user_id")
       .gte("created_at", thisMonth.toISOString());
 
-    const activeUsers = activeUsersData
-      ? [...new Set(activeUsersData.map((t) => t.user_id))]
-      : [];
+    const activeUsers = activeUsersData ? [...new Set(activeUsersData.map((t) => t.user_id))] : [];
 
     // Transactions statistics
     const { data: transactions } = await supabase
@@ -119,21 +106,15 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
       .select("amount, type, created_at");
 
     const totalTransactions = transactions?.length || 0;
-    const totalAmount =
-      transactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+    const totalAmount = transactions?.reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
     const thisMonthTransactions =
       transactions?.filter((t) => new Date(t.created_at) >= thisMonth) || [];
     const thisMonthCount = thisMonthTransactions.length;
-    const thisMonthAmount = thisMonthTransactions.reduce(
-      (sum, t) => sum + (t.amount || 0),
-      0
-    );
+    const thisMonthAmount = thisMonthTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const incomeTransactions =
-      transactions?.filter((t) => t.type === "INCOME") || [];
-    const expenseTransactions =
-      transactions?.filter((t) => t.type === "EXPENSE") || [];
+    const incomeTransactions = transactions?.filter((t) => t.type === "INCOME") || [];
+    const expenseTransactions = transactions?.filter((t) => t.type === "EXPENSE") || [];
 
     // Goals statistics
     const { data: goals } = await supabase
@@ -143,12 +124,9 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
     const totalGoals = goals?.length || 0;
     const completedGoals = goals?.filter((g) => g.is_completed).length || 0;
     const inProgressGoals = totalGoals - completedGoals;
-    const totalTargetAmount =
-      goals?.reduce((sum, g) => sum + (g.target_amount || 0), 0) || 0;
-    const totalCurrentAmount =
-      goals?.reduce((sum, g) => sum + (g.current_amount || 0), 0) || 0;
-    const averageProgress =
-      totalGoals > 0 ? (totalCurrentAmount / totalTargetAmount) * 100 : 0;
+    const totalTargetAmount = goals?.reduce((sum, g) => sum + (g.target_amount || 0), 0) || 0;
+    const totalCurrentAmount = goals?.reduce((sum, g) => sum + (g.current_amount || 0), 0) || 0;
+    const averageProgress = totalGoals > 0 ? (totalCurrentAmount / totalTargetAmount) * 100 : 0;
 
     // Savings boxes statistics
     const { data: savingsBoxes } = await supabase
@@ -157,8 +135,7 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
 
     const totalBoxes = savingsBoxes?.length || 0;
     const activeBoxes = savingsBoxes?.filter((b) => b.is_active).length || 0;
-    const totalSaved =
-      savingsBoxes?.reduce((sum, b) => sum + (b.current_amount || 0), 0) || 0;
+    const totalSaved = savingsBoxes?.reduce((sum, b) => sum + (b.current_amount || 0), 0) || 0;
     const averageAmount = totalBoxes > 0 ? totalSaved / totalBoxes : 0;
 
     // Feedbacks statistics
@@ -177,23 +154,19 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
     feedbacks?.forEach((f) => {
       feedbacksByType[f.type] = (feedbacksByType[f.type] || 0) + 1;
       feedbacksByStatus[f.status] = (feedbacksByStatus[f.status] || 0) + 1;
-      feedbacksByPriority[f.priority] =
-        (feedbacksByPriority[f.priority] || 0) + 1;
+      feedbacksByPriority[f.priority] = (feedbacksByPriority[f.priority] || 0) + 1;
     });
 
     // Referrals statistics
     const { data: invites } = await supabase.from("user_invites").select("*");
     const totalInvites = invites?.length || 0;
-    const successfulReferrals =
-      invites?.filter((i) => i.referred_id).length || 0;
-    const conversionRate =
-      totalInvites > 0 ? (successfulReferrals / totalInvites) * 100 : 0;
+    const successfulReferrals = invites?.filter((i) => i.referred_id).length || 0;
+    const conversionRate = totalInvites > 0 ? (successfulReferrals / totalInvites) * 100 : 0;
 
     // Top referrers
     const referrerCounts: Record<string, number> = {};
     invites?.forEach((invite) => {
-      referrerCounts[invite.referrer_id] =
-        (referrerCounts[invite.referrer_id] || 0) + 1;
+      referrerCounts[invite.referrer_id] = (referrerCounts[invite.referrer_id] || 0) + 1;
     });
 
     const topReferrers = Object.entries(referrerCounts)
@@ -216,15 +189,11 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
         byType: {
           income: {
             count: incomeTransactions.length,
-            amount:
-              incomeTransactions.reduce((sum, t) => sum + (t.amount || 0), 0) /
-              100,
+            amount: incomeTransactions.reduce((sum, t) => sum + (t.amount || 0), 0) / 100,
           },
           expense: {
             count: expenseTransactions.length,
-            amount:
-              expenseTransactions.reduce((sum, t) => sum + (t.amount || 0), 0) /
-              100,
+            amount: expenseTransactions.reduce((sum, t) => sum + (t.amount || 0), 0) / 100,
           },
         },
       },
@@ -318,11 +287,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
         ).toISOString();
 
         // Mês atual (primeiro ao último dia)
-        const firstDayOfMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          1
-        ).toISOString();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
         const lastDayOfMonth = new Date(
           now.getFullYear(),
           now.getMonth() + 1,
@@ -334,30 +299,21 @@ export async function getAdminUsers(page = 1, limit = 20) {
         ).toISOString();
 
         // Separar transações seguindo lógica do dashboard
-        const incomeTransactions =
-          transactions?.filter((t) => t.type === "INCOME") || [];
+        const incomeTransactions = transactions?.filter((t) => t.type === "INCOME") || [];
 
         // Despesas passadas (até hoje)
         const pastExpenseTransactions =
-          transactions?.filter(
-            (t) => t.type === "EXPENSE" && t.date < nextMonth
-          ) || [];
+          transactions?.filter((t) => t.type === "EXPENSE" && t.date < nextMonth) || [];
 
         // Despesas futuras (a partir do próximo mês)
         const futureExpenseTransactions =
-          transactions?.filter(
-            (t) => t.type === "EXPENSE" && t.date >= nextMonth
-          ) || [];
+          transactions?.filter((t) => t.type === "EXPENSE" && t.date >= nextMonth) || [];
 
         // Todas as despesas
-        const allExpenseTransactions =
-          transactions?.filter((t) => t.type === "EXPENSE") || [];
+        const allExpenseTransactions = transactions?.filter((t) => t.type === "EXPENSE") || [];
 
         // Calcular totais (seguindo dashboard.ts)
-        const totalIncome = incomeTransactions.reduce(
-          (sum, t) => sum + (t.amount || 0),
-          0
-        );
+        const totalIncome = incomeTransactions.reduce((sum, t) => sum + (t.amount || 0), 0);
         const totalPastExpenses = pastExpenseTransactions.reduce(
           (sum, t) => sum + (t.amount || 0),
           0
@@ -376,9 +332,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
 
         // Transações deste mês (seguindo dashboard.ts)
         const thisMonthTransactions =
-          transactions?.filter(
-            (t) => t.date >= firstDayOfMonth && t.date <= lastDayOfMonth
-          ) || [];
+          transactions?.filter((t) => t.date >= firstDayOfMonth && t.date <= lastDayOfMonth) || [];
 
         const thisMonthIncome = thisMonthTransactions
           .filter((t) => t.type === "INCOME")
@@ -389,11 +343,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
           .reduce((sum, t) => sum + (t.amount || 0), 0);
 
         // Despesas futuras deste mês (próximo mês)
-        const nextMonthFirstDay = new Date(
-          now.getFullYear(),
-          now.getMonth() + 1,
-          1
-        ).toISOString();
+        const nextMonthFirstDay = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
         const nextMonthLastDay = new Date(
           now.getFullYear(),
           now.getMonth() + 2,
@@ -408,9 +358,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
           transactions
             ?.filter(
               (t) =>
-                t.type === "EXPENSE" &&
-                t.date >= nextMonthFirstDay &&
-                t.date <= nextMonthLastDay
+                t.type === "EXPENSE" && t.date >= nextMonthFirstDay && t.date <= nextMonthLastDay
             )
             .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
 
@@ -419,8 +367,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const thirtyDaysAgoIso = thirtyDaysAgo.toISOString();
 
-        const recentTransactions =
-          transactions?.filter((t) => t.date >= thirtyDaysAgoIso) || [];
+        const recentTransactions = transactions?.filter((t) => t.date >= thirtyDaysAgoIso) || [];
 
         // Metas detalhadas
         const { data: goals } = await supabase
@@ -429,13 +376,10 @@ export async function getAdminUsers(page = 1, limit = 20) {
           .eq("user_id", user.id);
 
         const totalGoalTarget =
-          (goals?.reduce((sum, g) => sum + (g.target_amount || 0), 0) || 0) /
-          100;
+          (goals?.reduce((sum, g) => sum + (g.target_amount || 0), 0) || 0) / 100;
         const totalGoalCurrent =
-          (goals?.reduce((sum, g) => sum + (g.current_amount || 0), 0) || 0) /
-          100;
-        const goalProgress =
-          totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
+          (goals?.reduce((sum, g) => sum + (g.current_amount || 0), 0) || 0) / 100;
+        const goalProgress = totalGoalTarget > 0 ? (totalGoalCurrent / totalGoalTarget) * 100 : 0;
 
         // Cofrinhos detalhados
         const { data: savingsBoxes } = await supabase
@@ -443,11 +387,9 @@ export async function getAdminUsers(page = 1, limit = 20) {
           .select("current_amount, target_amount, is_active, created_at")
           .eq("user_id", user.id);
 
-        const activeSavingsBoxes =
-          savingsBoxes?.filter((b) => b.is_active) || [];
+        const activeSavingsBoxes = savingsBoxes?.filter((b) => b.is_active) || [];
         const totalSavingsTarget =
-          (savingsBoxes?.reduce((sum, b) => sum + (b.target_amount || 0), 0) ||
-            0) / 100;
+          (savingsBoxes?.reduce((sum, b) => sum + (b.target_amount || 0), 0) || 0) / 100;
 
         // Feedbacks detalhados
         const { data: feedbacks } = await supabase
@@ -468,9 +410,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
 
         // Última meta criada/atualizada
         if (goals && goals.length > 0) {
-          const lastGoalDate = Math.max(
-            ...goals.map((g) => new Date(g.created_at).getTime())
-          );
+          const lastGoalDate = Math.max(...goals.map((g) => new Date(g.created_at).getTime()));
           activityDates.push(lastGoalDate);
         }
 
@@ -503,19 +443,14 @@ export async function getAdminUsers(page = 1, limit = 20) {
         // Categorizar usuário
         let userCategory = "NOVO";
         if (transactions && transactions.length > 50) userCategory = "EXPERT";
-        else if (transactions && transactions.length > 20)
-          userCategory = "AVANCADO";
-        else if (transactions && transactions.length > 5)
-          userCategory = "ATIVO";
+        else if (transactions && transactions.length > 20) userCategory = "AVANCADO";
+        else if (transactions && transactions.length > 5) userCategory = "ATIVO";
 
         // Calcular categoria principal (onde mais gasta) - versão corrigida
         let mainCategory = { name: "Nenhuma", total: 0, count: 0 };
         if (allExpenseTransactions.length > 0) {
           // Agrupar despesas por categoria_id
-          const categoryTotals: Record<
-            string,
-            { total: number; count: number }
-          > = {};
+          const categoryTotals: Record<string, { total: number; count: number }> = {};
 
           allExpenseTransactions.forEach((transaction) => {
             const categoryId = transaction.category_id || "sem_categoria";
@@ -560,9 +495,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
               total: totalIncome / 100,
               thisMonth: thisMonthIncome / 100,
               average:
-                incomeTransactions.length > 0
-                  ? totalIncome / incomeTransactions.length / 100
-                  : 0,
+                incomeTransactions.length > 0 ? totalIncome / incomeTransactions.length / 100 : 0,
             },
             expenses: {
               count: pastExpenseTransactions.length,
@@ -601,10 +534,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
             savingsBoxesCount: savingsBoxes?.length || 0,
             activeSavingsBoxes: activeSavingsBoxes.length,
             totalSaved:
-              (savingsBoxes?.reduce(
-                (sum, b) => sum + (b.current_amount || 0),
-                0
-              ) || 0) / 100,
+              (savingsBoxes?.reduce((sum, b) => sum + (b.current_amount || 0), 0) || 0) / 100,
             totalSavingsTarget,
 
             // Engajamento
@@ -614,8 +544,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
 
             // Datas importantes
             accountAge: Math.floor(
-              (Date.now() - new Date(user.created_at).getTime()) /
-                (1000 * 60 * 60 * 24)
+              (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)
             ),
           },
         };
@@ -623,9 +552,7 @@ export async function getAdminUsers(page = 1, limit = 20) {
     );
 
     // Total count for pagination
-    const { count } = await supabase
-      .from("users")
-      .select("*", { count: "exact", head: true });
+    const { count } = await supabase.from("users").select("*", { count: "exact", head: true });
 
     return {
       success: true,
@@ -660,25 +587,24 @@ export async function getAdminFeedbacks(filters?: {
     await verifyAdmin();
 
     // Usar service role para contornar RLS temporariamente
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error("Admin Supabase configuration is missing");
+    }
+
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
     const page = filters?.page || 1;
     const limit = filters?.limit || 20;
     const offset = (page - 1) * limit;
 
-    let query = supabase
-      .from("feedbacks")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let query = supabase.from("feedbacks").select("*").order("created_at", { ascending: false });
 
     // Apply filters
     if (filters?.type) {
@@ -691,12 +617,7 @@ export async function getAdminFeedbacks(filters?: {
       query = query.eq("priority", filters.priority);
     }
 
-    const {
-      data: feedbacks,
-      error,
-      status,
-      statusText,
-    } = await query.range(offset, offset + limit - 1);
+    const { data: feedbacks, error } = await query.range(offset, offset + limit - 1);
 
     if (error) {
       throw error;
@@ -728,14 +649,11 @@ export async function getAdminFeedbacks(filters?: {
     }
 
     // Total count for pagination
-    let countQuery = supabase
-      .from("feedbacks")
-      .select("*", { count: "exact", head: true });
+    let countQuery = supabase.from("feedbacks").select("*", { count: "exact", head: true });
 
     if (filters?.type) countQuery = countQuery.eq("type", filters.type);
     if (filters?.status) countQuery = countQuery.eq("status", filters.status);
-    if (filters?.priority)
-      countQuery = countQuery.eq("priority", filters.priority);
+    if (filters?.priority) countQuery = countQuery.eq("priority", filters.priority);
 
     const { count, error: countError } = await countQuery;
 
@@ -855,21 +773,16 @@ export async function getReferralsData() {
       .order("created_at", { ascending: false });
 
     const totalInvites = invites?.length || 0;
-    const successfulReferrals =
-      invites?.filter((i) => i.referred_id).length || 0;
+    const successfulReferrals = invites?.filter((i) => i.referred_id).length || 0;
     const pendingInvites = invites?.filter((i) => !i.referred_id).length || 0;
-    const conversionRate =
-      totalInvites > 0 ? (successfulReferrals / totalInvites) * 100 : 0;
+    const conversionRate = totalInvites > 0 ? (successfulReferrals / totalInvites) * 100 : 0;
 
     // Top referenciadores com dados reais
-    const referrerCounts: Record<
-      string,
-      { count: number; email: string; name?: string }
-    > = {};
+    const referrerCounts: Record<string, { count: number; email: string; name?: string }> = {};
     invites?.forEach((invite) => {
       const referrerId = invite.referrer_id;
       if (!referrerCounts[referrerId]) {
-        const referrerData = invite.referrer as any;
+        const referrerData = invite.referrer as { email?: string; full_name?: string } | null;
         referrerCounts[referrerId] = {
           count: 0,
           email: referrerData?.email || "Email desconhecido",
@@ -894,15 +807,10 @@ export async function getReferralsData() {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     const recentInvites =
-      invites?.filter(
-        (invite) => new Date(invite.created_at) >= thirtyDaysAgo
-      ) || [];
+      invites?.filter((invite) => new Date(invite.created_at) >= thirtyDaysAgo) || [];
 
     // Agrupar por data
-    const timelineData: Record<
-      string,
-      { invites: number; conversions: number }
-    > = {};
+    const timelineData: Record<string, { invites: number; conversions: number }> = {};
     recentInvites.forEach((invite) => {
       const date = new Date(invite.created_at).toLocaleDateString("pt-BR");
       if (!timelineData[date]) {
@@ -919,8 +827,7 @@ export async function getReferralsData() {
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const dateKey = date.toLocaleDateString("pt-BR");
-      const dateLabel =
-        i === 0 ? "Hoje" : i === 1 ? "Ontem" : `${i} dias atrás`;
+      const dateLabel = i === 0 ? "Hoje" : i === 1 ? "Ontem" : `${i} dias atrás`;
 
       timeline.push({
         date: dateLabel,

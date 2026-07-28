@@ -1,8 +1,8 @@
 "use client";
 
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function useAdminGuard() {
   const { user, loading } = useCurrentUser();
@@ -13,14 +13,12 @@ export function useAdminGuard() {
   useEffect(() => {
     if (loading) return;
 
-    const adminId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-
     if (!user) {
       router.push("/login");
       return;
     }
 
-    if (user.id === adminId) {
+    if (user.role === "ADMIN") {
       setIsAdmin(true);
     } else {
       // Usuário não é admin, redirecionar
