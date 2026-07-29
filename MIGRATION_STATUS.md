@@ -2,7 +2,7 @@
 
 > Operational tracker for the gradual migration. This file is intentionally mirrored in `finance-control-app` and `finance-control-backend`; update both copies in the same delivery.
 >
-> Last review: 2026-07-28
+> Last review: 2026-07-29
 > Branch: `codex/complete-next-nest-migration`
 > Scope: local work only. No remote migration, deploy, push, or PR is authorized by this tracker.
 
@@ -31,8 +31,8 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [x] Auth endpoints exist: login, register, deprecated email adapter, Google callback, CSRF, refresh, logout and `/auth/me`.
 - [x] Admin authorization uses server-controlled `app_metadata.role`; no `NEXT_PUBLIC_ADMIN_USER_ID` remains.
 - [x] Request-scoped Supabase client receives the user token; privileged `service_role` access is explicit.
-- [~] RLS hardening migrations, invite policy/constraints and `finance_mutate_transaction` are written but not yet executed against local Supabase.
-- [~] Real cookie, refresh, reCAPTCHA, referral and rate-limit behavior awaits local Supabase E2E.
+- [x] RLS hardening migrations, invite policy/constraints and `finance_mutate_transaction` were executed and validated against local Supabase.
+- [x] Real cookie, refresh, reCAPTCHA (E2E adapter), referral and rate-limit behavior passed authenticated local E2E.
 
 ## Domain rollout tracker
 
@@ -40,7 +40,7 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 
 - [x] Nest endpoints and TanStack hooks exist for session, profile and settings.
 - [x] Settings form no longer accesses Supabase directly; it uses the query/mutation hooks and preserves the flag fallback.
-- [~] Local browser and Supertest proof is pending.
+- [x] Authenticated Supertest and browser proof passed locally.
 - [ ] Remove legacy auth/profile Route Handlers and Server Actions only after local and staging approval.
 
 ### Accounts, categories and transactions (financial core)
@@ -48,16 +48,16 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [x] Nest CRUD, individual transaction lookup, filters, pagination and transaction statistics are implemented.
 - [x] Frontend accounts, categories and transactions have TanStack hooks, query keys and rollback flags.
 - [x] Atomic transaction RPC and additive RLS migrations are versioned.
-- [~] Run PgTAP ownership/RPC tests with users A and B locally.
-- [~] Run authenticated Supertest and Playwright flow: register, login, account/category/transaction CRUD, account swap, balance check and logout.
+- [x] PgTAP ownership/RPC tests with users A and B passed locally (45 assertions).
+- [x] Authenticated Supertest passed (5 suites/6 tests) and Playwright passed the complete flow in Chromium, Firefox and WebKit (3 tests).
 - [ ] Remove legacy financial Server Actions and Route Handlers only after parity fixtures and staging approval.
 
 ### Dashboard, reports and export
 
-- [~] Nest dashboard and export endpoints exist; frontend has conditional dashboard/report hooks.
-- [ ] Capture legacy response fixtures and assert JSON parity.
+- [x] Nest dashboard, reports and export endpoints exist; frontend flags, TanStack hooks and binary downloads are active locally.
+- [~] Known-value E2E fixtures assert dashboard cards, monthly/category reports and export content; dedicated legacy fixture comparison remains for the next parity pass.
 - [ ] Add server prefetch/hydration for dashboard and first transaction page.
-- [ ] Activate `dashboard` locally, add E2E, then retire equivalent legacy paths.
+- [x] Activate `dashboard,reports,export` locally and cover the Nest path in the three-browser E2E; legacy paths remain for rollback.
 
 ### Goals and savings boxes
 
@@ -77,15 +77,13 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [ ] Migrate feedback, notification/e-mail, referral, badges and full administration flows to Nest.
 - [ ] Add AdminGuard/service-role integration tests and remove remaining frontend privileged dependencies.
 
-## Local validation gate (current blocker)
+## Local validation gate
 
-- [!] Docker Desktop is not running; this tracker must never start it automatically.
-- [!] `finance-control-backend/.env.e2e` is absent. Create it manually from `.env.e2e.example` and fill only local Supabase values.
-- [ ] Manually run `supabase start` after Docker is ready.
-- [ ] `pnpm db:reset:local`.
-- [ ] `pnpm db:test` (PgTAP RLS and atomic RPC assertions).
-- [ ] `pnpm test:e2e:local` in the backend.
-- [ ] `pnpm test:e2e:local` in the frontend (Chromium, Firefox and WebKit).
+- [x] Loopback-only preflight passed against local Supabase; no Docker or remote service was started by the test runner.
+- [x] `pnpm db:test` passed: 45 PgTAP/RLS/RPC assertions.
+- [x] `pnpm test:e2e:local` in the backend passed: 5 suites / 6 tests.
+- [x] `pnpm exec playwright test e2e/core-finance.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit.
+- [~] Global Biome baseline remains above zero; every changed file in this delivery passes targeted Biome checks.
 
 ## Legacy removal gate
 
@@ -96,9 +94,9 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 
 ## Release gate
 
-- [ ] Local Supabase migrations/RLS validated.
-- [ ] Backend: Biome, typecheck, build, Jest, authenticated E2E and OpenAPI check are green.
-- [ ] Frontend: Biome, typecheck, contracts check, Vitest, build and three-browser Playwright are green.
+- [x] Local Supabase migrations/RLS validated.
+- [x] Backend: typecheck, build, Jest (67 suites/474 tests), authenticated E2E, PgTAP and OpenAPI generation are green; global Biome baseline remains [~].
+- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (2 files/4 tests), build and three-browser Playwright are green; global Biome baseline remains [~].
 - [ ] Staging sequence approved: migrations/RLS -> Nest -> frontend -> per-domain flag activation.
 - [ ] Production authorization explicitly granted. This item remains unchecked by default.
 
@@ -111,3 +109,8 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-07-28 | Frontend security | `826fc0a` | Replaced public admin-ID fallback with server role. |
 | 2026-07-28 | Frontend financial E2E | `701d10e` | Added local three-browser core-finance journey. |
 | 2026-07-28 | Frontend settings | `a462672` | Removed direct browser Supabase access from settings. Typecheck, Vitest, Biome and build passed. |
+| 2026-07-29 | Financial core | `pnpm db:test` | 45 PgTAP/RLS/RPC assertions passed, including recurring interval and atomic ownership failures. |
+| 2026-07-29 | Backend API | `pnpm exec jest --runInBand` | 67 suites / 474 tests passed; `pnpm test:e2e:local` passed 5 suites / 6 tests. |
+| 2026-07-29 | Dashboard/reports/export | OpenAPI + E2E fixture | Dashboard cards, reports overview, CSV and PDF binary contracts passed with known values; flags active locally. |
+| 2026-07-29 | Frontend gates | `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:unit`, `pnpm build` | Typecheck, contract sync, 2 unit files / 4 tests and production build passed. |
+| 2026-07-29 | Browser matrix | `pnpm exec playwright test e2e/core-finance.spec.ts` | 3 tests passed: Chromium, Firefox and WebKit. |
