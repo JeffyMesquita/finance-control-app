@@ -18,7 +18,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "corepack pnpm@10.0.0 --dir ../finance-control-backend start:prod",
+      command: "pnpm --dir ../finance-control-backend start:prod",
       env: {
         NODE_ENV: "test",
         PORT: "3001",
@@ -30,7 +30,7 @@ export default defineConfig({
       url: `${backendUrl}/api/v1/health/live`,
     },
     {
-      command: "corepack pnpm@10.0.0 start",
+      command: "pnpm start",
       env: {
         BACKEND_API_ORIGIN: backendUrl,
         NEXT_PUBLIC_E2E_MODE: "true",

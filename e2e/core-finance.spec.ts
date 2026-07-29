@@ -101,42 +101,64 @@ test.describe("local core finance", () => {
       await expect(page.getByRole("cell").filter({ hasText: "E2E" })).toBeVisible({
         timeout: 30_000,
       });
-      // WHEN: The dashboard and reports queries are hydrated through the proxy.
-      const dashboardResponsePromise = page.waitForResponse(
-        (response) => response.url().includes("/api/backend/dashboard/data") && response.ok()
-      );
-      const breakdownResponsePromise = page.waitForResponse(
-        (response) =>
-          response.url().includes("/api/backend/dashboard/expense-breakdown") && response.ok()
-      );
+      // WHEN: The dashboard is server-prefetched and hydrated into TanStack Query.
+      const dashboardRequests: string[] = [];
+      const onDashboardRequest = (request: import("@playwright/test").Request) => {
+        if (request.url().includes("/api/backend/dashboard/"))
+          dashboardRequests.push(request.url());
+      };
+      page.on("request", onDashboardRequest);
       await page.goto("/dashboard");
-      const dashboardPayload = await (await dashboardResponsePromise).json();
-      const breakdownPayload = await (await breakdownResponsePromise).json();
-      expect(dashboardPayload).toMatchObject({
+      await expect(page.getByText("Saldo Total")).toBeVisible();
+      await expect(page.getByText("Despesas por Categoria")).toBeVisible();
+      expect(dashboardRequests).toEqual([]);
+      page.off("request", onDashboardRequest);
+
+      const dashboardPayload = await page.evaluate(async () => {
+        const response = await fetch("/api/backend/dashboard/data", { credentials: "include" });
+        return { status: response.status, payload: await response.json() };
+      });
+      const breakdownPayload = await page.evaluate(async () => {
+        const response = await fetch("/api/backend/dashboard/expense-breakdown?month=current", {
+          credentials: "include",
+        });
+        return { status: response.status, payload: await response.json() };
+      });
+      expect(dashboardPayload.status).toBe(200);
+      expect(dashboardPayload.payload).toMatchObject({
         success: true,
         data: { monthlyExpenses: 100, expenseCount: 1, maxExpense: 100 },
       });
-      expect(breakdownPayload).toMatchObject({
+      expect(breakdownPayload.status).toBe(200);
+      expect(breakdownPayload.payload).toMatchObject({
         success: true,
         data: [{ name: "Categoria E2E", value: 100 }],
       });
-      await expect(page.getByText("Saldo Total")).toBeVisible();
-      await expect(page.getByText("Despesas por Categoria")).toBeVisible();
 
-      const reportsResponsePromise = page.waitForResponse(
-        (response) => response.url().includes("/api/backend/reports/overview") && response.ok()
-      );
+      const reportsRequests: string[] = [];
+      const onReportsRequest = (request: import("@playwright/test").Request) => {
+        if (request.url().includes("/api/backend/reports/overview"))
+          reportsRequests.push(request.url());
+      };
+      page.on("request", onReportsRequest);
       await page.goto("/dashboard/reports");
-      const reportsPayload = await (await reportsResponsePromise).json();
-      expect(reportsPayload).toMatchObject({
+      await expect(page.getByText("Receitas vs Despesas")).toBeVisible();
+      await expect(page.getByText("Despesa por Categoria")).toBeVisible();
+      expect(reportsRequests).toEqual([]);
+      page.off("request", onReportsRequest);
+
+      const reportsPayload = await page.evaluate(async () => {
+        const response = await fetch("/api/backend/reports/overview", { credentials: "include" });
+        return { status: response.status, payload: await response.json() };
+      });
+      expect(reportsPayload.status).toBe(200);
+      expect(reportsPayload.payload).toMatchObject({
         success: true,
         data: {
           monthlyData: expect.any(Array),
           expenseData: [{ name: "Categoria E2E", value: 100 }],
         },
       });
-      await expect(page.getByText("Receitas vs Despesas")).toBeVisible();
-      await expect(page.getByText("Despesa por Categoria")).toBeVisible();
 
       await page.goto("/dashboard/exports");
       await page.getByRole("button", { name: "Exportar" }).first().click();
