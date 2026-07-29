@@ -2039,11 +2039,11 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
               "enum": [
                 "INCOME",
                 "EXPENSE"
-              ]
+              ],
+              "type": "string"
             }
           },
           {
@@ -2051,13 +2051,13 @@
             "required": false,
             "in": "query",
             "schema": {
-              "default": "CSV",
               "type": "string",
               "enum": [
                 "CSV",
                 "JSON",
                 "PDF"
-              ]
+              ],
+              "default": "CSV"
             }
           },
           {
