@@ -23,7 +23,7 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [x] Nest OpenAPI is versioned; frontend keeps a synchronized copy and generated schema.
 - [x] Shared HTTP client has credentials, CSRF, timeout/abort, typed errors, one refresh flight and `Retry-After` support.
 - [x] Feature flags use `NEXT_PUBLIC_NEST_DOMAINS`, allowing domain rollback.
-- [~] Global Biome baseline remains to be reduced; all files changed in this migration must pass Biome.
+- [~] Global Biome baseline remains to be reduced; all changed TypeScript files in this migration pass targeted Biome checks. Generated OpenAPI is validated by its dedicated contract gate.
 
 ## Security and platform
 
@@ -55,8 +55,9 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 ### Dashboard, reports and export
 
 - [x] Nest dashboard, reports and export endpoints exist; frontend flags, TanStack hooks and binary downloads are active locally.
-- [~] Known-value E2E fixtures assert dashboard cards, monthly/category reports and export content; dedicated legacy fixture comparison remains for the next parity pass.
-- [ ] Add server prefetch/hydration for dashboard and first transaction page.
+- [x] Deterministic parity fixtures cover dashboard cards, six monthly points, current/previous expense breakdown, reports overview and all five export datasets; the backend fixture suite passed.
+- [x] Dashboard and reports use shared TanStack `queryOptions`, server-only cookie forwarding, `prefetchQuery`, `dehydrate` and `HydrationBoundary`; the browser matrix verified no immediate duplicate refetch and preserved the 401 fallback.
+- [x] PDF generation uses `pdf-lib` with A4 layout, wrapping, multiple pages and injectable deterministic metadata; the PDF validity suite passed.
 - [x] Activate `dashboard,reports,export` locally and cover the Nest path in the three-browser E2E; legacy paths remain for rollback.
 
 ### Goals and savings boxes
@@ -82,8 +83,10 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [x] Loopback-only preflight passed against local Supabase; no Docker or remote service was started by the test runner.
 - [x] `pnpm db:test` passed: 45 PgTAP/RLS/RPC assertions.
 - [x] `pnpm test:e2e:local` in the backend passed: 5 suites / 6 tests.
-- [x] `pnpm exec playwright test e2e/core-finance.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit.
-- [~] Global Biome baseline remains above zero; every changed file in this delivery passes targeted Biome checks.
+- [x] Backend Jest passed: 69 suites / 477 tests, including PDF and dashboard/report/export parity fixtures.
+- [x] `pnpm exec playwright test e2e/core-finance.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit, including hydrated dashboard/reports and CSV/PDF/JSON downloads.
+- [x] `pnpm contracts:check` passed after synchronizing the generated frontend schema.
+- [~] Biome global baseline is measured and did not increase: backend `HEAD 331 errors / 556 warnings` -> current `192 / 553`; frontend `HEAD 532 / 331` -> current `531 / 330`. All touched TypeScript files pass targeted Biome; legacy global violations remain.
 
 ## Legacy removal gate
 
@@ -95,8 +98,8 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 ## Release gate
 
 - [x] Local Supabase migrations/RLS validated.
-- [x] Backend: typecheck, build, Jest (67 suites/474 tests), authenticated E2E, PgTAP and OpenAPI generation are green; global Biome baseline remains [~].
-- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (2 files/4 tests), build and three-browser Playwright are green; global Biome baseline remains [~].
+- [x] Backend: typecheck, build, Jest (69 suites/477 tests), authenticated E2E, PgTAP, PDF/parity fixtures and OpenAPI generation/check are green; global Biome baseline remains [~].
+- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (3 files/6 tests), build and three-browser Playwright are green; global Biome baseline remains [~].
 - [ ] Staging sequence approved: migrations/RLS -> Nest -> frontend -> per-domain flag activation.
 - [ ] Production authorization explicitly granted. This item remains unchecked by default.
 
@@ -110,7 +113,10 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-07-28 | Frontend financial E2E | `701d10e` | Added local three-browser core-finance journey. |
 | 2026-07-28 | Frontend settings | `a462672` | Removed direct browser Supabase access from settings. Typecheck, Vitest, Biome and build passed. |
 | 2026-07-29 | Financial core | `pnpm db:test` | 45 PgTAP/RLS/RPC assertions passed, including recurring interval and atomic ownership failures. |
-| 2026-07-29 | Backend API | `pnpm exec jest --runInBand` | 67 suites / 474 tests passed; `pnpm test:e2e:local` passed 5 suites / 6 tests. |
-| 2026-07-29 | Dashboard/reports/export | OpenAPI + E2E fixture | Dashboard cards, reports overview, CSV and PDF binary contracts passed with known values; flags active locally. |
-| 2026-07-29 | Frontend gates | `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:unit`, `pnpm build` | Typecheck, contract sync, 2 unit files / 4 tests and production build passed. |
+| 2026-07-29 | Backend API | `pnpm exec jest --runInBand` | 69 suites / 477 tests passed; `pnpm test:e2e:local` passed 5 suites / 6 tests. |
+| 2026-07-29 | Dashboard/reports/export | `pnpm exec jest --runInBand test/parity/dashboard-reports-export.fixture.spec.ts` | Deterministic dashboard, six-month, expense, reports and five export fixtures matched the Nest contracts. |
+| 2026-07-29 | PDF export | `pnpm exec jest --runInBand src/infrastructure/export/pdf-export.service.spec.ts` | `pdf-lib` produced a valid multi-page A4 PDF with deterministic metadata and pt-BR text. |
+| 2026-07-29 | SSR/hydration | `pnpm build` + Playwright matrix | Dashboard and reports prefetched through the server-only client, hydrated with shared keys, avoided immediate browser refetch and preserved 401 fallback. |
+| 2026-07-29 | Frontend gates | `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:unit`, `pnpm build` | Typecheck, contract sync, 3 unit files / 6 tests and production build passed. |
 | 2026-07-29 | Browser matrix | `pnpm exec playwright test e2e/core-finance.spec.ts` | 3 tests passed: Chromium, Firefox and WebKit. |
+| 2026-07-29 | Biome baseline | `biome ci --reporter=summary` against current worktree and archived `HEAD` | Backend 331/556 -> 192/553; frontend 532/331 -> 531/330 (errors/warnings). |
