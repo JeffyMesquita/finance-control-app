@@ -924,7 +924,40 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** @deprecated */
         get: operations["ExportController_exportData"];
+        put?: never;
+        post: operations["ExportController_exportLegacyData"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/export/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ExportController_exportFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reports/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ReportsController_overview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1005,6 +1038,8 @@ export interface components {
             /** @enum {string} */
             type: "INCOME" | "EXPENSE";
             is_recurring?: boolean;
+            /** Format: date-time */
+            recurring_interval?: string;
             installment_number?: number;
             total_installments?: number;
             /** @example Compra mensal */
@@ -1026,6 +1061,8 @@ export interface components {
             /** @enum {string} */
             type?: "INCOME" | "EXPENSE";
             is_recurring?: boolean;
+            /** Format: date-time */
+            recurring_interval?: string;
             installment_number?: number;
             total_installments?: number;
             /** @example Compra mensal */
@@ -1193,6 +1230,44 @@ export interface components {
             error: string;
             downloadUrl: string;
             filename: string;
+        };
+        ExportDataRequestDto: {
+            /** @enum {string} */
+            type: "transactions" | "accounts" | "categories" | "goals" | "monthly_summary";
+            /** Format: date */
+            dateFrom?: string;
+            /** Format: date */
+            dateTo?: string;
+            /** @enum {string} */
+            transactionType?: "INCOME" | "EXPENSE";
+            /** Format: uuid */
+            categoryId?: string;
+            /** Format: uuid */
+            accountId?: string;
+            year?: number;
+        };
+        ExportFileRequestDto: {
+            /** @enum {string} */
+            type: "transactions" | "accounts" | "categories" | "goals" | "monthly_summary";
+            /** Format: date */
+            dateFrom?: string;
+            /** Format: date */
+            dateTo?: string;
+            /** @enum {string} */
+            transactionType?: "INCOME" | "EXPENSE";
+            /** Format: uuid */
+            categoryId?: string;
+            /** Format: uuid */
+            accountId?: string;
+            year?: number;
+            /** @enum {string} */
+            format: "CSV" | "JSON" | "PDF";
+            /** @default true */
+            includeNotes: boolean;
+        };
+        ReportsOverviewResponse: {
+            success: boolean;
+            data: Record<string, never>;
         };
     };
     responses: never;
@@ -1631,7 +1706,17 @@ export interface operations {
     };
     "TransactionController_list[0]": {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                pageSize?: number;
+                limit?: number;
+                offset?: number;
+                /** @description all, 0-11, or YYYY-MM */
+                month?: string;
+                type?: "all" | "INCOME" | "EXPENSE";
+                category?: string;
+                search?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1669,7 +1754,17 @@ export interface operations {
     };
     "TransactionController_list[1]": {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                pageSize?: number;
+                limit?: number;
+                offset?: number;
+                /** @description all, 0-11, or YYYY-MM */
+                month?: string;
+                type?: "all" | "INCOME" | "EXPENSE";
+                category?: string;
+                search?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1686,7 +1781,13 @@ export interface operations {
     };
     TransactionController_stats: {
         parameters: {
-            query?: never;
+            query?: {
+                startDate?: string;
+                endDate?: string;
+                type?: "INCOME" | "EXPENSE";
+                accountId?: string;
+                categoryId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2260,8 +2361,8 @@ export interface operations {
     };
     DashboardController_getExpenseBreakdown: {
         parameters: {
-            query: {
-                month: string;
+            query?: {
+                month?: "current" | "previous";
             };
             header?: never;
             path?: never;
@@ -2531,7 +2632,16 @@ export interface operations {
     };
     ExportController_exportData: {
         parameters: {
-            query?: never;
+            query?: {
+                startDate?: string;
+                endDate?: string;
+                categoryId?: string;
+                accountId?: string;
+                type?: "INCOME" | "EXPENSE";
+                format?: "CSV" | "JSON" | "PDF";
+                includeNotes?: boolean;
+                year?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2544,6 +2654,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportResponse"];
+                };
+            };
+        };
+    };
+    ExportController_exportLegacyData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportDataRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ExportController_exportFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportFileRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReportsController_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsOverviewResponse"];
                 };
             };
         };

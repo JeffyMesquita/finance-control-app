@@ -1,9 +1,9 @@
-import { useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type {
-  ExpenseBreakdownItem,
-  BaseActionResult,
-} from "@/lib/types/actions";
+import { useCallback, useEffect } from "react";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { BaseActionResult, ExpenseBreakdownItem } from "@/lib/types/actions";
 
 interface ExpenseBreakdownQueryOptions {
   month?: "current" | "previous";
@@ -14,17 +14,19 @@ interface ExpenseBreakdownQueryOptions {
 
 export const EXPENSE_BREAKDOWN_QUERY_KEY = "EXPENSE_BREAKDOWN_QUERY_KEY";
 
-export function useExpenseBreakdownQuery(
-  options: ExpenseBreakdownQueryOptions = {}
-) {
+export function useExpenseBreakdownQuery(options: ExpenseBreakdownQueryOptions = {}) {
   const { month = "current" } = options;
 
   const query = useQuery<ExpenseBreakdownItem[], Error>({
-    queryKey: [EXPENSE_BREAKDOWN_QUERY_KEY, month],
+    queryKey: queryKeys.dashboard.expenseBreakdown(month),
     enabled: options.enabled !== false,
     staleTime: 60 * 1000, // 1 minuto
     gcTime: 5 * 60 * 1000, // 5 minutos
     queryFn: async (): Promise<ExpenseBreakdownItem[]> => {
+      if (isNestDomainEnabled("dashboard")) {
+        return apiRequest<ExpenseBreakdownItem[]>(`/dashboard/expense-breakdown?month=${month}`);
+      }
+
       const searchParams = new URLSearchParams({ month });
       const response = await fetch(`/api/expense-breakdown?${searchParams}`);
 
@@ -32,13 +34,10 @@ export function useExpenseBreakdownQuery(
         throw new Error("Failed to fetch expense breakdown data");
       }
 
-      const result: BaseActionResult<ExpenseBreakdownItem[]> =
-        await response.json();
+      const result: BaseActionResult<ExpenseBreakdownItem[]> = await response.json();
 
       if (!result.success || !result.data) {
-        throw new Error(
-          result.error || "Failed to fetch expense breakdown data"
-        );
+        throw new Error(result.error || "Failed to fetch expense breakdown data");
       }
 
       return result.data;
@@ -52,7 +51,7 @@ export function useExpenseBreakdownQuery(
         options.onSuccess(data);
       }
     },
-    [options.onSuccess, month] // Inclui month para recriar quando mudar
+    [options.onSuccess]
   );
 
   const memoizedOnError = useCallback(
@@ -61,7 +60,7 @@ export function useExpenseBreakdownQuery(
         options.onError(error);
       }
     },
-    [options.onError, month] // Inclui month para recriar quando mudar
+    [options.onError]
   );
 
   // Handle success callback using useEffect

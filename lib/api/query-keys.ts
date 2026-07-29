@@ -7,7 +7,17 @@ export const queryKeys = {
     settings: ["profile", "settings"] as const,
   },
   dashboard: {
+    cards: ["dashboard", "cards"] as const,
     summary: ["dashboard", "summary"] as const,
+    monthly: ["dashboard", "monthly"] as const,
+    expenseBreakdown: (month: "current" | "previous") =>
+      ["dashboard", "expense-breakdown", month] as const,
+  },
+  reports: {
+    overview: ["reports", "overview"] as const,
+  },
+  exports: {
+    data: (type: string) => ["exports", "data", type] as const,
   },
   transactions: {
     all: ["transactions"] as const,

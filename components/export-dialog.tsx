@@ -1,6 +1,6 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -24,12 +24,23 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 import { convertToCSV, downloadCSV, generatePDF } from "@/lib/export-utils";
-import { useState } from "react";
 
 // Hook TanStack Query
-import { AccountData, CategoryData } from "@/lib/types/actions";
-import { useExportMutation } from "@/useCases/useExportMutation";
+import type { AccountData, CategoryData } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
+import {
+  type ExportRequest,
+  type ExportType,
+  useExportMutation,
+} from "@/useCases/useExportMutation";
+
+type ExportRow = Record<string, unknown> & {
+  current_amount?: number;
+  target_amount?: number;
+  is_completed?: boolean;
+};
 
 interface ExportDialogProps {
   open: boolean;
@@ -38,12 +49,7 @@ interface ExportDialogProps {
   accounts: AccountData[];
 }
 
-export function ExportDialog({
-  open,
-  onOpenChange,
-  categories,
-  accounts,
-}: ExportDialogProps) {
+export function ExportDialog({ open, onOpenChange, categories, accounts }: ExportDialogProps) {
   const { toast } = useToast();
   const exportMutation = useExportMutation();
 
@@ -55,9 +61,7 @@ export function ExportDialog({
     date.setMonth(date.getMonth() - 1);
     return date.toISOString().split("T")[0];
   });
-  const [dateTo, setDateTo] = useState(
-    () => new Date().toISOString().split("T")[0]
-  );
+  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split("T")[0]);
   const [transactionType, setTransactionType] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
@@ -66,8 +70,8 @@ export function ExportDialog({
   const handleExport = async () => {
     try {
       // Prepare export request
-      const exportRequest: any = {
-        type: exportType,
+      const exportRequest: ExportRequest = {
+        type: exportType as ExportType,
       };
 
       // Add filters based on export type
@@ -77,7 +81,7 @@ export function ExportDialog({
           exportRequest.dateTo = dateTo;
         }
         if (transactionType !== "all") {
-          exportRequest.transactionType = transactionType;
+          exportRequest.transactionType = transactionType as "INCOME" | "EXPENSE";
         }
         if (selectedCategory) {
           exportRequest.categoryId = selectedCategory;
@@ -87,12 +91,27 @@ export function ExportDialog({
         }
       }
 
+      if (isNestDomainEnabled("export")) {
+        await exportMutation.fileMutation.mutateAsync({
+          ...exportRequest,
+          format: fileFormat.toUpperCase() as "CSV" | "PDF" | "JSON",
+          includeNotes,
+        });
+        toast({
+          title: "Sucesso",
+          description: `Seus dados foram exportados com sucesso no formato ${fileFormat.toUpperCase()}.`,
+          variant: "success",
+        });
+        onOpenChange(false);
+        return;
+      }
+
       // Get data from API
       const data = await exportMutation.mutateAsync(exportRequest);
 
       // Prepare export configuration
       let headers: string[] = [];
-      let fields: (string | ((item: any) => string))[] = [];
+      let fields: (string | ((item: ExportRow) => string))[] = [];
       let title = "";
       let filename = "";
 
@@ -152,15 +171,12 @@ export function ExportDialog({
             "target_amount",
             "current_amount",
             // Calculate progress percentage
-            (item: { current_amount: number; target_amount: number }) =>
-              `${Math.round(
-                (item.current_amount / item.target_amount) * 100
-              )}%`,
+            (item: ExportRow) =>
+              `${Math.round(((item.current_amount ?? 0) / (item.target_amount ?? 1)) * 100)}%`,
             "start_date",
             "target_date",
             "account.name",
-            (item: { is_completed: boolean }) =>
-              item.is_completed ? "Concluído" : "Em Andamento",
+            (item: ExportRow) => (item.is_completed ? "Concluído" : "Em Andamento"),
           ];
           title = "Exportação de Metas Financeiras";
           filename = `metas_${new Date().toISOString().split("T")[0]}`;
@@ -216,10 +232,7 @@ export function ExportDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          defaultValue="transactions"
-          onValueChange={(value) => setExportType(value)}
-        >
+        <Tabs defaultValue="transactions" onValueChange={(value) => setExportType(value)}>
           <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
@@ -287,10 +300,7 @@ export function ExportDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Categoria</Label>
-                <Select
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                >
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as Categorias" />
                   </SelectTrigger>
@@ -307,10 +317,7 @@ export function ExportDialog({
 
               <div className="space-y-2">
                 <Label>Conta</Label>
-                <Select
-                  value={selectedAccount}
-                  onValueChange={setSelectedAccount}
-                >
+                <Select value={selectedAccount} onValueChange={setSelectedAccount}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todas as Contas" />
                   </SelectTrigger>
@@ -363,11 +370,7 @@ export function ExportDialog({
 
         <div className="space-y-2">
           <Label>Formato do Arquivo</Label>
-          <RadioGroup
-            defaultValue="csv"
-            onValueChange={setFileFormat}
-            className="flex space-x-4"
-          >
+          <RadioGroup defaultValue="csv" onValueChange={setFileFormat} className="flex space-x-4">
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="csv" id="format-csv" />
               <Label htmlFor="format-csv">CSV</Label>

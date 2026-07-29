@@ -10,6 +10,7 @@ export default defineConfig({
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  timeout: 90_000,
   reporter: "list",
   use: {
     baseURL: frontendUrl,
@@ -17,30 +18,32 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "pnpm --dir ../finance-control-backend start:dev",
+      command: "corepack pnpm@10.0.0 --dir ../finance-control-backend start:prod",
       env: {
         NODE_ENV: "test",
         PORT: "3001",
         PUBLIC_APP_URL: frontendUrl,
         CORS_ORIGINS: frontendUrl,
       },
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       url: `${backendUrl}/api/v1/health/live`,
     },
     {
-      command: "pnpm dev --port 3000",
+      command: "corepack pnpm@10.0.0 start",
       env: {
         BACKEND_API_ORIGIN: backendUrl,
         NEXT_PUBLIC_E2E_MODE: "true",
         NEXT_PUBLIC_E2E_RECAPTCHA_TOKEN: recaptchaToken,
-        NEXT_PUBLIC_NEST_DOMAINS: "profile,accounts,categories,transactions",
+        NEXT_PUBLIC_NEST_DOMAINS:
+          "profile,accounts,categories,transactions,dashboard,reports,export",
       },
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120_000,
       url: frontendUrl,
     },
   ],
+  expect: { timeout: 10_000 },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },

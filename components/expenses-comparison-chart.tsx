@@ -1,21 +1,18 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
-import { useEffect, useState } from "react";
-import { getExpenseBreakdown } from "@/app/actions/dashboard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import { useExpenseBreakdownQuery } from "@/useCases/useExpenseBreakdownQuery";
 
 interface ExpenseData {
   name: string;
@@ -29,11 +26,16 @@ interface MonthlyExpenses {
 }
 
 const CATEGORY_LABEL_MAX = 10;
-const ellipsis = (str: string, max: number) =>
-  str.length > max ? str.slice(0, max) + "…" : str;
+const ellipsis = (str: string, max: number) => (str.length > max ? `${str.slice(0, max)}…` : str);
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: ExpenseData }>;
+}) => {
+  if (active && payload?.length) {
     const entry = payload[0].payload;
     return (
       <div className="bg-background p-2 rounded shadow text-xs">
@@ -50,51 +52,24 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function ExpensesComparisonChart() {
-  const [expenseData, setExpenseData] = useState<MonthlyExpenses>({
-    currentMonth: [],
-    previousMonth: [],
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Buscar dados do mês atual
-        const currentMonthResult = await getExpenseBreakdown();
-
-        // Buscar dados do mês anterior
-        const previousMonthResult = await getExpenseBreakdown("previous");
-
-        setExpenseData({
-          currentMonth:
-            currentMonthResult.success && currentMonthResult.data
-              ? currentMonthResult.data
-              : [],
-          previousMonth:
-            previousMonthResult.success && previousMonthResult.data
-              ? previousMonthResult.data
-              : [],
-        });
-      } catch (error) {
-        logger.error("Error fetching expense data:", error as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
+  const currentQuery = useExpenseBreakdownQuery({ month: "current" });
+  const previousQuery = useExpenseBreakdownQuery({ month: "previous" });
+  const isLoading = currentQuery.isLoading || previousQuery.isLoading;
   if (isLoading) {
     return (
       <Card className="lg:col-span-3 bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader>
-          <CardTitle>Comparação de Despesas</CardTitle>
+          <CardTitle>ComparaÃ§Ã£o de Despesas</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] w-full animate-pulse bg-muted rounded" />
+        <CardContent className="h-[300px] w-full animate-pulse rounded bg-muted" />
       </Card>
     );
   }
+
+  const expenseData: MonthlyExpenses = {
+    currentMonth: currentQuery.data ?? [],
+    previousMonth: previousQuery.data ?? [],
+  };
 
   return (
     <Card className="lg:col-span-3 bg-stone-100 dark:bg-stone-900 shadow-sm">
@@ -108,9 +83,7 @@ export function ExpensesComparisonChart() {
             <h3 className="text-sm font-medium mb-2">Mês Atual</h3>
             {expenseData.currentMonth.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma despesa disponível
-                </p>
+                <p className="text-sm text-muted-foreground">Nenhuma despesa disponível</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -123,9 +96,7 @@ export function ExpensesComparisonChart() {
                       fontFamily: "Inter, Roboto, Arial, sans-serif",
                       fontWeight: 700,
                     }}
-                    tickFormatter={(value) =>
-                      ellipsis(value, CATEGORY_LABEL_MAX)
-                    }
+                    tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
                     interval={0}
                     angle={-20}
                     textAnchor="end"
@@ -134,8 +105,8 @@ export function ExpensesComparisonChart() {
                   <YAxis tick={YAxisCustomTick} width={80} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value">
-                    {expenseData.currentMonth.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {expenseData.currentMonth.map((entry) => (
+                      <Cell key={`cell-${entry.name}`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -148,9 +119,7 @@ export function ExpensesComparisonChart() {
             <h3 className="text-sm font-medium mb-2">Mês Anterior</h3>
             {expenseData.previousMonth.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma despesa disponível
-                </p>
+                <p className="text-sm text-muted-foreground">Nenhuma despesa disponível</p>
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
@@ -163,9 +132,7 @@ export function ExpensesComparisonChart() {
                       fontFamily: "Inter, Roboto, Arial, sans-serif",
                       fontWeight: 700,
                     }}
-                    tickFormatter={(value) =>
-                      ellipsis(value, CATEGORY_LABEL_MAX)
-                    }
+                    tickFormatter={(value) => ellipsis(value, CATEGORY_LABEL_MAX)}
                     interval={0}
                     angle={-20}
                     textAnchor="end"
@@ -174,8 +141,8 @@ export function ExpensesComparisonChart() {
                   <YAxis tick={YAxisCustomTick} width={80} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="value">
-                    {expenseData.previousMonth.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {expenseData.previousMonth.map((entry) => (
+                      <Cell key={`cell-${entry.name}`} fill={entry.color} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -188,7 +155,7 @@ export function ExpensesComparisonChart() {
   );
 }
 
-const YAxisCustomTick = (props: any) => {
+const YAxisCustomTick = (props: { x?: number; y?: number; payload?: { value?: number } }) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
@@ -203,7 +170,7 @@ const YAxisCustomTick = (props: any) => {
         fill="#64748b"
         transform="rotate(-10)"
       >
-        {formatCurrency(payload.value)}
+        {formatCurrency(payload?.value ?? 0)}
       </text>
     </g>
   );
