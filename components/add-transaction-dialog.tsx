@@ -177,12 +177,15 @@ export function AddTransactionDialog({ open, onOpenChange, onSuccess }: AddTrans
       }
 
       // Criar transação base
+      const { recurring_interval, ...transactionFormData } = formData;
       const baseTransaction = {
-        ...formData,
+        ...transactionFormData,
         amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
         account_id: accountIdValue,
-        recurring_interval: formData.is_recurring ? formattedRecurringInterval || null : null,
+        ...(formData.is_recurring && recurring_interval && formattedRecurringInterval
+          ? { recurring_interval: formattedRecurringInterval }
+          : {}),
       };
 
       // Se for parcelado, criar múltiplas transações

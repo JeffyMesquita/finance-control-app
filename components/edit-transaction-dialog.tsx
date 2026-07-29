@@ -169,13 +169,16 @@ export function EditTransactionDialog({
         ).toISOString();
       }
 
+      const { recurring_interval, ...transactionFormData } = formData;
       const updatedTransaction = {
-        ...formData,
+        ...transactionFormData,
         amount: Math.round(Number(formData.amount) * 100),
         date: brasiliaDate.toISOString(),
         type: formData.type as "EXPENSE" | "INCOME",
         installment_number: Number(formData.installment_number),
-        recurring_interval: formData.is_recurring ? formattedRecurringInterval || null : null,
+        ...(formData.is_recurring && recurring_interval && formattedRecurringInterval
+          ? { recurring_interval: formattedRecurringInterval }
+          : {}),
       };
 
       await updateMutation.mutateAsync({
