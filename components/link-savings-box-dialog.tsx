@@ -1,10 +1,20 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import {
+  AlertCircle,
+  CheckCircle,
+  Link2,
+  PiggyBank,
+  Target,
+  TrendingUp,
+  Unlink,
+} from "lucide-react";
 
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -20,32 +31,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
-import { updateGoal } from "@/app/actions/goals";
-import {
-  PiggyBank,
-  Link2,
-  Unlink,
-  Target,
-  AlertCircle,
-  CheckCircle,
-  TrendingUp,
-} from "lucide-react";
+import type { SavingsBoxData } from "@/lib/types/actions";
 import { formatCurrency } from "@/lib/utils";
-import { SavingsBoxData } from "@/lib/types/actions";
-
-type SavingsBox = {
-  id: string;
-  name: string;
-  current_amount: number;
-  target_amount?: number;
-  color: string;
-  icon: string;
-};
+import { logger } from "@/lib/utils/logger";
+import { useLinkGoalSavingsBoxMutation } from "@/useCases/goals/useLinkGoalSavingsBoxMutation";
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
 
 type Goal = {
   id: string;
@@ -80,34 +71,28 @@ export function LinkSavingsBoxDialog({
   const [isLoading, setIsLoading] = useState(true);
 
   const isCurrentlyLinked = !!goal?.savings_box_id;
+  const boxesQuery = useSavingsBoxesQuery();
+  const linkMutation = useLinkGoalSavingsBoxMutation();
 
-  useEffect(() => {
-    if (open && goal) {
-      fetchSavingsBoxes();
-      setSelectedBoxId(goal.savings_box_id || "none");
-    }
-  }, [open, goal]);
-
-  const fetchSavingsBoxes = async () => {
+  const fetchSavingsBoxes = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await getSavingsBoxes();
-      if (result.success && result.data) {
-        setSavingsBoxes(result.data || []);
-      } else {
-        setSavingsBoxes([]);
-      }
+      const result = await boxesQuery.refetch();
+      setSavingsBoxes((result.data ?? []) as SavingsBoxData[]);
     } catch (error) {
       logger.error("Erro ao carregar cofrinhos:", error as Error);
-      toast({
-        title: "Erro ao Carregar",
-        description: "Não foi possível carregar os cofrinhos disponíveis.",
-        variant: "destructive",
-      });
+      setSavingsBoxes([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [boxesQuery.refetch]);
+
+  useEffect(() => {
+    if (open && goal) {
+      void fetchSavingsBoxes();
+      setSelectedBoxId(goal.savings_box_id || "none");
+    }
+  }, [open, goal, fetchSavingsBoxes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,26 +106,23 @@ export function LinkSavingsBoxDialog({
       // Se estamos vinculando a um cofrinho, sincronizar o valor atual
       let newCurrentAmount = goal.current_amount;
       if (newSavingsBoxId) {
-        const selectedBox = savingsBoxes.find(
-          (box) => box.id === newSavingsBoxId
-        );
+        const selectedBox = savingsBoxes.find((box) => box.id === newSavingsBoxId);
         if (selectedBox) {
           newCurrentAmount = selectedBox.current_amount;
         }
       }
 
-      const result = await updateGoal(goal.id, {
+      const result = await linkMutation.mutateAsync({
+        id: goal.id,
         savings_box_id: newSavingsBoxId,
         current_amount: newCurrentAmount,
       });
 
-      if (result.success) {
+      if (result) {
         const isLinking = !isCurrentlyLinked && newSavingsBoxId;
         const isUnlinking = isCurrentlyLinked && !newSavingsBoxId;
         const isChanging =
-          isCurrentlyLinked &&
-          newSavingsBoxId &&
-          goal.savings_box_id !== newSavingsBoxId;
+          isCurrentlyLinked && newSavingsBoxId && goal.savings_box_id !== newSavingsBoxId;
 
         let message = "";
         if (isLinking) {
@@ -161,17 +143,13 @@ export function LinkSavingsBoxDialog({
 
         onSuccess?.();
         onOpenChange(false);
-      } else {
-        throw new Error(result.error || "Falha ao atualizar vinculação");
       }
     } catch (error) {
       logger.error("Erro ao atualizar vinculação:", error as Error);
       toast({
         title: "Erro",
         description:
-          error instanceof Error
-            ? error.message
-            : "Falha ao atualizar vinculação da meta.",
+          error instanceof Error ? error.message : "Falha ao atualizar vinculação da meta.",
         variant: "destructive",
       });
     } finally {
@@ -191,9 +169,8 @@ export function LinkSavingsBoxDialog({
               Vincular Meta ao Cofrinho
             </DialogTitle>
             <DialogDescription>
-              Vincule sua meta "{goal.name}" a um cofrinho para sincronizar
-              automaticamente os valores e facilitar o controle das suas
-              economias.
+              Vincule sua meta "{goal.name}" a um cofrinho para sincronizar automaticamente os
+              valores e facilitar o controle das suas economias.
             </DialogDescription>
           </DialogHeader>
 
@@ -246,9 +223,7 @@ export function LinkSavingsBoxDialog({
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">Cofrinho Atual</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {goal.savings_box.name}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{goal.savings_box.name}</p>
                     </div>
                     <CheckCircle className="h-5 w-5 text-emerald-600" />
                   </div>
@@ -259,9 +234,7 @@ export function LinkSavingsBoxDialog({
             {/* Seleção de Cofrinho */}
             <div className="space-y-3">
               <Label htmlFor="savings_box">
-                {isCurrentlyLinked
-                  ? "Alterar Vinculação"
-                  : "Selecionar Cofrinho"}
+                {isCurrentlyLinked ? "Alterar Vinculação" : "Selecionar Cofrinho"}
               </Label>
 
               {isLoading ? (
@@ -298,67 +271,56 @@ export function LinkSavingsBoxDialog({
             </div>
 
             {/* Preview da Sincronização */}
-            {selectedBoxId !== "none" &&
-              selectedBoxId !== goal.savings_box_id && (
-                <Card className="border-blue-200 bg-blue-50/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-blue-800">
-                          Sincronização de Valores
-                        </h4>
-                        <p className="text-sm text-blue-700">
-                          O valor atual da meta será automaticamente
-                          sincronizado com o valor do cofrinho selecionado.
-                        </p>
-                        {(() => {
-                          const selectedBox = savingsBoxes.find(
-                            (box) => box.id === selectedBoxId
-                          );
-                          return (
-                            selectedBox && (
-                              <div className="mt-2 p-2 bg-white/50 rounded text-xs">
-                                <div className="flex justify-between">
-                                  <span>Valor atual da meta:</span>
-                                  <span className="font-mono">
-                                    {formatCurrency(goal.current_amount / 100)}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Valor do cofrinho:</span>
-                                  <span className="font-mono">
-                                    {formatCurrency(
-                                      selectedBox.current_amount / 100
-                                    )}
-                                  </span>
-                                </div>
-                                <div className="flex justify-between border-t pt-1 mt-1 font-medium">
-                                  <span>Novo valor da meta:</span>
-                                  <span className="font-mono text-blue-700">
-                                    {formatCurrency(
-                                      selectedBox.current_amount / 100
-                                    )}
-                                  </span>
-                                </div>
+            {selectedBoxId !== "none" && selectedBoxId !== goal.savings_box_id && (
+              <Card className="border-blue-200 bg-blue-50/30">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-blue-800">Sincronização de Valores</h4>
+                      <p className="text-sm text-blue-700">
+                        O valor atual da meta será automaticamente sincronizado com o valor do
+                        cofrinho selecionado.
+                      </p>
+                      {(() => {
+                        const selectedBox = savingsBoxes.find((box) => box.id === selectedBoxId);
+                        return (
+                          selectedBox && (
+                            <div className="mt-2 p-2 bg-white/50 rounded text-xs">
+                              <div className="flex justify-between">
+                                <span>Valor atual da meta:</span>
+                                <span className="font-mono">
+                                  {formatCurrency(goal.current_amount / 100)}
+                                </span>
                               </div>
-                            )
-                          );
-                        })()}
-                      </div>
+                              <div className="flex justify-between">
+                                <span>Valor do cofrinho:</span>
+                                <span className="font-mono">
+                                  {formatCurrency(selectedBox.current_amount / 100)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-1 mt-1 font-medium">
+                                <span>Novo valor da meta:</span>
+                                <span className="font-mono text-blue-700">
+                                  {formatCurrency(selectedBox.current_amount / 100)}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        );
+                      })()}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Cofrinhos Disponíveis (se não há muitos) */}
             {savingsBoxes.length === 0 && !isLoading && (
               <Card className="border-amber-200 bg-amber-50/30">
                 <CardContent className="p-4 text-center">
                   <PiggyBank className="h-8 w-8 text-amber-600 mx-auto mb-2" />
-                  <p className="text-sm text-amber-700 font-medium">
-                    Nenhum cofrinho disponível
-                  </p>
+                  <p className="text-sm text-amber-700 font-medium">Nenhum cofrinho disponível</p>
                   <p className="text-xs text-amber-600 mt-1">
                     Crie um cofrinho primeiro para poder vincular à esta meta.
                   </p>

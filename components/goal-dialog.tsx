@@ -3,8 +3,6 @@
 import type React from "react";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/app/actions/categories";
-import { createGoal, updateGoal } from "@/app/actions/goals";
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -25,9 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import type { BaseActionResult, GoalData } from "@/lib/types/actions";
+import type { GoalData } from "@/lib/types/actions";
 import { logger } from "@/lib/utils/logger";
 import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useCreateGoalMutation } from "@/useCases/goals/useCreateGoalMutation";
+import { useUpdateGoalMutation } from "@/useCases/goals/useUpdateGoalMutation";
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
 
 type Category = {
   id: string;
@@ -115,7 +116,10 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
   const accountsQuery = useAccountsQuery();
   const accounts = accountsQuery.data?.data ?? [];
   const [categories, setCategories] = useState<Category[]>([]);
-  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBox[]>([]);
+  const savingsBoxesQuery = useSavingsBoxesQuery();
+  const savingsBoxes = (savingsBoxesQuery.data ?? []) as SavingsBox[];
+  const createGoalMutation = useCreateGoalMutation();
+  const updateGoalMutation = useUpdateGoalMutation();
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
 
   const isEditing = !!goal;
@@ -151,10 +155,10 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
       const [, categoriesData, savingsBoxesData] = await Promise.all([
         accountsQuery.refetch(),
         getCategories(),
-        getSavingsBoxes(),
+        Promise.resolve({ success: true, data: savingsBoxes }),
       ]);
       setCategories(categoriesData.data || ([] as Category[]));
-      setSavingsBoxes(savingsBoxesData.data || ([] as SavingsBox[]));
+      if (savingsBoxesData.success) void savingsBoxesQuery.refetch();
     } catch (error) {
       logger.error("Erro ao carregar dados:", error as Error);
       toast({
@@ -217,12 +221,13 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
         savings_box_id: formData.savings_box_id || null,
       };
 
-      let result: BaseActionResult<GoalData>;
-
+      let result: { success: boolean; data?: GoalData; error?: string };
       if (isEditing) {
-        result = await updateGoal(goal.id, goalData);
+        const data = await updateGoalMutation.mutateAsync({ id: goal.id, ...goalData });
+        result = { success: true, data };
       } else {
-        result = await createGoal(goalData);
+        const data = await createGoalMutation.mutateAsync(goalData);
+        result = { success: true, data };
       }
 
       if (result.success) {

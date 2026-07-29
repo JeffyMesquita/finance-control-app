@@ -1214,15 +1214,36 @@
         "operationId": "GoalController_getGoals",
         "parameters": [],
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetGoalsResponse"
-                }
-              }
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Goals"
+        ]
+      }
+    },
+    "/goals/{id}": {
+      "get": {
+        "operationId": "GoalController_getGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1239,26 +1260,9 @@
       "post": {
         "operationId": "GoalController_createGoal",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGoalCommand"
-              }
-            }
-          }
-        },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateGoalResponse"
-                }
-              }
-            }
+          "201": {
+            "description": ""
           }
         },
         "security": [
@@ -1275,26 +1279,151 @@
       "put": {
         "operationId": "GoalController_updateGoal",
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Goals"
+        ]
+      }
+    },
+    "/goals/update-progress": {
+      "put": {
+        "operationId": "GoalController_updateProgress",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateGoalCommand"
+                "type": "object",
+                "required": [
+                  "id",
+                  "amount"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
               }
             }
           }
         },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateGoalResponse"
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Goals"
+        ]
+      }
+    },
+    "/goals/link-savings-box": {
+      "put": {
+        "operationId": "GoalController_linkSavingsBox",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "savings_box_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true
+                  }
                 }
               }
             }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Goals"
+        ]
+      }
+    },
+    "/goals/{id}/contributions": {
+      "post": {
+        "operationId": "GoalController_contribute",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
           }
         },
         "security": [
@@ -1311,26 +1440,9 @@
       "delete": {
         "operationId": "GoalController_deleteGoal",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DeleteGoalCommand"
-              }
-            }
-          }
-        },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteGoalResponse"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1678,15 +1790,93 @@
         "operationId": "SavingsBoxController_getSavingsBoxes",
         "parameters": [],
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetSavingsBoxesResponse"
-                }
-              }
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/stats": {
+      "get": {
+        "operationId": "SavingsBoxController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/summary": {
+      "get": {
+        "operationId": "SavingsBoxController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/total": {
+      "get": {
+        "operationId": "SavingsBoxController_total",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/{id}": {
+      "get": {
+        "operationId": "SavingsBoxController_getSavingsBox",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1703,26 +1893,9 @@
       "post": {
         "operationId": "SavingsBoxController_createSavingsBox",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Function"
-              }
-            }
-          }
-        },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateSavingsBoxResponse"
-                }
-              }
-            }
+          "201": {
+            "description": ""
           }
         },
         "security": [
@@ -1739,26 +1912,28 @@
       "put": {
         "operationId": "SavingsBoxController_updateSavingsBox",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Function"
-              }
-            }
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/restore": {
+      "post": {
+        "operationId": "SavingsBoxController_restore",
+        "parameters": [],
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateSavingsBoxResponse"
-                }
-              }
-            }
+          "201": {
+            "description": ""
           }
         },
         "security": [
@@ -1775,26 +1950,9 @@
       "delete": {
         "operationId": "SavingsBoxController_deleteSavingsBox",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Function"
-              }
-            }
-          }
-        },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteSavingsBoxResponse"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1804,6 +1962,242 @@
         ],
         "tags": [
           "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/{id}/deposits": {
+      "post": {
+        "operationId": "SavingsBoxController_deposit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/{id}/withdrawals": {
+      "post": {
+        "operationId": "SavingsBoxController_withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "account_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/{id}/transfers": {
+      "post": {
+        "operationId": "SavingsBoxController_transfer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "amount",
+                  "target_savings_box_id"
+                ],
+                "properties": {
+                  "amount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "target_savings_box_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-transactions": {
+      "get": {
+        "operationId": "SavingsTransactionController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "boxId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Transactions"
+        ]
+      }
+    },
+    "/savings-transactions/stats": {
+      "get": {
+        "operationId": "SavingsTransactionController_stats",
+        "parameters": [
+          {
+            "name": "boxId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Transactions"
         ]
       }
     },
@@ -2530,113 +2924,6 @@
           "id"
         ]
       },
-      "GetGoalsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "error": {
-            "type": "string"
-          },
-          "total": {
-            "type": "number"
-          },
-          "limit": {
-            "type": "number"
-          },
-          "offset": {
-            "type": "number"
-          },
-          "hasMore": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error",
-          "total",
-          "limit",
-          "offset",
-          "hasMore"
-        ]
-      },
-      "CreateGoalCommand": {
-        "type": "object",
-        "properties": {}
-      },
-      "CreateGoalResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "UpdateGoalCommand": {
-        "type": "object",
-        "properties": {}
-      },
-      "UpdateGoalResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "DeleteGoalCommand": {
-        "type": "object",
-        "properties": {}
-      },
-      "DeleteGoalResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
       "GetUsersResponse": {
         "type": "object",
         "properties": {
@@ -2769,105 +3056,6 @@
         ]
       },
       "GetDashboardResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "GetSavingsBoxesResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "error": {
-            "type": "string"
-          },
-          "total": {
-            "type": "number"
-          },
-          "limit": {
-            "type": "number"
-          },
-          "offset": {
-            "type": "number"
-          },
-          "hasMore": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error",
-          "total",
-          "limit",
-          "offset",
-          "hasMore"
-        ]
-      },
-      "Function": {
-        "type": "object",
-        "properties": {}
-      },
-      "CreateSavingsBoxResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "UpdateSavingsBoxResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "DeleteSavingsBoxResponse": {
         "type": "object",
         "properties": {
           "success": {

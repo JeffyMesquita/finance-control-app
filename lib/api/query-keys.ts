@@ -19,6 +19,26 @@ export const queryKeys = {
   exports: {
     data: (type: string) => ["exports", "data", type] as const,
   },
+  goals: {
+    all: ["goals"] as const,
+    list: (params?: { search?: string; limit?: number; offset?: number }) =>
+      ["goals", "list", params ?? {}] as const,
+    detail: (id: string) => ["goals", "detail", id] as const,
+  },
+  savingsBoxes: {
+    all: ["savings-boxes"] as const,
+    list: (params?: { search?: string; limit?: number; offset?: number }) =>
+      ["savings-boxes", "list", params ?? {}] as const,
+    detail: (id: string) => ["savings-boxes", "detail", id] as const,
+    stats: ["savings-boxes", "stats"] as const,
+    summary: ["savings-boxes", "summary"] as const,
+    total: ["savings-boxes", "total"] as const,
+  },
+  savingsTransactions: {
+    list: (boxId?: string, limit?: number) =>
+      ["savings-transactions", "list", { boxId, limit }] as const,
+    stats: (boxId?: string) => ["savings-transactions", "stats", boxId ?? null] as const,
+  },
   transactions: {
     all: ["transactions"] as const,
     list: (params: {

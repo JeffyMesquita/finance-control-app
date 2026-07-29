@@ -1,7 +1,34 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Bike,
+  Book,
+  Camera,
+  Car,
+  Coffee,
+  Dumbbell,
+  Gamepad2,
+  Gift,
+  GraduationCap,
+  Heart,
+  Home,
+  Laptop,
+  Music,
+  PiggyBank,
+  Plane,
+  Shield,
+  ShoppingCart,
+  Smartphone,
+  Star,
+  TreePine,
+} from "lucide-react";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -21,42 +48,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import {
-  createSavingsBox,
-  updateSavingsBox,
-} from "@/app/actions/savings-boxes";
 import type { SavingsBox } from "@/lib/types/savings-boxes";
-import {
-  SAVINGS_BOX_COLORS,
-  SAVINGS_BOX_ICONS,
-} from "@/lib/types/savings-boxes";
-import {
-  PiggyBank,
-  Home,
-  Plane,
-  Car,
-  GraduationCap,
-  Heart,
-  Shield,
-  Gift,
-  Smartphone,
-  Laptop,
-  Camera,
-  Gamepad2,
-  ShoppingCart,
-  Coffee,
-  Music,
-  Book,
-  Bike,
-  Dumbbell,
-  TreePine,
-  Star,
-} from "lucide-react";
+import { SAVINGS_BOX_COLORS, SAVINGS_BOX_ICONS } from "@/lib/types/savings-boxes";
+import { useCreateSavingsBoxMutation } from "@/useCases/savings-boxes/useCreateSavingsBoxMutation";
+import { useUpdateSavingsBoxMutation } from "@/useCases/savings-boxes/useUpdateSavingsBoxMutation";
 
 const iconMap = {
   "piggy-bank": PiggyBank,
@@ -82,18 +77,9 @@ const iconMap = {
 };
 
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Nome é obrigatório")
-    .max(100, "Nome deve ter no máximo 100 caracteres"),
-  description: z
-    .string()
-    .max(500, "Descrição deve ter no máximo 500 caracteres")
-    .optional(),
-  target_amount: z
-    .number()
-    .min(0, "Meta deve ser maior ou igual a zero")
-    .optional(),
+  name: z.string().min(1, "Nome é obrigatório").max(100, "Nome deve ter no máximo 100 caracteres"),
+  description: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
+  target_amount: z.number().min(0, "Meta deve ser maior ou igual a zero").optional(),
   color: z.string().min(1, "Selecione uma cor"),
   icon: z.string().min(1, "Selecione um ícone"),
 });
@@ -115,15 +101,15 @@ export function SavingsBoxDialog({
 }: SavingsBoxDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isEditing = !!savingsBox;
+  const createMutation = useCreateSavingsBoxMutation();
+  const updateMutation = useUpdateSavingsBoxMutation();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: savingsBox?.name || "",
       description: savingsBox?.description || "",
-      target_amount: savingsBox?.target_amount
-        ? savingsBox.target_amount / 100
-        : undefined,
+      target_amount: savingsBox?.target_amount ? savingsBox.target_amount / 100 : undefined,
       color: savingsBox?.color || SAVINGS_BOX_COLORS[0],
       icon: savingsBox?.icon || SAVINGS_BOX_ICONS[0],
     },
@@ -140,18 +126,18 @@ export function SavingsBoxDialog({
         icon: data.icon,
       };
 
-      let result;
+      let result: { success: boolean; data?: SavingsBox; error?: string };
       if (isEditing) {
-        result = await updateSavingsBox(savingsBox.id, payload);
+        const data = await updateMutation.mutateAsync({ id: savingsBox.id, ...payload });
+        result = { success: true, data: data as SavingsBox };
       } else {
-        result = await createSavingsBox(payload);
+        const data = await createMutation.mutateAsync(payload);
+        result = { success: true, data: data as SavingsBox };
       }
 
       if (result.success) {
         toast.success(
-          isEditing
-            ? "Cofrinho atualizado com sucesso!"
-            : "Cofrinho criado com sucesso!"
+          isEditing ? "Cofrinho atualizado com sucesso!" : "Cofrinho criado com sucesso!"
         );
         form.reset();
         onSuccess?.();
@@ -159,7 +145,7 @@ export function SavingsBoxDialog({
       } else {
         toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado. Tente novamente.");
     } finally {
       setIsSubmitting(false);
@@ -177,9 +163,7 @@ export function SavingsBoxDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Editar Cofrinho" : "Novo Cofrinho"}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? "Editar Cofrinho" : "Novo Cofrinho"}</DialogTitle>
           <DialogDescription>
             {isEditing
               ? "Atualize as informações do seu cofrinho."
@@ -237,9 +221,7 @@ export function SavingsBoxDialog({
                       onValueChange={field.onChange}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Defina uma meta para acompanhar seu progresso
-                  </FormDescription>
+                  <FormDescription>Defina uma meta para acompanhar seu progresso</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -322,8 +304,8 @@ export function SavingsBoxDialog({
                     ? "Atualizando..."
                     : "Criando..."
                   : isEditing
-                  ? "Atualizar"
-                  : "Criar Cofrinho"}
+                    ? "Atualizar"
+                    : "Criar Cofrinho"}
               </Button>
             </DialogFooter>
           </form>
@@ -332,4 +314,3 @@ export function SavingsBoxDialog({
     </Dialog>
   );
 }
-

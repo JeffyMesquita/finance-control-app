@@ -1,25 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-
-interface DeleteGoalResponse {
-  success: boolean;
-  error?: string;
-}
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 
 async function deleteGoal(id: string): Promise<void> {
+  if (isNestDomainEnabled("goals")) {
+    await apiRequest<void>("/goals/delete", { method: "DELETE", body: { id } });
+    return;
+  }
   const response = await fetch("/api/goals/delete", {
     method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
   });
-
-  const result: DeleteGoalResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to delete goal");
-  }
+  const result = (await response.json()) as { success: boolean; error?: string };
+  if (!result.success) throw new Error(result.error || "Falha ao excluir meta");
 }
 
 export function useDeleteGoalMutation() {
@@ -29,8 +25,8 @@ export function useDeleteGoalMutation() {
   return useMutation({
     mutationFn: deleteGoal,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
 
       toast({
         title: "Sucesso",

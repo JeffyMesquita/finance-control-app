@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { depositToSavingsBox, withdrawFromSavingsBox } from "@/app/actions/savings-transactions";
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -34,9 +33,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { BaseActionResult, SavingsTransactionData } from "@/lib/types/actions";
 import type { SavingsBox, SavingsTransactionType } from "@/lib/types/savings-boxes";
 import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useSavingsTransactionMutation } from "@/useCases/savings-boxes/useSavingsTransactionMutation";
 
 const formSchema = z.object({
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
@@ -68,6 +67,7 @@ export function SavingsTransactionDialog({
 
   const isDeposit = transactionType === "DEPOSIT";
   const isWithdraw = transactionType === "WITHDRAW";
+  const movementMutation = useSavingsTransactionMutation(isDeposit ? "deposits" : "withdrawals");
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -81,36 +81,21 @@ export function SavingsTransactionDialog({
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      let result: BaseActionResult<SavingsTransactionData>;
+      await movementMutation.mutateAsync({
+        boxId: savingsBox.id,
+        amount: data.amount,
+        account_id: data.source_account_id || null,
+        description: data.description || null,
+      });
 
-      if (isDeposit) {
-        result = await depositToSavingsBox(
-          savingsBox.id,
-          data.amount,
-          data.source_account_id || undefined,
-          data.description || undefined
-        );
-      } else {
-        result = await withdrawFromSavingsBox(
-          savingsBox.id,
-          data.amount,
-          data.source_account_id || undefined,
-          data.description || undefined
-        );
-      }
-
-      if (result.success) {
-        toast.success(
-          isDeposit
-            ? `Depósito de R$ ${data.amount.toFixed(2)} realizado com sucesso!`
-            : `Saque de R$ ${data.amount.toFixed(2)} realizado com sucesso!`
-        );
-        form.reset();
-        onSuccess?.();
-        onOpenChange(false);
-      } else {
-        toast.error(result.error);
-      }
+      toast.success(
+        isDeposit
+          ? `Dep?sito de R$ ${data.amount.toFixed(2)} realizado com sucesso!`
+          : `Saque de R$ ${data.amount.toFixed(2)} realizado com sucesso!`
+      );
+      form.reset();
+      onSuccess?.();
+      onOpenChange(false);
     } catch {
       toast.error("Erro inesperado. Tente novamente.");
     } finally {

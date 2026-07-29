@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight, ArrowRightLeft, PiggyBank } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -27,23 +33,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { toast } from "sonner";
-import { transferBetweenBoxes } from "@/app/actions/savings-transactions";
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
 import type { SavingsBox } from "@/lib/types/savings-boxes";
-import { ArrowRightLeft, PiggyBank, ArrowRight } from "lucide-react";
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
+import { useSavingsTransactionMutation } from "@/useCases/savings-boxes/useSavingsTransactionMutation";
 
 const formSchema = z.object({
   to_box_id: z.string().min(1, "Selecione o cofrinho de destino"),
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
-  description: z
-    .string()
-    .max(500, "Descrição deve ter no máximo 500 caracteres")
-    .optional(),
+  description: z.string().max(500, "Descrição deve ter no máximo 500 caracteres").optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -64,6 +61,8 @@ export function SavingsTransferDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableBoxes, setAvailableBoxes] = useState<SavingsBox[]>([]);
   const [isLoadingBoxes, setIsLoadingBoxes] = useState(false);
+  const transferMutation = useSavingsTransactionMutation("transfers");
+  const boxesQuery = useSavingsBoxesQuery();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -74,50 +73,41 @@ export function SavingsTransferDialog({
     },
   });
 
-  // Carregar cofrinhos quando o dialog abre
-  useEffect(() => {
-    if (open) {
-      loadSavingsBoxes();
-    }
-  }, [open]);
-
-  const loadSavingsBoxes = async () => {
+  const loadSavingsBoxes = useCallback(async () => {
     setIsLoadingBoxes(true);
     try {
-      const result = await getSavingsBoxes();
-      if (result.success && result.data) {
-        const boxesData = result.data;
-        // Filtrar cofrinhos (excluir o cofrinho de origem)
-        const filtered = (boxesData || []).filter(
-          (box) => box.id !== fromSavingsBox.id && box.is_active
-        );
-        setAvailableBoxes(filtered);
-      } else {
-        toast.error("Erro ao carregar cofrinhos");
-        setAvailableBoxes([]);
-      }
-    } catch (error) {
+      const result = await boxesQuery.refetch();
+      const filtered = (result.data ?? []).filter(
+        (box) => box.id !== fromSavingsBox.id && box.is_active
+      );
+      setAvailableBoxes(filtered as SavingsBox[]);
+    } catch {
       toast.error("Erro ao carregar cofrinhos");
       setAvailableBoxes([]);
     } finally {
       setIsLoadingBoxes(false);
     }
-  };
+  }, [boxesQuery.refetch, fromSavingsBox.id]);
+
+  // Carregar cofrinhos quando o dialog abre
+  useEffect(() => {
+    if (open) {
+      void loadSavingsBoxes();
+    }
+  }, [open, loadSavingsBoxes]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      const result = await transferBetweenBoxes(
-        fromSavingsBox.id,
-        data.to_box_id,
-        data.amount,
-        data.description || undefined
-      );
+      const result = await transferMutation.mutateAsync({
+        boxId: fromSavingsBox.id,
+        target_savings_box_id: data.to_box_id,
+        amount: data.amount,
+        description: data.description || null,
+      });
 
-      if (result.success) {
-        const destinationBox = availableBoxes.find(
-          (box) => box.id === data.to_box_id
-        );
+      if (result) {
+        const destinationBox = availableBoxes.find((box) => box.id === data.to_box_id);
         toast.success(
           `Transferência de R$ ${data.amount.toFixed(2)} para "${
             destinationBox?.name
@@ -126,10 +116,8 @@ export function SavingsTransferDialog({
         form.reset();
         onSuccess?.();
         onOpenChange(false);
-      } else {
-        toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado. Tente novamente.");
     } finally {
       setIsSubmitting(false);
@@ -143,9 +131,7 @@ export function SavingsTransferDialog({
     onOpenChange(newOpen);
   };
 
-  const selectedDestinationBox = availableBoxes.find(
-    (box) => box.id === form.watch("to_box_id")
-  );
+  const selectedDestinationBox = availableBoxes.find((box) => box.id === form.watch("to_box_id"));
   const currentAmount = (fromSavingsBox.current_amount || 0) / 100;
 
   return (
@@ -157,8 +143,7 @@ export function SavingsTransferDialog({
             Transferir entre Cofrinhos
           </DialogTitle>
           <DialogDescription>
-            Transfira dinheiro do cofrinho "{fromSavingsBox.name}" para outro
-            cofrinho
+            Transfira dinheiro do cofrinho "{fromSavingsBox.name}" para outro cofrinho
           </DialogDescription>
         </DialogHeader>
 
@@ -204,14 +189,12 @@ export function SavingsTransferDialog({
                   <PiggyBank className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="font-medium">
-                    {selectedDestinationBox.name}
-                  </div>
+                  <div className="font-medium">{selectedDestinationBox.name}</div>
                   <div className="text-sm text-muted-foreground">
                     Saldo atual: R${" "}
-                    {(
-                      (selectedDestinationBox.current_amount || 0) / 100
-                    ).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    {((selectedDestinationBox.current_amount || 0) / 100).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                    })}
                   </div>
                 </div>
               </div>
@@ -259,19 +242,16 @@ export function SavingsTransferDialog({
                                 <div className="font-medium">{box.name}</div>
                                 <div className="text-xs text-muted-foreground">
                                   R${" "}
-                                  {(
-                                    (box.current_amount || 0) / 100
-                                  ).toLocaleString("pt-BR", {
+                                  {((box.current_amount || 0) / 100).toLocaleString("pt-BR", {
                                     minimumFractionDigits: 2,
                                   })}
                                   {box.target_amount && (
                                     <span>
                                       {" "}
                                       / R${" "}
-                                      {(box.target_amount / 100).toLocaleString(
-                                        "pt-BR",
-                                        { minimumFractionDigits: 2 }
-                                      )}
+                                      {(box.target_amount / 100).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                      })}
                                     </span>
                                   )}
                                 </div>

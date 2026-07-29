@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 
 export interface SavingsBoxSummaryItem {
   id: string;
@@ -11,7 +14,7 @@ export interface SavingsBoxSummaryItem {
   icon: string;
   progress_percentage: number;
   is_goal_linked: boolean;
-  linked_goal: any;
+  linked_goal: unknown;
 }
 
 export interface SavingsStats {
@@ -29,6 +32,15 @@ export interface SavingsSummaryData {
 }
 
 async function fetchSavingsSummary(): Promise<SavingsSummaryData> {
+  if (isNestDomainEnabled("savings-boxes")) {
+    const [summary, stats, totalAmount] = await Promise.all([
+      apiRequest<SavingsBoxSummaryItem[]>("/savings-boxes/summary"),
+      apiRequest<SavingsStats>("/savings-boxes/stats"),
+      apiRequest<number>("/savings-boxes/total"),
+    ]);
+    return { summary, stats, totalAmount };
+  }
+
   const [summaryRes, statsRes, totalRes] = await Promise.all([
     fetch("/api/savings-boxes-summary").then((r) => r.json()),
     fetch("/api/savings-boxes-stats").then((r) => r.json()),
@@ -47,7 +59,7 @@ export function useSavingsSummaryQuery() {
   const queryFn = useCallback(fetchSavingsSummary, []);
 
   const query = useQuery<SavingsSummaryData, Error>({
-    queryKey: ["savings-summary"],
+    queryKey: queryKeys.savingsBoxes.summary,
     queryFn,
     staleTime: 1000 * 60 * 5,
   });
