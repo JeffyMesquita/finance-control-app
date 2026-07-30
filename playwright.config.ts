@@ -36,7 +36,7 @@ export default defineConfig({
         NEXT_PUBLIC_E2E_MODE: "true",
         NEXT_PUBLIC_E2E_RECAPTCHA_TOKEN: recaptchaToken,
         NEXT_PUBLIC_NEST_DOMAINS:
-          "profile,accounts,categories,transactions,dashboard,reports,export",
+          "profile,accounts,categories,transactions,goals,savings-boxes,dashboard,reports,export",
       },
       reuseExistingServer: false,
       timeout: 120_000,
