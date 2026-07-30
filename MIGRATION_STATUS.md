@@ -31,7 +31,7 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 - [x] Auth endpoints exist: login, register, deprecated email adapter, Google callback, CSRF, refresh, logout and `/auth/me`.
 - [x] Admin authorization uses server-controlled `app_metadata.role`; no `NEXT_PUBLIC_ADMIN_USER_ID` remains.
 - [x] Request-scoped Supabase client receives the user token; privileged `service_role` access is explicit.
-- [x] RLS hardening migrations, invite policy/constraints and `finance_mutate_transaction` were executed and validated against local Supabase.
+- [x] RLS hardening migrations, invite policy/constraints, financial RPCs and goals/savings-box RPCs were executed and validated against local Supabase.
 - [x] Real cookie, refresh, reCAPTCHA (E2E adapter), referral and rate-limit behavior passed authenticated local E2E.
 
 ## Domain rollout tracker
@@ -62,9 +62,10 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 
 ### Goals and savings boxes
 
-- [~] Nest CRUD exists and initial frontend hooks are flag-aware.
-- [ ] Implement/test atomic deposits, withdrawals and transfers with ownership, locks and correlated balances.
-- [ ] Complete query keys, mutations, parity fixtures and E2E before local activation.
+- [x] Nest CRUD, detail/statistics/history endpoints and frontend TanStack hooks are flag-aware.
+- [x] Atomic deposits, withdrawals, transfers, direct contributions and goal/box linking preserve ownership, locks and correlated balances through additive RPCs.
+- [x] Query keys, mutations, cent conversions and local flags are active; deterministic authenticated E2E covers two boxes, a linked goal, all movements, balances, history and cleanup in Chromium, Firefox and WebKit.
+- [ ] Remove legacy goals/savings Route Handlers and Server Actions only after staging approval.
 
 ### Investments
 
@@ -81,10 +82,10 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 ## Local validation gate
 
 - [x] Loopback-only preflight passed against local Supabase; no Docker or remote service was started by the test runner.
-- [x] `pnpm db:test` passed: 45 PgTAP/RLS/RPC assertions.
-- [x] `pnpm test:e2e:local` in the backend passed: 5 suites / 6 tests.
-- [x] Backend Jest passed: 69 suites / 477 tests, including PDF and dashboard/report/export parity fixtures.
-- [x] `pnpm exec playwright test e2e/core-finance.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit, including hydrated dashboard/reports and CSV/PDF/JSON downloads.
+- [x] `pnpm db:test` passed: 94 PgTAP/RLS/RPC assertions across finance and goals/savings isolation, atomicity and ownership.
+- [x] `pnpm test:e2e:local` in the backend passed: 6 suites / 7 authenticated tests, including A/B ownership and concurrent savings RPCs.
+- [x] Backend Jest passed: 70 suites / 479 tests, including goals/savings, PDF and dashboard/report/export parity fixtures.
+- [x] Playwright `e2e/goals-savings.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit against external local Nest/Next servers; the serial journey validates goals, boxes, movements, balances, history and logout.
 - [x] `pnpm contracts:check` passed after synchronizing the generated frontend schema.
 - [~] Biome global baseline is measured and did not increase: backend `HEAD 331 errors / 556 warnings` -> current `192 / 553`; frontend `HEAD 532 / 331` -> current `531 / 330`. All touched TypeScript files pass targeted Biome; legacy global violations remain.
 
@@ -98,8 +99,8 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 ## Release gate
 
 - [x] Local Supabase migrations/RLS validated.
-- [x] Backend: typecheck, build, Jest (69 suites/477 tests), authenticated E2E, PgTAP, PDF/parity fixtures and OpenAPI generation/check are green; global Biome baseline remains [~].
-- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (3 files/6 tests), build and three-browser Playwright are green; global Biome baseline remains [~].
+- [x] Backend: Node/pnpm 10 typecheck, build, Jest (70 suites/479 tests), authenticated E2E (6/7), PgTAP (94), PDF/parity fixtures and OpenAPI generation/check are green; global Biome baseline remains [~].
+- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (3 files/6 tests), build and goals/savings Playwright (3 browsers) are green; global Biome baseline remains [~].
 - [ ] Staging sequence approved: migrations/RLS -> Nest -> frontend -> per-domain flag activation.
 - [ ] Production authorization explicitly granted. This item remains unchecked by default.
 
@@ -120,3 +121,7 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-07-29 | Frontend gates | `pnpm typecheck`, `pnpm contracts:check`, `pnpm test:unit`, `pnpm build` | Typecheck, contract sync, 3 unit files / 6 tests and production build passed. |
 | 2026-07-29 | Browser matrix | `pnpm exec playwright test e2e/core-finance.spec.ts` | 3 tests passed: Chromium, Firefox and WebKit. |
 | 2026-07-29 | Biome baseline | `biome ci --reporter=summary` against current worktree and archived `HEAD` | Backend 331/556 -> 192/553; frontend 532/331 -> 531/330 (errors/warnings). |
+| 2026-07-29 | Goals/savings database | `pnpm db:test` | 94 PgTAP/RLS/RPC assertions passed, including A/B isolation, linked/direct contributions, initial balance, rollback and movement ownership. |
+| 2026-07-29 | Goals/savings backend E2E | `pnpm test:e2e:local` | 6 suites / 7 authenticated tests passed, including two Supabase clients running concurrent deposits and final balance verification. |
+| 2026-07-29 | Goals/savings browser matrix | `playwright test e2e/goals-savings.spec.ts --project=chromium --project=firefox --project=webkit` with external local servers | 3 tests passed across Chromium, Firefox and WebKit; mutation envelopes, balances, history, cleanup and logout verified. |
+| 2026-07-29 | Cross-browser auth guard | frontend typecheck/build + browser matrix | Removed automatic logout on transient unauthenticated guard state; Firefox registration no longer loses the newly created session. |
