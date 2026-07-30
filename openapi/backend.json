@@ -2203,18 +2203,143 @@
     },
     "/investments/list": {
       "get": {
-        "operationId": "InvestmentController_getInvestments",
+        "operationId": "InvestmentController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "renda_fixa",
+                "acoes",
+                "fundos",
+                "fiis",
+                "criptomoedas",
+                "commodities",
+                "internacional",
+                "previdencia",
+                "outros"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "renda_fixa",
+                "acoes",
+                "fundos",
+                "fiis",
+                "criptomoedas",
+                "commodities",
+                "internacional",
+                "previdencia",
+                "outros"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Lista investimentos do usuário",
+        "tags": [
+          "Investments"
+        ]
+      }
+    },
+    "/investments/summary": {
+      "get": {
+        "operationId": "InvestmentController_summary",
         "parameters": [],
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetInvestmentsResponse"
-                }
-              }
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Investments"
+        ]
+      }
+    },
+    "/investments/category-stats": {
+      "get": {
+        "operationId": "InvestmentController_categoryStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Investments"
+        ]
+      }
+    },
+    "/investments/{id}": {
+      "get": {
+        "operationId": "InvestmentController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2229,28 +2354,21 @@
     },
     "/investments/create": {
       "post": {
-        "operationId": "InvestmentController_createInvestment",
+        "operationId": "InvestmentController_create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateInvestmentCommand"
+                "$ref": "#/components/schemas/CreateInvestmentDto"
               }
             }
           }
         },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateInvestmentResponse"
-                }
-              }
-            }
+          "201": {
+            "description": ""
           }
         },
         "security": [
@@ -2265,28 +2383,21 @@
     },
     "/investments/update": {
       "put": {
-        "operationId": "InvestmentController_updateInvestment",
+        "operationId": "InvestmentController_update",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateInvestmentCommand"
+                "$ref": "#/components/schemas/UpdateInvestmentDto"
               }
             }
           }
         },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateInvestmentResponse"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2301,28 +2412,21 @@
     },
     "/investments/delete": {
       "delete": {
-        "operationId": "InvestmentController_deleteInvestment",
+        "operationId": "InvestmentController_delete",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DeleteInvestmentCommand"
+                "$ref": "#/components/schemas/DeleteInvestmentDto"
               }
             }
           }
         },
         "responses": {
-          "default": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteInvestmentResponse"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2332,6 +2436,52 @@
         ],
         "tags": [
           "Investments"
+        ]
+      }
+    },
+    "/investment-transactions": {
+      "get": {
+        "operationId": "InvestmentTransactionController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Investment transactions"
+        ]
+      },
+      "post": {
+        "operationId": "InvestmentTransactionController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvestmentTransactionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Investment transactions"
         ]
       }
     },
@@ -2382,6 +2532,113 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/stats": {
+      "get": {
+        "operationId": "AdminExtendedController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/feedbacks/list": {
+      "get": {
+        "operationId": "AdminExtendedController_feedbacks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/feedbacks/update": {
+      "put": {
+        "operationId": "AdminExtendedController_updateFeedback",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFeedbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/referrals": {
+      "get": {
+        "operationId": "AdminExtendedController_referrals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Admin"
+        ]
+      }
+    },
+    "/admin/analytics": {
+      "get": {
+        "deprecated": true,
+        "operationId": "AdminExtendedController_analytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "",
         "tags": [
           "Admin"
         ]
@@ -2552,6 +2809,80 @@
         ]
       }
     },
+    "/feedback": {
+      "post": {
+        "operationId": "FeedbackController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFeedbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Feedback"
+        ]
+      },
+      "get": {
+        "operationId": "FeedbackController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Feedback"
+        ]
+      }
+    },
+    "/feedback/{id}": {
+      "get": {
+        "operationId": "FeedbackController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Feedback"
+        ]
+      }
+    },
     "/reports/overview": {
       "get": {
         "operationId": "ReportsController_overview",
@@ -2575,6 +2906,83 @@
         ],
         "tags": [
           "Reports"
+        ]
+      }
+    },
+    "/referrals/stats": {
+      "get": {
+        "operationId": "ReferralController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Referrals"
+        ]
+      }
+    },
+    "/referrals/process": {
+      "post": {
+        "operationId": "ReferralController_process",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessReferralDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Referrals"
+        ]
+      }
+    },
+    "/payment-reminders": {
+      "post": {
+        "operationId": "PaymentReminderController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentReminderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Payment reminders"
         ]
       }
     }
@@ -3074,112 +3482,21 @@
           "error"
         ]
       },
-      "GetInvestmentsResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "error": {
-            "type": "string"
-          },
-          "total": {
-            "type": "number"
-          },
-          "limit": {
-            "type": "number"
-          },
-          "offset": {
-            "type": "number"
-          },
-          "hasMore": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error",
-          "total",
-          "limit",
-          "offset",
-          "hasMore"
-        ]
-      },
-      "CreateInvestmentCommand": {
+      "CreateInvestmentDto": {
         "type": "object",
         "properties": {}
       },
-      "CreateInvestmentResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "UpdateInvestmentCommand": {
+      "UpdateInvestmentDto": {
         "type": "object",
         "properties": {}
       },
-      "UpdateInvestmentResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
-      },
-      "DeleteInvestmentCommand": {
+      "DeleteInvestmentDto": {
         "type": "object",
         "properties": {}
       },
-      "DeleteInvestmentResponse": {
+      "CreateInvestmentTransactionDto": {
         "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "data",
-          "error"
-        ]
+        "properties": {}
       },
       "GetAdminSummaryResponse": {
         "type": "object",
@@ -3199,6 +3516,10 @@
           "data",
           "error"
         ]
+      },
+      "UpdateFeedbackDto": {
+        "type": "object",
+        "properties": {}
       },
       "ExportResponse": {
         "type": "object",
@@ -3332,6 +3653,10 @@
           "format"
         ]
       },
+      "CreateFeedbackDto": {
+        "type": "object",
+        "properties": {}
+      },
       "ReportsOverviewResponse": {
         "type": "object",
         "properties": {
@@ -3346,6 +3671,14 @@
           "success",
           "data"
         ]
+      },
+      "ProcessReferralDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreatePaymentReminderDto": {
+        "type": "object",
+        "properties": {}
       }
     }
   }

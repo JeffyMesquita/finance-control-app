@@ -2,7 +2,7 @@
 
 > Operational tracker for the gradual migration. This file is intentionally mirrored in `finance-control-app` and `finance-control-backend`; update both copies in the same delivery.
 >
-> Last review: 2026-07-29
+> Last review: 2026-07-30
 > Branch: `codex/complete-next-nest-migration`
 > Scope: local work only. No remote migration, deploy, push, or PR is authorized by this tracker.
 
@@ -69,15 +69,15 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 
 ### Investments
 
-- [~] Nest CRUD exists.
-- [ ] Finalize legacy snake_case contract, portfolio/summary, asset movements and atomic invested-value updates.
-- [ ] Add OpenAPI sync, TanStack hooks, parity fixtures and E2E before activation.
+- [~] Nest investments expose list, detail, summary, category stats, CRUD and transaction history/mutations with snake_case wire fields and cent conversion.
+- [~] Additive security-invoker RPCs cover initial aporte and locked balance mutations; local PgTAP/RLS and authenticated E2E proof are still required.
+- [~] Frontend has the investments flag path, OpenAPI-generated contract, TanStack query keys, mutations and a legacy fallback; parity fixtures and three-browser E2E remain pending.
 
 ### Feedback, referrals and administration
 
-- [~] Admin summary/users and first-touch referral security foundations exist.
-- [ ] Migrate feedback, notification/e-mail, referral, badges and full administration flows to Nest.
-- [ ] Add AdminGuard/service-role integration tests and remove remaining frontend privileged dependencies.
+- [~] Authenticated Nest feedback create/list/detail, referral stats/process idempotency and badge uniqueness migration are implemented; e-mail port and local authenticated proof remain pending.
+- [~] Admin stats, feedback moderation, referrals and deprecated analytics endpoints use service-role access behind AdminGuard; integration tests and full UI migration remain pending.
+- [~] Active payment-reminder creation now uses the Nest endpoint from the modal; local RLS/E2E proof and removal of dead Supabase prototypes remain pending.
 
 ## Local validation gate
 
@@ -125,3 +125,4 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-07-29 | Goals/savings backend E2E | `pnpm test:e2e:local` | 6 suites / 7 authenticated tests passed, including two Supabase clients running concurrent deposits and final balance verification. |
 | 2026-07-29 | Goals/savings browser matrix | `playwright test e2e/goals-savings.spec.ts --project=chromium --project=firefox --project=webkit` with external local servers | 3 tests passed across Chromium, Firefox and WebKit; mutation envelopes, balances, history, cleanup and logout verified. |
 | 2026-07-29 | Cross-browser auth guard | frontend typecheck/build + browser matrix | Removed automatic logout on transient unauthenticated guard state; Firefox registration no longer loses the newly created session. |
+| 2026-07-30 | Investments / feedback / referrals / admin | backend `tsc --noEmit`, `nest build`, `jest --runInBand` (70 suites / 479 tests), `openapi:generate`; frontend `typecheck`, `contracts:check`, `test:unit` (3 files / 6 tests), `build` | Contracts and local code paths are green; domain remains `[~]` until Supabase PgTAP, authenticated Supertest and Chromium/Firefox/WebKit E2E evidence is collected. |

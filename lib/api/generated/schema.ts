@@ -1052,7 +1052,56 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["InvestmentController_getInvestments"];
+        /** Lista investimentos do usuário */
+        get: operations["InvestmentController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/investments/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InvestmentController_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/investments/category-stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InvestmentController_categoryStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/investments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InvestmentController_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1070,7 +1119,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["InvestmentController_createInvestment"];
+        post: operations["InvestmentController_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1085,7 +1134,7 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        put: operations["InvestmentController_updateInvestment"];
+        put: operations["InvestmentController_update"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1103,7 +1152,23 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete: operations["InvestmentController_deleteInvestment"];
+        delete: operations["InvestmentController_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/investment-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["InvestmentTransactionController_list"];
+        put?: never;
+        post: operations["InvestmentTransactionController_create"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1133,6 +1198,87 @@ export interface paths {
             cookie?: never;
         };
         get: operations["AdminController_getUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminExtendedController_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/feedbacks/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminExtendedController_feedbacks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/feedbacks/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminExtendedController_updateFeedback"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/referrals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminExtendedController_referrals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @deprecated */
+        get: operations["AdminExtendedController_analytics"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1174,6 +1320,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeedbackController_list"];
+        put?: never;
+        post: operations["FeedbackController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feedback/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["FeedbackController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reports/overview": {
         parameters: {
             query?: never;
@@ -1184,6 +1362,54 @@ export interface paths {
         get: operations["ReportsController_overview"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/referrals/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ReferralController_stats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/referrals/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ReferralController_process"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/payment-reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PaymentReminderController_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1364,38 +1590,16 @@ export interface components {
             data: Record<string, never>;
             error: string;
         };
-        GetInvestmentsResponse: {
-            success: boolean;
-            data: string[];
-            error: string;
-            total: number;
-            limit: number;
-            offset: number;
-            hasMore: boolean;
-        };
-        CreateInvestmentCommand: Record<string, never>;
-        CreateInvestmentResponse: {
-            success: boolean;
-            data: Record<string, never>;
-            error: string;
-        };
-        UpdateInvestmentCommand: Record<string, never>;
-        UpdateInvestmentResponse: {
-            success: boolean;
-            data: Record<string, never>;
-            error: string;
-        };
-        DeleteInvestmentCommand: Record<string, never>;
-        DeleteInvestmentResponse: {
-            success: boolean;
-            data: Record<string, never>;
-            error: string;
-        };
+        CreateInvestmentDto: Record<string, never>;
+        UpdateInvestmentDto: Record<string, never>;
+        DeleteInvestmentDto: Record<string, never>;
+        CreateInvestmentTransactionDto: Record<string, never>;
         GetAdminSummaryResponse: {
             success: boolean;
             data: Record<string, never>;
             error: string;
         };
+        UpdateFeedbackDto: Record<string, never>;
         ExportResponse: {
             success: boolean;
             data: Record<string, never>;
@@ -1437,10 +1641,13 @@ export interface components {
             /** @default true */
             includeNotes: boolean;
         };
+        CreateFeedbackDto: Record<string, never>;
         ReportsOverviewResponse: {
             success: boolean;
             data: Record<string, never>;
         };
+        ProcessReferralDto: Record<string, never>;
+        CreatePaymentReminderDto: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -2944,7 +3151,30 @@ export interface operations {
             };
         };
     };
-    InvestmentController_getInvestments: {
+    InvestmentController_list: {
+        parameters: {
+            query?: {
+                search?: string;
+                category?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+                type?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvestmentController_summary: {
         parameters: {
             query?: never;
             header?: never;
@@ -2953,17 +3183,51 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            default: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["GetInvestmentsResponse"];
-                };
+                content?: never;
             };
         };
     };
-    InvestmentController_createInvestment: {
+    InvestmentController_categoryStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvestmentController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    InvestmentController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -2972,21 +3236,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateInvestmentCommand"];
+                "application/json": components["schemas"]["CreateInvestmentDto"];
             };
         };
         responses: {
-            default: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["CreateInvestmentResponse"];
-                };
+                content?: never;
             };
         };
     };
-    InvestmentController_updateInvestment: {
+    InvestmentController_update: {
         parameters: {
             query?: never;
             header?: never;
@@ -2995,21 +3257,19 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateInvestmentCommand"];
+                "application/json": components["schemas"]["UpdateInvestmentDto"];
             };
         };
         responses: {
-            default: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["UpdateInvestmentResponse"];
-                };
+                content?: never;
             };
         };
     };
-    InvestmentController_deleteInvestment: {
+    InvestmentController_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -3018,17 +3278,53 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DeleteInvestmentCommand"];
+                "application/json": components["schemas"]["DeleteInvestmentDto"];
             };
         };
         responses: {
-            default: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["DeleteInvestmentResponse"];
+                content?: never;
+            };
+        };
+    };
+    InvestmentTransactionController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
                 };
+                content?: never;
+            };
+        };
+    };
+    InvestmentTransactionController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateInvestmentTransactionDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3067,6 +3363,95 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GetUsersResponse"];
                 };
+            };
+        };
+    };
+    AdminExtendedController_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminExtendedController_feedbacks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminExtendedController_updateFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFeedbackDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminExtendedController_referrals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminExtendedController_analytics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3140,6 +3525,63 @@ export interface operations {
             };
         };
     };
+    FeedbackController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FeedbackController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFeedbackDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    FeedbackController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ReportsController_overview: {
         parameters: {
             query?: never;
@@ -3156,6 +3598,65 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReportsOverviewResponse"];
                 };
+            };
+        };
+    };
+    ReferralController_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ReferralController_process: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProcessReferralDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PaymentReminderController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePaymentReminderDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

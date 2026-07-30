@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,9 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { CurrencyInput } from "@/components/ui/currency-input";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { apiRequest } from "@/lib/api/client";
 
 const FREQUENCIES = [
   { value: "daily", label: "Diário" },
@@ -23,13 +23,7 @@ const FREQUENCIES = [
   { value: "yearly", label: "Anual" },
 ];
 
-export function AlertReminderModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function AlertReminderModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -39,7 +33,6 @@ export function AlertReminderModal({
   const [frequency, setFrequency] = useState("monthly");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClientComponentClient();
   const { user, loading: userLoading } = useCurrentUser();
 
   useEffect(() => {
@@ -80,25 +73,20 @@ export function AlertReminderModal({
 
     setLoading(true);
     try {
-      const { error: insertError } = await supabase
-        .from("payment_reminders")
-        .insert({
-          user_id: user.id,
+      await apiRequest("/payment-reminders", {
+        method: "POST",
+        body: {
           title,
-          description,
-          amount: parseFloat(amount),
+          description: description || null,
+          amount: Number(amount),
           due_date: date,
-          category,
+          category: category || null,
           is_recurring: isRecurring,
           frequency: isRecurring ? frequency : null,
-        });
-
-      if (insertError) {
-        setError(insertError.message || "Erro ao salvar lembrete.");
-        return;
-      }
+        },
+      });
       onClose();
-    } catch (error) {
+    } catch (_error) {
       setError("Erro ao salvar lembrete.");
     } finally {
       setLoading(false);
@@ -166,11 +154,7 @@ export function AlertReminderModal({
             />
           </div>
           <div className="flex items-center space-x-2">
-            <Switch
-              id="is_recurring"
-              checked={isRecurring}
-              onCheckedChange={setIsRecurring}
-            />
+            <Switch id="is_recurring" checked={isRecurring} onCheckedChange={setIsRecurring} />
             <Label htmlFor="is_recurring">Lembrete Recorrente</Label>
           </div>
           {isRecurring && (
@@ -204,4 +188,3 @@ export function AlertReminderModal({
     </Dialog>
   );
 }
-
