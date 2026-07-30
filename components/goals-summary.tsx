@@ -1,37 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { useGoalsQuery } from "@/useCases/useGoalsQuery";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Target,
-  Plus,
-  TrendingUp,
-  Calendar,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle, CheckCircle, Plus, Target, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GoalData } from "@/lib/types/actions";
-
-interface Goal {
-  id: string;
-  name: string;
-  target_amount: number;
-  current_amount: number;
-  target_date: string;
-  is_completed: boolean;
-  savings_box?: {
-    id: string;
-    name: string;
-    color: string;
-  };
-}
+import { useEffect, useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { useGoalsQuery } from "@/useCases/goals/useGoalsQuery";
 
 interface GoalsStats {
   total_goals: number;
@@ -54,19 +32,17 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
   // Verifica se estamos na página de metas
   const isOnGoalsPage = pathname === "/dashboard/goals";
 
-  const {
-    data: goals,
-    isLoading,
-    error,
-  } = useGoalsQuery({
-    onError(error) {
+  const { data: goals = [], isLoading, error } = useGoalsQuery();
+
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Erro ao carregar metas",
         description: error.message,
         variant: "destructive",
       });
-    },
-  });
+    }
+  }, [error, toast]);
 
   // Calcular estatísticas usando useMemo para otimização
   const stats = useMemo((): GoalsStats | null => {
@@ -81,15 +57,12 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
       average_progress:
         goals.length > 0
           ? Math.round(
-              goals.reduce(
-                (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
-                0
-              ) / goals.length
+              goals.reduce((sum, g) => sum + (g.current_amount / g.target_amount) * 100, 0) /
+                goals.length
             )
           : 0,
-      overdue_goals: goals.filter(
-        (g) => !g.is_completed && new Date(g.target_date) < new Date()
-      ).length,
+      overdue_goals: goals.filter((g) => !g.is_completed && new Date(g.target_date) < new Date())
+        .length,
     };
   }, [goals]);
 
@@ -124,9 +97,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
         </CardHeader>
         <CardContent className="text-center py-8">
           <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">
-            Você ainda não tem nenhuma meta financeira.
-          </p>
+          <p className="text-muted-foreground mb-4">Você ainda não tem nenhuma meta financeira.</p>
           {isOnGoalsPage && onCreateClick ? (
             <Button onClick={onCreateClick}>
               <Plus className="mr-2 h-4 w-4" />
@@ -180,17 +151,13 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
             <div className="text-2xl font-bold text-purple-800 dark:text-purple-200">
               {stats.active_goals}
             </div>
-            <div className="text-sm text-purple-700 dark:text-purple-300">
-              Metas Ativas
-            </div>
+            <div className="text-sm text-purple-700 dark:text-purple-300">Metas Ativas</div>
           </div>
           <div className="text-center p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
             <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
               {stats.completed_goals}
             </div>
-            <div className="text-sm text-emerald-700 dark:text-emerald-300">
-              Concluídas
-            </div>
+            <div className="text-sm text-emerald-700 dark:text-emerald-300">Concluídas</div>
           </div>
         </div>
 
@@ -219,8 +186,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
             {topGoals.map((goal) => {
               const progress = (goal.current_amount / goal.target_amount) * 100;
               const daysLeft = Math.ceil(
-                (new Date(goal.target_date).getTime() - new Date().getTime()) /
-                  (1000 * 60 * 60 * 24)
+                (new Date(goal.target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
               );
               const isOverdue = daysLeft < 0;
 
@@ -253,10 +219,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
 
                     {/* Barra de progresso */}
                     <div className="mt-1">
-                      <Progress
-                        value={Math.min(progress, 100)}
-                        className="h-1"
-                      />
+                      <Progress value={Math.min(progress, 100)} className="h-1" />
                     </div>
                   </div>
 
@@ -296,11 +259,7 @@ export function GoalsSummary({ onCreateClick }: GoalsSummaryProps) {
         {stats.total_goals > 3 && (
           <div className="text-center pt-2 border-t">
             <Link href="/dashboard/goals">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
                 <TrendingUp className="mr-2 h-3 w-3" />
                 Ver mais {stats.total_goals - 3} metas
               </Button>

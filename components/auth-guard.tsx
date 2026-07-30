@@ -1,22 +1,21 @@
 "use client";
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, loading, logout } = useCurrentUser();
+  const { user, loading } = useCurrentUser();
   const router = useRouter();
 
   useEffect(() => {
     if (!loading && !user) {
-      logout();
       router.push("/login");
     }
-  }, [user, loading, logout, router]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -28,4 +27,3 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   return <>{children}</>;
 }
-
