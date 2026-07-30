@@ -1,47 +1,35 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import type { AdminStats } from "@/app/actions/admin";
+import { apiRequest } from "@/lib/api/client";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { AdminStats } from "@/lib/types/admin";
 
-interface AdminStatsResponse {
-  success: boolean;
-  data: AdminStats;
-  error?: string;
-}
+export const adminQueryKeys = {
+  all: ["admin"] as const,
+  analytics: ["admin", "analytics"] as const,
+  feedbacks: (filters: object) => ["admin", "feedbacks", filters] as const,
+  referrals: ["admin", "referrals"] as const,
+  stats: ["admin", "stats"] as const,
+  users: (page: number, limit: number) => ["admin", "users", page, limit] as const,
+};
 
 async function fetchAdminStats(): Promise<AdminStats> {
-  // Para usar temporariamente o server action até migrar completamente
-  const { getAdminStats } = await import("@/app/actions/admin");
-  const result = await getAdminStats();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to fetch admin stats");
+  if (isNestDomainEnabled("admin")) {
+    return apiRequest<AdminStats>("/admin/stats");
   }
 
-  return result.data!;
+  const { getAdminStats } = await import("@/app/actions/admin");
+  const result = await getAdminStats();
+  if (!result.success || !result.data) {
+    throw new Error(result.error || "Failed to fetch admin stats");
+  }
+  return result.data;
 }
 
 export function useAdminStatsQuery() {
-  const { toast } = useToast();
-
-  const queryFn = useCallback(fetchAdminStats, []);
-
-  const query = useQuery<AdminStats, Error>({
-    queryKey: ["admin-stats"],
-    queryFn,
-    staleTime: 1000 * 60 * 2, // 2 minutes (admin data changes more frequently)
-    refetchInterval: 1000 * 60 * 5, // Auto-refresh every 5 minutes
+  return useQuery({
+    queryKey: adminQueryKeys.stats,
+    queryFn: fetchAdminStats,
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 5,
   });
-
-  useEffect(() => {
-    if (query.isError && query.error) {
-      toast({
-        title: "Erro ao carregar estatísticas",
-        description: query.error.message,
-        variant: "destructive",
-      });
-    }
-  }, [query.isError, query.error, toast]);
-
-  return query;
 }

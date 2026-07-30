@@ -1,19 +1,19 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import {
-  Users,
-  TrendingUp,
-  Target,
-  PiggyBank,
-  MessageSquare,
-  UserPlus,
   Activity,
   DollarSign,
+  MessageSquare,
+  PiggyBank,
+  Target,
+  TrendingUp,
+  UserPlus,
+  Users,
 } from "lucide-react";
-import { AdminStats } from "@/app/actions/admin";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { AdminStats } from "@/lib/types/admin";
 
 interface AdminStatsCardsProps {
   stats: AdminStats;
@@ -85,9 +85,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
       {/* Metas Financeiras */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Metas Financeiras
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Metas Financeiras</CardTitle>
           <Target className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -122,9 +120,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
           <div className="mt-2 space-y-1">
             <div className="flex justify-between text-xs">
               <span>Ativos: {stats.savingsBoxes.activeBoxes}</span>
-              <span>
-                Média: {formatCurrency(stats.savingsBoxes.averageAmount)}
-              </span>
+              <span>Média: {formatCurrency(stats.savingsBoxes.averageAmount)}</span>
             </div>
           </div>
         </CardContent>
@@ -138,9 +134,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.feedbacks.total}</div>
-          <div className="text-xs text-muted-foreground">
-            +{stats.feedbacks.thisMonth} este mês
-          </div>
+          <div className="text-xs text-muted-foreground">+{stats.feedbacks.thisMonth} este mês</div>
           <div className="mt-2 flex flex-wrap gap-1">
             {Object.entries(stats.feedbacks.byStatus).map(([status, count]) => (
               <Badge key={status} variant="outline" className="text-xs">
@@ -158,9 +152,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
           <UserPlus className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">
-            {stats.referrals.totalInvites}
-          </div>
+          <div className="text-2xl font-bold">{stats.referrals.totalInvites}</div>
           <div className="text-xs text-muted-foreground">
             {stats.referrals.successfulReferrals} conversões
           </div>
@@ -177,9 +169,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
       {/* Receitas vs Despesas */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Balanço Financeiro
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Balanço Financeiro</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -222,9 +212,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
             <div className="flex justify-between text-xs">
               <span>Usuários ativos</span>
               <span className="font-semibold">
-                {formatPercentage(
-                  (stats.users.activeThisMonth / stats.users.total) * 100
-                )}
+                {formatPercentage((stats.users.activeThisMonth / stats.users.total) * 100)}
               </span>
             </div>
             <div className="flex justify-between text-xs">
@@ -234,9 +222,7 @@ export function AdminStatsCards({ stats }: AdminStatsCardsProps) {
             <div className="flex justify-between text-xs">
               <span>Feedback rate</span>
               <span className="font-semibold">
-                {formatPercentage(
-                  (stats.feedbacks.total / stats.users.total) * 100
-                )}
+                {formatPercentage((stats.feedbacks.total / stats.users.total) * 100)}
               </span>
             </div>
           </div>

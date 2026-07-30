@@ -24,7 +24,7 @@ export default function DashboardClient() {
 
   return (
     <AuthGuard>
-      <ReferralTrigger />
+      {!isNestDomainEnabled("referrals") && <ReferralTrigger />}
       <div className="flex flex-col gap-4 p-4 md:p-8">
         <PixSupportAlert />
         {!nestDashboard && <ShareAppAlert />}

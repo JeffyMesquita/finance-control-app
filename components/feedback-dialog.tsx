@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import { createFeedback } from "@/app/actions/feedback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,7 +140,10 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
             success: true as const,
             data: await apiRequest("/feedback", { method: "POST", body: feedbackData }),
           }
-        : await createFeedback(feedbackData);
+        : await (async () => {
+            const { createFeedback } = await import("@/app/actions/feedback");
+            return createFeedback(feedbackData);
+          })();
 
       if (result.success) {
         toast.success("Feedback enviado com sucesso!", {
