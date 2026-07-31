@@ -1,33 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { Feedback } from "@/lib/types/feedback";
+import type { Feedback } from "@/lib/types/feedback";
 import { logger } from "@/lib/utils/logger";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
 
 export async function POST(request: NextRequest) {
   try {
     const { feedback }: { feedback: Feedback } = await request.json();
 
     if (!feedback) {
-      return NextResponse.json(
-        { error: "Dados do feedback são obrigatórios" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Dados do feedback são obrigatórios" }, { status: 400 });
     }
 
-    if (!process.env.RESEND_API_KEY) {
+    if (!resendApiKey) {
       logger.error("RESEND_API_KEY não configurada");
-      return NextResponse.json(
-        { error: "Configuração de email não encontrada" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Configuração de email não encontrada" }, { status: 500 });
     }
+
+    const resend = new Resend(resendApiKey);
 
     // Definir emails de destino (você pode configurar isso via env vars)
-    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [
-      "admin@financetrack.com",
-    ];
+    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || ["admin@financetrack.com"];
 
     // Definir assunto baseado no tipo e prioridade
     const typeLabels = {
@@ -143,10 +137,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       logger.error("Erro do Resend:", error);
-      return NextResponse.json(
-        { error: "Erro ao enviar email", details: error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Erro ao enviar email", details: error }, { status: 500 });
     }
 
     logger.info("Email enviado com sucesso:", { data: data?.id });
@@ -157,9 +148,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error("Erro inesperado no envio de email:", error as Error);
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
