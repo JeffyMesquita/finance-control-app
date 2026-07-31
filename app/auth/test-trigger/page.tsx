@@ -1,5 +1,10 @@
-import TestTrigger from "../test-trigger"
+import { notFound } from "next/navigation";
+import TestTrigger from "../test-trigger";
 
 export default function TestTriggerPage() {
-  return <TestTrigger />
+  if (process.env.NODE_ENV === "production") {
+    notFound();
+  }
+
+  return <TestTrigger />;
 }
