@@ -50,3 +50,30 @@ export async function deleteLocalUserByEmail(email: string): Promise<void> {
     throw deleteError;
   }
 }
+export async function getLocalUserIdByEmail(email: string): Promise<string> {
+  const client = createLocalAdminClient();
+  const { data, error } = await client.auth.admin.listUsers({ page: 1, perPage: 1_000 });
+
+  if (error) {
+    throw error;
+  }
+
+  const user = data.users.find((candidate) => candidate.email === email);
+  if (!user) {
+    throw new Error(`Local E2E user not found: ${email}`);
+  }
+
+  return user.id;
+}
+
+export async function setLocalUserAdmin(email: string, isAdmin: boolean): Promise<void> {
+  const client = createLocalAdminClient();
+  const userId = await getLocalUserIdByEmail(email);
+  const { error } = await client.auth.admin.updateUserById(userId, {
+    app_metadata: { role: isAdmin ? "admin" : "user" },
+  });
+
+  if (error) {
+    throw error;
+  }
+}
