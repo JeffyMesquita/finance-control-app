@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_BASE_URL ||
       (process.env.NODE_ENV === "development"
         ? "http://localhost:3000"
-        : "https://financetrack.jeffymesquita.dev");
+        : "https://ajeitagrana.jeffymesquita.dev");
 
     // Enviar email
     const { data, error } = await resend.emails.send({
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           <!-- Header -->
           <div style="background: #1f2937; color: white; padding: 24px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px;">Novo Feedback Recebido</h1>
-            <p style="margin: 8px 0 0; opacity: 0.9;">FinanceTrack - Sistema de Controle Financeiro</p>
+            <p style="margin: 8px 0 0; opacity: 0.9;">AjeitaGrana - Sistema de Controle Financeiro</p>
           </div>
           
           <!-- Content -->
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
           <!-- Footer -->
           <div style="background: #f9fafb; padding: 16px 24px; border-top: 1px solid #e5e7eb; text-align: center;">
             <p style="margin: 0; font-size: 12px; color: #6b7280;">
-              Este email foi enviado automaticamente pelo sistema FinanceTrack.<br>
+              Este email foi enviado automaticamente pelo sistema AjeitaGrana.<br>
               Não responda a este email.
             </p>
           </div>

@@ -185,7 +185,7 @@ export default function LoginPage() {
                   <Logo dark className="h-14 w-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">
-                  {isRegister ? "Criar uma conta" : "Bem-vindo ao FinanceTrack"}
+                  {isRegister ? "Criar uma conta" : "Bem-vindo ao AjeitaGrana"}
                 </CardTitle>
                 <CardDescription>
                   {isRegister
