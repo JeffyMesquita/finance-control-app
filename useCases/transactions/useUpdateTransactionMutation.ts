@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { TransactionData, UpdateTransactionData } from "@/lib/types/actions";
+import { invalidateFinancialQueries } from "@/useCases/invalidate-financial-queries";
 
 interface UseUpdateTransactionMutationOptions {
   onSuccess?: () => void;
@@ -33,7 +34,7 @@ export function useUpdateTransactionMutation(options?: UseUpdateTransactionMutat
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary });
+      invalidateFinancialQueries(queryClient);
       options?.onSuccess?.();
     },
     onError: (error: Error) => {

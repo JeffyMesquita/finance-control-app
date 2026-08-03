@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { AccountData, BaseActionResult, UpdateAccountData } from "@/lib/types/actions";
+import { invalidateFinancialQueries } from "@/useCases/invalidate-financial-queries";
 
 interface MutationOptions {
   onError?: (error: Error) => void;
@@ -39,7 +40,7 @@ export function useUpdateAccountMutation(options?: MutationOptions) {
     onError: options?.onError,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary });
+      invalidateFinancialQueries(queryClient);
       options?.onSuccess?.();
     },
   });

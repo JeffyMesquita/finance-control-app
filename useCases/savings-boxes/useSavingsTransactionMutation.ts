@@ -1,4 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  depositToSavingsBox,
+  transferBetweenBoxes,
+  withdrawFromSavingsBox,
+} from "@/app/actions/savings-transactions";
 import { apiRequest } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
@@ -12,7 +17,7 @@ type MovementInput = {
   description?: string | null;
 };
 
-async function mutateMovement(
+export async function mutateMovement(
   operation: "deposits" | "withdrawals" | "transfers",
   input: MovementInput
 ): Promise<SavingsTransactionData> {
@@ -26,24 +31,34 @@ async function mutateMovement(
         description: input.description,
       },
     });
-  const legacyPath =
+  const result =
     operation === "deposits"
-      ? "/api/savings-transactions/deposit"
+      ? await depositToSavingsBox(
+          input.boxId,
+          input.amount,
+          input.account_id ?? undefined,
+          input.description ?? undefined
+        )
       : operation === "withdrawals"
-        ? "/api/savings-transactions/withdraw"
-        : "/api/savings-transactions/transfer";
-  const response = await fetch(legacyPath, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(input),
-  });
-  const payload = (await response.json()) as {
-    success: boolean;
-    data?: SavingsTransactionData;
-    error?: string;
-  };
-  if (!payload.success || !payload.data) throw new Error(payload.error || "Falha na movimenta??o");
-  return payload.data;
+        ? await withdrawFromSavingsBox(
+            input.boxId,
+            input.amount,
+            input.account_id ?? undefined,
+            input.description ?? undefined
+          )
+        : input.target_savings_box_id
+          ? await transferBetweenBoxes(
+              input.boxId,
+              input.target_savings_box_id,
+              input.amount,
+              input.description ?? undefined
+            )
+          : { success: false as const, error: "Cofrinho de destino obrigatório" };
+
+  if (!result.success || !result.data) {
+    throw new Error(result.error ?? "Falha na movimentação");
+  }
+  return result.data;
 }
 
 export function useSavingsTransactionMutation(operation: "deposits" | "withdrawals" | "transfers") {

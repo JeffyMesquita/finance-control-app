@@ -3,17 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api/client";
 import { queryKeys } from "@/lib/api/query-keys";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
+import { invalidateFinancialQueries } from "@/useCases/invalidate-financial-queries";
 
 export function useDeleteTransactionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: { id?: string; ids?: string[] }) => {
-      if (isNestDomainEnabled("transactions")) {
-        if (!data.id || data.ids?.length) {
-          throw new Error("A exclusão em lote ainda está no fluxo legado.");
-        }
-
+      if (isNestDomainEnabled("transactions") && data.id && !data.ids?.length) {
         await apiRequest<void>("/transactions/delete", {
           method: "DELETE",
           body: { id: data.id },
@@ -31,7 +28,7 @@ export function useDeleteTransactionMutation() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary });
+      invalidateFinancialQueries(queryClient);
     },
   });
 }

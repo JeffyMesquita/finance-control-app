@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getInvestmentTransactions } from "@/app/actions/investments";
 import { apiPaginatedRequest, apiRequest } from "@/lib/api/client";
 import type { components, paths } from "@/lib/api/generated/schema";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
@@ -179,7 +180,7 @@ export function useCreateInvestmentTransactionMutation() {
   });
 }
 
-async function fetchInvestmentTransactions(
+export async function fetchInvestmentTransactions(
   params: InvestmentTransactionParams = {}
 ): Promise<InvestmentTransaction[]> {
   const query = toQuery(params);
@@ -189,9 +190,14 @@ async function fetchInvestmentTransactions(
     );
     return (result.data ?? []).map(normalizeInvestmentTransaction);
   }
-  return legacyRequest<InvestmentTransaction[]>(
-    `/investment-transactions${query ? `?${query}` : ""}`
-  );
+  const result = await getInvestmentTransactions(params.investment_id);
+  if (!result.success) {
+    throw new Error(result.error ?? "Não foi possível carregar as movimentações");
+  }
+  return (result.data ?? []).map((value) => ({
+    ...value,
+    description: value.description ?? undefined,
+  }));
 }
 export const investmentTransactionsQueryOptions = (params: InvestmentTransactionParams = {}) =>
   queryOptions({
