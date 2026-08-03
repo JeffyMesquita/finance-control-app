@@ -1810,7 +1810,6 @@ export interface components {
         AdminAnalyticsDataDto: {
             deprecated: boolean;
             message: string;
-            events: Record<string, never>[];
         };
         AdminAnalyticsResponseDto: {
             success: boolean;

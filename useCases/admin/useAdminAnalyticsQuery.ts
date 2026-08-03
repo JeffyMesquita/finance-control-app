@@ -6,7 +6,6 @@ import { adminQueryKeys } from "./useAdminStatsQuery";
 interface AdminAnalytics {
   deprecated?: boolean;
   message?: string;
-  events?: unknown[];
 }
 
 async function fetchAdminAnalytics(): Promise<AdminAnalytics> {
