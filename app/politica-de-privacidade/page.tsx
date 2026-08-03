@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer";
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { brand } from "@/lib/brand";
 
 export default function PoliticaDePrivacidadePage() {
   return (
@@ -126,7 +127,7 @@ export default function PoliticaDePrivacidadePage() {
             </ul>
             <p>
               Para exercer qualquer um desses direitos, entre em contato conosco através do e-mail:
-              privacidade@financetrack.com.br
+              {brand.contacts.privacy}
             </p>
           </div>
 
@@ -154,7 +155,7 @@ export default function PoliticaDePrivacidadePage() {
             <h2 className="text-xl font-semibold text-forest-green-700">9. Contato</h2>
             <p>
               Se você tiver alguma dúvida sobre esta Política de Privacidade, entre em contato
-              conosco pelo e-mail: privacidade@financetrack.com.br
+              conosco pelo e-mail: {brand.contacts.privacy}
             </p>
           </div>
         </div>

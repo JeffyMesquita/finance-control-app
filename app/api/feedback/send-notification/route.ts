@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { brand } from "@/lib/brand";
 import type { Feedback } from "@/lib/types/feedback";
 import { logger } from "@/lib/utils/logger";
 
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
     const resend = new Resend(resendApiKey);
 
     // Definir emails de destino (você pode configurar isso via env vars)
-    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || ["admin@financetrack.com"];
+    const adminEmails = process.env.ADMIN_EMAILS?.split(",") || [brand.contacts.general];
 
     // Definir assunto baseado no tipo e prioridade
     const typeLabels = {
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Enviar email
     const { data, error } = await resend.emails.send({
-      from: process.env.FROM_EMAIL || "noreply@financetrack.com",
+      from: process.env.FROM_EMAIL || `noreply@${new URL(brand.url).hostname}`,
       to: adminEmails,
       subject,
       // Usar HTML diretamente (mais confiável)

@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer";
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { brand } from "@/lib/brand";
 
 export default function TermosDeServicoPage() {
   return (
@@ -135,7 +136,7 @@ export default function TermosDeServicoPage() {
             <h2 className="text-xl font-semibold text-forest-green-700">10. Contato</h2>
             <p>
               Se você tiver alguma dúvida sobre estes Termos, entre em contato conosco pelo e-mail:
-              contato@financetrack.com.br
+              {brand.contacts.general}
             </p>
           </div>
         </div>
