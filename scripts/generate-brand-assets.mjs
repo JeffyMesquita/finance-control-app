@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const root = dirname(fileURLToPath(import.meta.url));
-const svg = await readFile(join(root, "../public/brand/ajeitagrana-symbol.svg"), "utf8");
+const symbol = await readFile(join(root, "../public/brand/ajeitagrana-symbol.svg"), "utf8");
 const outputDir = join(root, "../public/brand");
 await mkdir(outputDir, { recursive: true });
 
@@ -19,7 +19,7 @@ for (const size of [16, 32, 96, 180, 192, 512]) {
       "px;height:" +
       size +
       'px;background:#F7F8F4">' +
-      svg.replace("<svg ", `<svg width="${size}" height="${size}" `) +
+      symbol.replace("<svg ", `<svg width="${size}" height="${size}" `) +
       "</body>"
   );
   await page.screenshot({ path: join(outputDir, `ajeitagrana-${size}.png`) });
@@ -27,17 +27,17 @@ for (const size of [16, 32, 96, 180, 192, 512]) {
 
 await page.setViewportSize({ width: 1200, height: 630 });
 await page.setContent(
-  '<body style="margin:0;background:#F7F8F4;color:#162019;font-family:Arial,sans-serif">' +
-    '<main style="height:630px;display:flex;align-items:center;gap:48px;padding:72px 96px;box-sizing:border-box">' +
-    '<div style="width:160px;height:160px">' +
-    svg.replace("<svg ", '<svg width="160" height="160" ') +
+  '<body style="margin:0;background:#162019;color:#F7F8F4;font-family:Arial,sans-serif">' +
+    '<main style="height:630px;display:flex;align-items:center;gap:56px;padding:76px 92px;box-sizing:border-box">' +
+    '<div style="width:200px;height:200px">' +
+    symbol.replace("<svg ", '<svg width="200" height="200" ') +
     "</div>" +
-    '<div><p style="margin:0 0 18px;color:#047857;font-size:24px;font-weight:700;letter-spacing:3px">AJEITAGRANA</p>' +
-    '<h1 style="margin:0;max-width:760px;font-size:64px;line-height:1.05;letter-spacing:-2px">Ajeite sua grana. Faça seus planos avançarem.</h1>' +
-    '<p style="margin:26px 0 0;max-width:680px;font-size:26px;line-height:1.35;color:#526158">Controle financeiro sem planilha e sem complicação.</p></div>' +
+    '<div><p style="margin:0 0 22px;color:#6ee7b7;font-size:22px;font-weight:700;letter-spacing:4px">AJEITAGRANA</p>' +
+    '<h1 style="margin:0;max-width:760px;font-size:62px;line-height:1.04;letter-spacing:-2px">Ajeite sua grana.<br>FaÃ§a seus planos avanÃ§arem.</h1>' +
+    '<p style="margin:26px 0 0;max-width:680px;font-size:25px;line-height:1.35;color:#b9c8bf">OrganizaÃ§Ã£o financeira pessoal, sem planilha e sem complicaÃ§Ã£o.</p></div>' +
     "</main></body>"
 );
 await page.screenshot({ path: join(root, "../app/opengraph-image.png") });
 await page.screenshot({ path: join(root, "../app/twitter-image.png") });
 await browser.close();
-console.log("brand PNG assets generated");
+console.log("AjeitaGrana brand PNG assets generated");
