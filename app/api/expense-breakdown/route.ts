@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const month =
       (searchParams.get("month") as "current" | "previous") || "current";
 
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },

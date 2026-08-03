@@ -1,10 +1,24 @@
 "use client";
 
+import {
+  ArrowRightLeft,
+  Edit,
+  Minus,
+  MoreVertical,
+  PiggyBank,
+  Plus,
+  Target,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { SavingsBoxDialog } from "@/components/savings-box-dialog";
+import { SavingsTransactionDialog } from "@/components/savings-transaction-dialog";
+import { SavingsTransferDialog } from "@/components/savings-transfer-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,23 +26,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SavingsTransactionDialog } from "@/components/savings-transaction-dialog";
-import { SavingsTransferDialog } from "@/components/savings-transfer-dialog";
-import { SavingsBoxDialog } from "@/components/savings-box-dialog";
-import {
-  MoreVertical,
-  Plus,
-  Minus,
-  ArrowRightLeft,
-  Edit,
-  Trash2,
-  Target,
-  TrendingUp,
-  PiggyBank,
-} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import type { SavingsBoxWithRelations } from "@/lib/types/savings-boxes";
-import { toast } from "sonner";
-import { deleteSavingsBox } from "@/app/actions/savings-boxes";
+import { useDeleteSavingsBoxMutation } from "@/useCases/savings-boxes/useDeleteSavingsBoxMutation";
 
 interface SavingsBoxCardProps {
   savingsBox: SavingsBoxWithRelations;
@@ -36,6 +36,7 @@ interface SavingsBoxCardProps {
 }
 
 export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
+  const deleteMutation = useDeleteSavingsBoxMutation();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -43,9 +44,7 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const currentAmount = (savingsBox.current_amount || 0) / 100;
-  const targetAmount = savingsBox.target_amount
-    ? savingsBox.target_amount / 100
-    : null;
+  const targetAmount = savingsBox.target_amount ? savingsBox.target_amount / 100 : null;
   const progressPercentage = targetAmount
     ? Math.min(Math.round((currentAmount / targetAmount) * 100), 100)
     : 0;
@@ -54,25 +53,16 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
   const hasGoal = targetAmount && targetAmount > 0;
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        `Tem certeza que deseja excluir o cofrinho "${savingsBox.name}"?`
-      )
-    ) {
+    if (!confirm(`Tem certeza que deseja excluir o cofrinho "${savingsBox.name}"?`)) {
       return;
     }
 
     setIsDeleting(true);
     try {
-      const result = await deleteSavingsBox(savingsBox.id);
-
-      if (result.success) {
-        toast.success("Cofrinho excluído com sucesso!");
-        onUpdate?.();
-      } else {
-        toast.error(result.error);
-      }
-    } catch (error) {
+      await deleteMutation.mutateAsync(savingsBox.id);
+      toast.success("Cofrinho exclu?do com sucesso!");
+      onUpdate?.();
+    } catch {
       toast.error("Erro ao excluir cofrinho");
     } finally {
       setIsDeleting(false);
@@ -109,13 +99,9 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
                 <PiggyBank className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold leading-none tracking-tight">
-                  {savingsBox.name}
-                </h3>
+                <h3 className="font-semibold leading-none tracking-tight">{savingsBox.name}</h3>
                 {savingsBox.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {savingsBox.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{savingsBox.description}</p>
                 )}
               </div>
             </div>
@@ -196,9 +182,7 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
                 <div className="flex items-center gap-1">
                   <TrendingUp className="h-3 w-3" />
                   Última movimentação:{" "}
-                  {new Date(
-                    savingsBox.transactions[0].created_at
-                  ).toLocaleDateString("pt-BR")}
+                  {new Date(savingsBox.transactions[0].created_at).toLocaleDateString("pt-BR")}
                 </div>
               </div>
             )}
@@ -283,4 +267,3 @@ export function SavingsBoxCard({ savingsBox, onUpdate }: SavingsBoxCardProps) {
     </>
   );
 }
-

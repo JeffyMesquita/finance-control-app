@@ -13,7 +13,7 @@ import type {
 } from "@/lib/types/actions";
 
 export async function getGoals(): Promise<BaseActionResult<GoalData[]>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -57,7 +57,7 @@ export async function getGoals(): Promise<BaseActionResult<GoalData[]>> {
 export async function getGoalById(
   id: string
 ): Promise<BaseActionResult<GoalData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -102,7 +102,7 @@ export async function getGoalById(
 export async function createGoal(
   goal: CreateGoalData
 ): Promise<BaseActionResult<GoalData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -147,7 +147,7 @@ export async function updateGoal(
   id: string,
   goal: UpdateGoalData
 ): Promise<BaseActionResult<GoalData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -190,7 +190,7 @@ export async function updateGoal(
 }
 
 export async function deleteGoal(id: string): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -224,7 +224,7 @@ export async function updateGoalProgress(
   id: string,
   amount: number
 ): Promise<BaseActionResult<GoalData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

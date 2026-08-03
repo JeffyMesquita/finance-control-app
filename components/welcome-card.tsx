@@ -1,24 +1,21 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import { useState, useEffect, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, PlusCircle, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, PlusCircle, X } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { AddTransactionDialog } from "./add-transaction-dialog";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useUserProfileQuery } from "@/useCases/useUserProfileQuery";
+import { AddTransactionDialog } from "./add-transaction-dialog";
 
 const SESSION_KEY = "welcomeCardDismissed";
 
@@ -27,7 +24,7 @@ export function WelcomeCard() {
   const { data: profile, isLoading: profileLoading } = useUserProfileQuery();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [exiting, setExiting] = useState(false);
+  const [exiting, _setExiting] = useState(false);
 
   const router = useRouter();
 
@@ -57,8 +54,7 @@ export function WelcomeCard() {
     return null;
   }
 
-  const userName =
-    profile?.full_name || user.user_metadata?.full_name || "usuário";
+  const userName = profile?.full_name || user.user_metadata?.full_name || "usuário";
 
   return (
     <AnimatePresence>
@@ -86,29 +82,21 @@ export function WelcomeCard() {
                 {userName ? `, ${userName}` : ""}!
               </CardTitle>
               <CardDescription>
-                Bem-vindo ao seu painel financeiro. Comece a acompanhar suas
-                finanças agora mesmo.
+                Bem-vindo ao seu painel financeiro. Comece a acompanhar suas finanças agora mesmo.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Registre suas transações, defina metas e acompanhe seu progresso
-                financeiro em um só lugar.
+                Registre suas transações, defina metas e acompanhe seu progresso financeiro em um só
+                lugar.
               </p>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 justify-between md:flex-row">
-              <Button
-                variant="outline"
-                onClick={handleAddTransaction}
-                className="w-full md:w-auto"
-              >
+              <Button variant="outline" onClick={handleAddTransaction} className="w-full md:w-auto">
                 Ver Transações
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button
-                onClick={() => setIsDialogOpen(true)}
-                className="w-full md:w-auto"
-              >
+              <Button onClick={() => setIsDialogOpen(true)} className="w-full md:w-auto">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Nova Transação
               </Button>

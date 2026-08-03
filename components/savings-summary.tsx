@@ -1,41 +1,13 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import {
-  getSavingsBoxesStats,
-  getSavingsBoxesSummary,
-  getSavingsBoxesTotal,
-} from "@/app/actions/savings-boxes";
+import { Coins, PiggyBank, Plus, Target, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Coins, PiggyBank, Plus, Target, TrendingUp } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useSavingsSummaryQuery } from "@/useCases/useSavingsSummaryQuery";
-
-interface SavingsBoxSummaryItem {
-  id: string;
-  name: string;
-  current_amount: number;
-  target_amount: number | null;
-  color: string;
-  icon: string;
-  progress_percentage: number;
-  is_goal_linked: boolean;
-  linked_goal: any;
-}
-
-interface SavingsStats {
-  total_boxes: number;
-  total_amount: number;
-  total_with_goals: number;
-  total_completed_goals: number;
-  average_completion: number;
-}
 
 interface SavingsSummaryProps {
   onCreateClick?: () => void; // Prop opcional para abrir modal diretamente
@@ -82,9 +54,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
         </CardHeader>
         <CardContent className="text-center py-8">
           <PiggyBank className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">
-            Você ainda não tem nenhum cofrinho digital.
-          </p>
+          <p className="text-muted-foreground mb-4">Você ainda não tem nenhum cofrinho digital.</p>
           {isOnCofrinhoPage && onCreateClick ? (
             <Button onClick={onCreateClick}>
               <Plus className="mr-2 h-4 w-4" />
@@ -131,9 +101,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
                 minimumFractionDigits: 2,
               })}
             </div>
-            <div className="text-sm text-blue-700 dark:text-blue-300">
-              Total Guardado
-            </div>
+            <div className="text-sm text-blue-700 dark:text-blue-300">Total Guardado</div>
           </div>
           <div className="text-center p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg border border-emerald-200 dark:border-emerald-800">
             <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">
@@ -232,11 +200,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
         {stats.total_boxes > 3 && (
           <div className="text-center pt-2 border-t">
             <Link href="/dashboard/cofrinhos">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-              >
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
                 <TrendingUp className="mr-2 h-3 w-3" />
                 Ver mais {stats.total_boxes - 3} cofrinhos
               </Button>

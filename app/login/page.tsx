@@ -1,7 +1,10 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
+import { ArrowLeft, Loader2, Mail } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,13 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { ArrowLeft, Loader2, Mail } from "lucide-react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-
-import ReCAPTCHA from "react-google-recaptcha";
+import { sessionApi } from "@/lib/api/session";
+import { logger } from "@/lib/utils/logger";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -35,8 +33,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClientComponentClient();
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const e2eRecaptchaToken =
+    process.env.NEXT_PUBLIC_E2E_MODE === "true"
+      ? (process.env.NEXT_PUBLIC_E2E_RECAPTCHA_TOKEN ?? null)
+      : null;
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(e2eRecaptchaToken);
 
   useEffect(() => {
     localStorage.removeItem("googleLogin");
@@ -55,12 +56,8 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         setIsCheckingSession(true);
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-          router.push("/dashboard");
-        }
+        await sessionApi.getCurrentUser();
+        router.push("/dashboard");
       } catch (error) {
         logger.error("Erro ao verificar sessão:", error as Error);
       } finally {
@@ -69,7 +66,7 @@ export default function LoginPage() {
     };
 
     checkSession();
-  }, [router, supabase.auth]);
+  }, [router]);
 
   // Monitorar retorno do Google Auth
   useEffect(() => {
@@ -118,58 +115,38 @@ export default function LoginPage() {
       setIsLoading(true);
       setError(null);
 
-      const res = await fetch("/api/auth/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, recaptchaToken, isRegister }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Erro desconhecido.");
-        setIsLoading(false);
+      if (!recaptchaToken) {
+        setError("Confirme o reCAPTCHA antes de continuar.");
         return;
       }
-      if (isRegister) {
+
+      const referralId = localStorage.getItem("referral_id") ?? undefined;
+      const credentials = { email, password, recaptchaToken };
+      const result = isRegister
+        ? await sessionApi.register({
+            ...credentials,
+            referralId,
+          })
+        : await sessionApi.login(credentials);
+
+      if (isRegister && result.requiresEmailConfirmation) {
         setError("Por favor, verifique seu email para confirmar o registro.");
       } else {
         router.push("/dashboard");
       }
-    } catch (error: any) {
-      logger.error("Erro na autenticação:", error);
-      setError(error.message);
+    } catch (error) {
+      logger.error("Erro na autenticação:", error as Error);
+      setError(error instanceof Error ? error.message : "Erro ao autenticar.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      localStorage.setItem("googleLogin", "true");
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      // Após login Google, processa referência
-      // O redirecionamento será tratado pelo Supabase
-    } catch (error: any) {
-      logger.error("Erro ao fazer login:", error);
-      setError("Falha ao fazer login com Google. Por favor, tente novamente.");
-      setIsLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    setError(null);
+    const referralId = localStorage.getItem("referral_id") ?? undefined;
+    window.location.assign(sessionApi.googleLoginUrl(referralId));
   };
 
   useEffect(() => {
@@ -217,13 +194,12 @@ export default function LoginPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 w-full max-w-sm">
-                {/* {error && (
+                {error && (
                   <Alert variant="destructive" className="mb-4">
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
-                )} */}
+                )}
 
-                {/*
                 <form onSubmit={handleEmailAuth} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -263,12 +239,11 @@ export default function LoginPage() {
                       {isLoading
                         ? "Processando..."
                         : isRegister
-                        ? "Criar conta"
-                        : "Entrar com Email"}
+                          ? "Criar conta"
+                          : "Entrar com Email"}
                     </span>
                   </Button>
                 </form>
-                */}
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -289,7 +264,7 @@ export default function LoginPage() {
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
                       <path
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         fill="#4285F4"
@@ -311,14 +286,18 @@ export default function LoginPage() {
                   <span>{isLoading ? "Entrando..." : "Entrar com Google"}</span>
                 </Button>
 
-                {/*
                 <div className="flex justify-center mt-4">
-                  <ReCAPTCHA
-                    sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
-                    onChange={handleRecaptcha}
-                  />
+                  {e2eRecaptchaToken ? (
+                    <p className="text-xs text-muted-foreground" data-testid="e2e-recaptcha-ready">
+                      Verificação de teste local ativa
+                    </p>
+                  ) : (
+                    <ReCAPTCHA
+                      sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
+                      onChange={handleRecaptcha}
+                    />
+                  )}
                 </div>
-                */}
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
                 <Button
@@ -326,9 +305,7 @@ export default function LoginPage() {
                   className="text-sm text-muted-foreground"
                   onClick={() => setIsRegister(!isRegister)}
                 >
-                  {isRegister
-                    ? "Já tem uma conta? Faça login"
-                    : "Não tem uma conta? Registre-se"}
+                  {isRegister ? "Já tem uma conta? Faça login" : "Não tem uma conta? Registre-se"}
                 </Button>
                 <div className="text-center text-sm text-muted-foreground">
                   Ao continuar, você concorda com nossos{" "}

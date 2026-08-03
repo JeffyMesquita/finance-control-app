@@ -1,27 +1,5 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
-import {
-  getExpenseBreakdown,
-  getGoalsStats,
-  getMonthlyData,
-} from "@/app/actions/dashboard";
-import { getSavingsBoxesStats } from "@/app/actions/savings-boxes";
-import { ExpensesComparisonChart } from "@/components/expenses-comparison-chart";
-import { ReportsOverviewSkeleton as ReportsSkeleton } from "@/components/skeletons";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatCurrency } from "@/lib/utils";
 import {
   BarChart3,
   CheckCircle,
@@ -36,7 +14,7 @@ import {
   Unlink,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -53,6 +31,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { ExpensesComparisonChart } from "@/components/expenses-comparison-chart";
+import { ReportsOverviewSkeleton as ReportsSkeleton } from "@/components/skeletons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatCurrency } from "@/lib/utils";
 import { useReportsOverviewQuery } from "@/useCases/useReportsOverviewQuery";
 
 const COLORS = [
@@ -81,60 +67,20 @@ const monthNames: { [key: string]: string } = {
   Dec: "Dez",
 };
 
-interface MonthlyData {
-  name: string;
-  income: number;
-  expenses: number;
-  savings: number;
-}
-
-interface ExpenseData {
-  name: string;
-  value: number;
-  color: string;
-}
-
-interface GoalsStats {
-  total_goals: number;
-  completed_goals: number;
-  overdue_goals: number;
-  linked_to_savings_boxes: number;
-  average_progress: number;
-  total_target_amount: number;
-  total_current_amount: number;
-  goals_by_month: Array<{
-    name: string;
-    goals_created: number;
-    goals_completed: number;
-    target_amount: number;
-  }>;
-}
-
-interface SavingsBoxStats {
-  total_boxes: number;
-  total_amount: number;
-  total_with_goals: number;
-  total_completed_goals: number;
-  average_completion: number;
-}
-
-const CATEGORY_LABEL_MAX = 10;
-const ellipsis = (str: string, max: number) =>
-  str.length > max ? str.slice(0, max) + "…" : str;
+type ExpenseChartData = { name: string; value: number; color?: string };
+const ellipsis = (str: string, max: number) => (str.length > max ? `${str.slice(0, max)}...` : str);
 
 const PIE_LABEL_MAX = 10;
-const PieLabel = (props: any) => {
-  const {
-    name,
-    percent,
-    cx,
-    cy,
-    midAngle,
-    outerRadius,
-    color,
-    value,
-    payload,
-  } = props;
+const PieLabel = (props: {
+  name: string;
+  percent: number;
+  cx: number;
+  cy: number;
+  midAngle: number;
+  outerRadius: number;
+  color: string;
+}) => {
+  const { name, percent, cx, cy, midAngle, outerRadius, color } = props;
   const RADIAN = Math.PI / 180;
   const radius = outerRadius + 40;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -174,7 +120,7 @@ const PieLabel = (props: any) => {
   );
 };
 
-const YAxisCustomTick = (props: any) => {
+const YAxisCustomTick = (props: { x?: number; y?: number; payload?: { value?: number } }) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
@@ -189,7 +135,7 @@ const YAxisCustomTick = (props: any) => {
         fill="#64748b"
         transform="rotate(-10)"
       >
-        {formatCurrency(payload.value)}
+        {formatCurrency(payload?.value ?? 0)}
       </text>
     </g>
   );
@@ -216,9 +162,7 @@ export function ReportsOverview() {
       <Card className="lg:col-span-2 bg-stone-100 dark:bg-stone-900 shadow-sm">
         <CardHeader>
           <CardTitle>Receitas vs Despesas</CardTitle>
-          <CardDescription>
-            Comparação mensal de receitas e despesas
-          </CardDescription>
+          <CardDescription>Comparação mensal de receitas e despesas</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -266,9 +210,7 @@ export function ReportsOverview() {
         <CardContent className="h-[300px]">
           {expenseData?.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Nenhuma despesa disponível
-              </p>
+              <p className="text-sm text-muted-foreground">Nenhuma despesa disponível</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -285,13 +227,11 @@ export function ReportsOverview() {
                   nameKey="name"
                   isAnimationActive={false}
                   onClick={(_, index) => setSelectedPieIndex(index)}
-                  activeIndex={
-                    selectedPieIndex === null ? undefined : selectedPieIndex
-                  }
+                  activeIndex={selectedPieIndex === null ? undefined : selectedPieIndex}
                 >
                   {expenseData.map((entry, index) => (
                     <Cell
-                      key={`cell-${index}`}
+                      key={`cell-${entry.name}`}
                       fill={entry.color || COLORS[index % COLORS.length]}
                     />
                   ))}
@@ -306,9 +246,7 @@ export function ReportsOverview() {
                   }
                   isAnimationActive={false}
                   wrapperStyle={
-                    selectedPieIndex != null
-                      ? { opacity: 1, pointerEvents: "auto" }
-                      : {}
+                    selectedPieIndex != null ? { opacity: 1, pointerEvents: "auto" } : {}
                   }
                 />
               </RechartsPieChart>
@@ -322,9 +260,7 @@ export function ReportsOverview() {
         <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-sm font-medium">
-                Metas Financeiras
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Metas Financeiras</CardTitle>
               <CardDescription>Visão geral das suas metas</CardDescription>
             </div>
             <Target className="h-4 w-4 text-purple-600" />
@@ -338,23 +274,16 @@ export function ReportsOverview() {
                 <p className="text-xs text-muted-foreground">Concluídas</p>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {goalsStats.overdue_goals}
-                </div>
+                <div className="text-2xl font-bold text-red-600">{goalsStats.overdue_goals}</div>
                 <p className="text-xs text-muted-foreground">Atrasadas</p>
               </div>
             </div>
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs">
                 <span>Progresso Médio</span>
-                <span className="font-medium">
-                  {goalsStats.average_progress}%
-                </span>
+                <span className="font-medium">{goalsStats.average_progress}%</span>
               </div>
-              <Progress
-                value={goalsStats.average_progress}
-                className="h-2 mt-1"
-              />
+              <Progress value={goalsStats.average_progress} className="h-2 mt-1" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Badge variant="secondary" className="justify-center">
@@ -385,9 +314,7 @@ export function ReportsOverview() {
                 <div className="text-2xl font-bold text-blue-600">
                   {savingsBoxStats.total_boxes}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Total de Cofrinhos
-                </p>
+                <p className="text-xs text-muted-foreground">Total de Cofrinhos</p>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
@@ -399,14 +326,9 @@ export function ReportsOverview() {
             <div className="mt-4">
               <div className="flex items-center justify-between text-xs">
                 <span>Progresso Médio</span>
-                <span className="font-medium">
-                  {savingsBoxStats.average_completion}%
-                </span>
+                <span className="font-medium">{savingsBoxStats.average_completion}%</span>
               </div>
-              <Progress
-                value={savingsBoxStats.average_completion}
-                className="h-2 mt-1"
-              />
+              <Progress value={savingsBoxStats.average_completion} className="h-2 mt-1" />
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <Badge variant="secondary" className="justify-center">
@@ -426,12 +348,8 @@ export function ReportsOverview() {
         <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-sm font-medium">
-                Análise de Integração
-              </CardTitle>
-              <CardDescription>
-                Metas e cofrinhos trabalhando juntos
-              </CardDescription>
+              <CardTitle className="text-sm font-medium">Análise de Integração</CardTitle>
+              <CardDescription>Metas e cofrinhos trabalhando juntos</CardDescription>
             </div>
             <TrendingUp className="h-4 w-4 text-emerald-600" />
           </CardHeader>
@@ -440,28 +358,21 @@ export function ReportsOverview() {
               <div className="text-center">
                 <div className="text-xl font-bold text-emerald-600">
                   {Math.round(
-                    (goalsStats.linked_to_savings_boxes /
-                      Math.max(goalsStats.total_goals, 1)) *
-                      100
+                    (goalsStats.linked_to_savings_boxes / Math.max(goalsStats.total_goals, 1)) * 100
                   )}
                   %
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Metas Integradas
-                </p>
+                <p className="text-xs text-muted-foreground">Metas Integradas</p>
               </div>
               <div className="text-center">
                 <div className="text-xl font-bold text-blue-600">
                   {Math.round(
-                    (savingsBoxStats.total_with_goals /
-                      Math.max(savingsBoxStats.total_boxes, 1)) *
+                    (savingsBoxStats.total_with_goals / Math.max(savingsBoxStats.total_boxes, 1)) *
                       100
                   )}
                   %
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Cofrinhos c/ Metas
-                </p>
+                <p className="text-xs text-muted-foreground">Cofrinhos c/ Metas</p>
               </div>
             </div>
             <div className="mt-4 text-center">
@@ -474,10 +385,7 @@ export function ReportsOverview() {
                   Estratégia Integrada Ativa
                 </Badge>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="text-orange-600 border-orange-300"
-                >
+                <Badge variant="outline" className="text-orange-600 border-orange-300">
                   <Unlink className="h-3 w-3 mr-1" />
                   Potencial de Integração
                 </Badge>
@@ -566,21 +474,13 @@ export function ReportsOverview() {
                 />
                 <Tooltip
                   formatter={(value: number, name: string) => [
-                    name === "goals_created"
-                      ? `${value} criadas`
-                      : `${value} concluídas`,
-                    name === "goals_created"
-                      ? "Metas Criadas"
-                      : "Metas Concluídas",
+                    name === "goals_created" ? `${value} criadas` : `${value} concluídas`,
+                    name === "goals_created" ? "Metas Criadas" : "Metas Concluídas",
                   ]}
                 />
                 <Legend />
                 <Bar dataKey="goals_created" fill="#8884d8" name="Criadas" />
-                <Bar
-                  dataKey="goals_completed"
-                  fill="#22c55e"
-                  name="Concluídas"
-                />
+                <Bar dataKey="goals_completed" fill="#22c55e" name="Concluídas" />
               </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
@@ -592,9 +492,7 @@ export function ReportsOverview() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Relatórios Disponíveis</CardTitle>
-            <CardDescription>
-              Baixe ou visualize os relatórios detalhados
-            </CardDescription>
+            <CardDescription>Baixe ou visualize os relatórios detalhados</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -706,8 +604,14 @@ function ReportCard({ title, description, icon: Icon }: ReportCardProps) {
   );
 }
 
-const SavingsTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
+const SavingsTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: { name: string; savings: number } }>;
+}) => {
+  if (active && payload?.length) {
     const entry = payload[0].payload;
     return (
       <div className="bg-background p-2 rounded shadow text-xs">
@@ -729,13 +633,19 @@ const PieCustomTooltip = ({
   selected,
   expenseData,
   totalExpenses,
-}: any) => {
-  let entry,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: ExpenseChartData }>;
+  selected?: number | null;
+  expenseData: ExpenseChartData[];
+  totalExpenses: number;
+}) => {
+  let entry: ExpenseChartData | undefined,
     percent = 0;
   if (typeof selected === "number" && expenseData[selected]) {
     entry = expenseData[selected];
     percent = totalExpenses ? entry.value / totalExpenses : 0;
-  } else if (active && payload && payload.length) {
+  } else if (active && payload?.length) {
     entry = payload[0].payload;
     percent = totalExpenses ? entry.value / totalExpenses : 0;
   }

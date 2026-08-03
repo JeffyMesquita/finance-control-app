@@ -1,4 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 
 interface SavingsBoxesStatsResponse {
   success: boolean;
@@ -13,6 +16,8 @@ interface SavingsBoxesStatsResponse {
 }
 
 async function fetchSavingsBoxesStats() {
+  if (isNestDomainEnabled("savings-boxes"))
+    return apiRequest<NonNullable<SavingsBoxesStatsResponse["data"]>>("/savings-boxes/stats");
   const response = await fetch("/api/savings-boxes/stats");
   const result: SavingsBoxesStatsResponse = await response.json();
 
@@ -33,7 +38,7 @@ async function fetchSavingsBoxesStats() {
 
 export function useSavingsBoxesStatsQuery() {
   return useQuery({
-    queryKey: ["savings-boxes-stats"],
+    queryKey: queryKeys.savingsBoxes.stats,
     queryFn: fetchSavingsBoxesStats,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

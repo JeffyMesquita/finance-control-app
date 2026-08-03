@@ -14,7 +14,7 @@ import type {
 export async function getCategories(): Promise<
   BaseActionResult<CategoryData[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -46,7 +46,7 @@ export async function getCategories(): Promise<
 export async function createCategory(
   category: CreateCategoryData
 ): Promise<BaseActionResult<CategoryData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -84,7 +84,7 @@ export async function updateCategory(
   id: string,
   category: UpdateCategoryData
 ): Promise<BaseActionResult<CategoryData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -120,7 +120,7 @@ export async function updateCategory(
 export async function deleteCategory(
   id: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

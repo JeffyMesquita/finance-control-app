@@ -19,7 +19,7 @@ export async function getTransactionsForExport(
   categoryId?: string,
   accountId?: string
 ): Promise<BaseActionResult<TransactionData[]>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -77,7 +77,7 @@ export async function getTransactionsForExport(
 
   return {
     success: true,
-    data: data as TransactionData[],
+    data: data as unknown as TransactionData[],
   };
 }
 
@@ -85,7 +85,7 @@ export async function getTransactionsForExport(
 export async function getAccountsForExport(): Promise<
   BaseActionResult<AccountData[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -118,7 +118,7 @@ export async function getAccountsForExport(): Promise<
 export async function getCategoriesForExport(): Promise<
   BaseActionResult<CategoryData[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -151,7 +151,7 @@ export async function getCategoriesForExport(): Promise<
 export async function getGoalsForExport(): Promise<
   BaseActionResult<GoalData[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -190,7 +190,7 @@ export async function getGoalsForExport(): Promise<
 export async function getMonthlySummaryForExport(
   year?: number
 ): Promise<BaseActionResult<any[]>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

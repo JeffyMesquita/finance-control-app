@@ -9,7 +9,7 @@ import type { UserProfile } from "@/lib/types";
 import type { BaseActionResult } from "@/lib/types/actions";
 
 export async function getUserProfile(): Promise<BaseActionResult<UserProfile>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -41,7 +41,7 @@ export async function getUserProfile(): Promise<BaseActionResult<UserProfile>> {
 export async function updateUserProfile(
   profile: UserProfile
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -73,7 +73,7 @@ export async function updateUserProfile(
 export async function updateProfileImage(
   imageUrl: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

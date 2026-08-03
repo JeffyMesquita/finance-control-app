@@ -15,7 +15,7 @@ export async function handleReferral(
     };
   }
 
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   // Get current user
   const {
@@ -126,7 +126,7 @@ export async function handleReferral(
 }
 
 export async function getReferralStats(): Promise<BaseActionResult<any>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   // Get current user
   const {

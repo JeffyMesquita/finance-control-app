@@ -1,23 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { useCurrentUser } from "@/hooks/use-current-user";
+import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
   ArrowUpDown,
   BarChart3,
-  Goal,
   CreditCard,
   Download,
-  User,
-  Sliders,
+  Goal,
+  LayoutDashboard,
   PiggyBank,
   Shield,
+  Sliders,
   TrendingUp,
+  User,
+  WalletCards,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   {
@@ -29,6 +30,11 @@ const navItems = [
     title: "Transações",
     href: "/dashboard/transactions",
     icon: ArrowUpDown,
+  },
+  {
+    title: "Contas",
+    href: "/dashboard/contas",
+    icon: WalletCards,
   },
   {
     title: "Categorias",
@@ -77,7 +83,7 @@ export function DashboardNav() {
   const { user } = useCurrentUser();
 
   // Verificar se o usuário é admin
-  const isAdmin = user?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+  const isAdmin = user?.role === "ADMIN";
 
   // Adicionar item admin ao final da lista se for admin
   const allNavItems = isAdmin
@@ -114,10 +120,7 @@ export function DashboardNav() {
                     return pathname === "/dashboard";
                   }
                   // Para outras páginas, verifica se é exata ou uma subpágina
-                  return (
-                    pathname === item.href ||
-                    pathname.startsWith(item.href + "/")
-                  );
+                  return pathname === item.href || pathname.startsWith(`${item.href}/`);
                 })()
                   ? "bg-primary/10 font-medium text-primary"
                   : "text-muted-foreground hover:bg-muted",
@@ -126,16 +129,9 @@ export function DashboardNav() {
               )}
             >
               <item.icon
-                className={cn(
-                  "h-4 w-4",
-                  isAdminItem && "text-red-600 dark:text-red-400"
-                )}
+                className={cn("h-4 w-4", isAdminItem && "text-red-600 dark:text-red-400")}
               />
-              <span
-                className={cn(
-                  isAdminItem && "text-red-700 dark:text-red-300 font-medium"
-                )}
-              >
+              <span className={cn(isAdminItem && "text-red-700 dark:text-red-300 font-medium")}>
                 {item.title}
               </span>
             </Link>
@@ -145,4 +141,3 @@ export function DashboardNav() {
     </nav>
   );
 }
-

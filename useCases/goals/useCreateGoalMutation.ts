@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { CreateGoalData, GoalData } from "@/lib/types/actions";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { CreateGoalData, GoalData } from "@/lib/types/actions";
 
 interface CreateGoalResponse {
   success: boolean;
@@ -14,21 +17,16 @@ interface CreateGoalOptions {
 }
 
 async function createGoal(goal: CreateGoalData): Promise<GoalData> {
+  if (isNestDomainEnabled("goals"))
+    return apiRequest<GoalData>("/goals/create", { method: "POST", body: goal });
   const response = await fetch("/api/goals/create", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(goal),
   });
-
-  const result: CreateGoalResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to create goal");
-  }
-
-  return result.data!;
+  const result = (await response.json()) as CreateGoalResponse;
+  if (!result.success || !result.data) throw new Error(result.error || "Falha ao criar meta");
+  return result.data;
 }
 
 export function useCreateGoalMutation(options?: CreateGoalOptions) {
@@ -37,9 +35,9 @@ export function useCreateGoalMutation(options?: CreateGoalOptions) {
 
   return useMutation({
     mutationFn: createGoal,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
 
       toast({
         title: "Sucesso",

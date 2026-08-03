@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -19,14 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { createInvestment } from "@/app/actions/investments";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreateInvestmentMutation, useUpdateInvestmentMutation } from "@/lib/api/investments";
 import {
   INVESTMENT_CATEGORIES,
-  InvestmentCategory,
-  Investment,
+  type Investment,
+  type InvestmentCategory,
 } from "@/lib/types/investments";
-import { toast } from "sonner";
 
 interface InvestmentDialogProps {
   children?: React.ReactNode;
@@ -36,6 +36,15 @@ interface InvestmentDialogProps {
   onSuccess?: () => void;
 }
 
+const emptyForm = () => ({
+  name: "",
+  category: "" as InvestmentCategory,
+  description: "",
+  initial_amount: 0,
+  target_amount: 0,
+  investment_date: new Date().toISOString().slice(0, 10),
+});
+
 export function InvestmentDialog({
   children,
   open: controlledOpen,
@@ -44,129 +53,80 @@ export function InvestmentDialog({
   onSuccess,
 }: InvestmentDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const setOpen = onOpenChange || setInternalOpen;
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "" as InvestmentCategory,
-    description: "",
-    initial_amount: 0,
-    target_amount: 0,
-    investment_date: new Date().toISOString().split("T")[0],
-  });
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+  const [formData, setFormData] = useState(emptyForm);
+  const createMutation = useCreateInvestmentMutation();
+  const updateMutation = useUpdateInvestmentMutation();
+  const loading = createMutation.isPending || updateMutation.isPending;
 
-  // Preencher formulário quando estiver editando
   useEffect(() => {
-    if (investment) {
+    if (investment)
       setFormData({
         name: investment.name,
         category: investment.category,
-        description: investment.description || "",
+        description: investment.description ?? "",
         initial_amount: investment.initial_amount,
-        target_amount: investment.target_amount || 0,
+        target_amount: investment.target_amount ?? 0,
         investment_date: investment.investment_date,
       });
-    } else {
-      setFormData({
-        name: "",
-        category: "" as InvestmentCategory,
-        description: "",
-        initial_amount: 0,
-        target_amount: 0,
-        investment_date: new Date().toISOString().split("T")[0],
-      });
-    }
+    else setFormData(emptyForm());
   }, [investment]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("Nome do investimento é obrigatório");
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (
+      !formData.name.trim() ||
+      !formData.category ||
+      (!investment && formData.initial_amount <= 0)
+    ) {
+      toast.error("Preencha nome, categoria e valor inicial maior que zero");
       return;
     }
-
-    if (!formData.category) {
-      toast.error("Categoria é obrigatória");
-      return;
-    }
-
-    if (formData.initial_amount <= 0) {
-      toast.error("Valor inicial deve ser maior que zero");
-      return;
-    }
-
-    setLoading(true);
-
+    const payload = {
+      name: formData.name.trim(),
+      category: formData.category,
+      description: formData.description.trim() || undefined,
+      target_amount: formData.target_amount > 0 ? formData.target_amount : undefined,
+      investment_date: formData.investment_date,
+    };
     try {
-      // Por enquanto apenas criação - edição será implementada futuramente
-      const result = await createInvestment({
-        name: formData.name.trim(),
-        category: formData.category,
-        description: formData.description.trim() || undefined,
-        initial_amount: formData.initial_amount,
-        target_amount:
-          formData.target_amount > 0 ? formData.target_amount : undefined,
-        investment_date: formData.investment_date,
-      });
-
-      if (result.success) {
-        toast.success(
-          investment
-            ? "Investimento atualizado com sucesso!"
-            : "Investimento criado com sucesso!"
-        );
-        setOpen(false);
-        setFormData({
-          name: "",
-          category: "" as InvestmentCategory,
-          description: "",
-          initial_amount: 0,
-          target_amount: 0,
-          investment_date: new Date().toISOString().split("T")[0],
-        });
-        onSuccess?.();
-      } else {
-        toast.error(result.error || "Erro ao criar investimento");
-      }
+      if (investment) await updateMutation.mutateAsync({ id: investment.id, ...payload });
+      else
+        await createMutation.mutateAsync({ ...payload, initial_amount: formData.initial_amount });
+      toast.success(investment ? "Investimento atualizado" : "Investimento criado");
+      setOpen(false);
+      onSuccess?.();
     } catch (error) {
-      toast.error("Erro inesperado");
-    } finally {
-      setLoading(false);
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível salvar o investimento"
+      );
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>
-            {investment ? "Editar Investimento" : "Novo Investimento"}
-          </DialogTitle>
+          <DialogTitle>{investment ? "Editar Investimento" : "Novo Investimento"}</DialogTitle>
         </DialogHeader>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Investimento</Label>
+            <Label htmlFor="investment-name">Nome</Label>
             <Input
-              id="name"
+              id="investment-name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Ex: Tesouro Direto, Ações PETR4..."
+              onChange={(event) => setFormData({ ...formData, name: event.target.value })}
               required
             />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="category">Categoria</Label>
+            <Label>Categoria</Label>
             <Select
               value={formData.category}
-              onValueChange={(value: InvestmentCategory) =>
-                setFormData({ ...formData, category: value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value as InvestmentCategory })
               }
             >
               <SelectTrigger>
@@ -181,79 +141,45 @@ export function InvestmentDialog({
               </SelectContent>
             </Select>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="initial_amount">Valor Inicial</Label>
+              <Label>Valor inicial</Label>
               <CurrencyInput
                 value={formData.initial_amount}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, initial_amount: value || 0 })
-                }
-                placeholder="R$ 0,00"
-                required
+                onValueChange={(value) => setFormData({ ...formData, initial_amount: value ?? 0 })}
+                disabled={Boolean(investment)}
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="target_amount">Meta (Opcional)</Label>
+              <Label>Meta (opcional)</Label>
               <CurrencyInput
                 value={formData.target_amount}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, target_amount: value || 0 })
-                }
-                placeholder="R$ 0,00"
+                onValueChange={(value) => setFormData({ ...formData, target_amount: value ?? 0 })}
               />
             </div>
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="investment_date">Data do Investimento</Label>
+            <Label>Data</Label>
             <Input
-              id="investment_date"
               type="date"
               value={formData.investment_date}
-              onChange={(e) =>
-                setFormData({ ...formData, investment_date: e.target.value })
+              onChange={(event) =>
+                setFormData({ ...formData, investment_date: event.target.value })
               }
-              required
             />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição (Opcional)</Label>
+            <Label>Descrição</Label>
             <Textarea
-              id="description"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Observações sobre este investimento..."
-              rows={3}
+              onChange={(event) => setFormData({ ...formData, description: event.target.value })}
             />
           </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading
-                ? investment
-                  ? "Salvando..."
-                  : "Criando..."
-                : investment
-                  ? "Salvar Alterações"
-                  : "Criar Investimento"}
-            </Button>
-          </div>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading ? "Salvando..." : "Salvar"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
-

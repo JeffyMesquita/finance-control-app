@@ -3,7 +3,7 @@ import { createActionClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
     const { data, error } = await supabase.auth.getUser();
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 401 });

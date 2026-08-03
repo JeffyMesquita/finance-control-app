@@ -2,8 +2,8 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createServerClient } from "@/lib/supabase/server";
+
 import {
   CreateFeedbackData,
   Feedback,
@@ -16,7 +16,7 @@ export async function createFeedback(
   data: CreateFeedbackData
 ): Promise<BaseActionResult<Feedback>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     // Verificar se o usuário está autenticado
     const {
@@ -95,7 +95,7 @@ export async function getUserFeedbacks(): Promise<
   BaseActionResult<Feedback[]>
 > {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -139,7 +139,7 @@ export async function getFeedbackById(
   id: string
 ): Promise<BaseActionResult<Feedback>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const { data: feedback, error } = await supabase
       .from("feedbacks")
@@ -173,7 +173,7 @@ export async function getFeedbackStats(): Promise<
   BaseActionResult<FeedbackStats>
 > {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     // Buscar todos os feedbacks
     const { data: feedbacks, error } = await supabase

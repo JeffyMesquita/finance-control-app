@@ -1,10 +1,13 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, Bug, Lightbulb, Loader2, MessageSquare, Send, Star } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import * as z from "zod";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -29,33 +33,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import {
-  MessageSquare,
-  Bug,
-  Lightbulb,
-  Star,
-  AlertTriangle,
-  Loader2,
-  Send,
-} from "lucide-react";
-import { createFeedback } from "@/app/actions/feedback";
+import { Textarea } from "@/components/ui/textarea";
+import { apiRequest } from "@/lib/api/client";
+import type { components } from "@/lib/api/generated/schema";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { FeedbackType } from "@/lib/types/feedback";
 import { getBrowserInfo } from "@/lib/utils/browser-info";
-import { FeedbackType } from "@/lib/types/feedback";
+import { logger } from "@/lib/utils/logger";
 
 const feedbackSchema = z.object({
-  type: z.enum([
-    "SUGGESTION",
-    "BUG_REPORT",
-    "FEEDBACK",
-    "FEATURE_REQUEST",
-    "OTHER",
-  ]),
+  type: z.enum(["SUGGESTION", "BUG_REPORT", "FEEDBACK", "FEATURE_REQUEST", "OTHER"]),
   title: z
     .string()
     .min(5, "Título deve ter pelo menos 5 caracteres")
@@ -76,8 +64,7 @@ const feedbackTypes = [
     label: "Sugestão",
     description: "Ideias para melhorar o sistema",
     icon: Lightbulb,
-    color:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
   },
   {
     value: "BUG_REPORT" as FeedbackType,
@@ -98,8 +85,7 @@ const feedbackTypes = [
     label: "Nova Funcionalidade",
     description: "Solicitar uma nova funcionalidade",
     icon: Star,
-    color:
-      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
   },
   {
     value: "OTHER" as FeedbackType,
@@ -131,9 +117,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
 
   const selectedType = form.watch("type");
   const includeContactInfo = form.watch("includeContactInfo");
-  const selectedTypeInfo = feedbackTypes.find(
-    (type) => type.value === selectedType
-  );
+  const selectedTypeInfo = feedbackTypes.find((type) => type.value === selectedType);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -148,11 +132,19 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
         title: data.title,
         description: data.description,
         email: includeContactInfo ? data.email : undefined,
-        browser_info: browserInfo,
+        browser_info: { ...browserInfo },
         page_url: window.location.href,
-      };
+      } satisfies components["schemas"]["CreateFeedbackDto"];
 
-      const result = await createFeedback(feedbackData);
+      const result = isNestDomainEnabled("feedback")
+        ? {
+            success: true as const,
+            data: await apiRequest("/feedback", { method: "POST", body: feedbackData }),
+          }
+        : await (async () => {
+            const { createFeedback } = await import("@/app/actions/feedback");
+            return createFeedback(feedbackData);
+          })();
 
       if (result.success) {
         toast.success("Feedback enviado com sucesso!", {
@@ -186,8 +178,8 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
             Enviar Feedback
           </DialogTitle>
           <DialogDescription>
-            Sua opinião é muito importante para nós! Compartilhe sugestões,
-            relate bugs ou deixe comentários sobre sua experiência.
+            Sua opinião é muito importante para nós! Compartilhe sugestões, relate bugs ou deixe
+            comentários sobre sua experiência.
           </DialogDescription>
         </DialogHeader>
 
@@ -200,10 +192,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de Feedback</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo de feedback" />
@@ -246,10 +235,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
                 <FormItem>
                   <FormLabel>Título</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Resumo do seu feedback em uma frase"
-                      {...field}
-                    />
+                    <Input placeholder="Resumo do seu feedback em uma frase" {...field} />
                   </FormControl>
                   <FormDescription>
                     Descreva brevemente o assunto (5-200 caracteres)
@@ -292,18 +278,13 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Incluir informações de contato
-                    </FormLabel>
+                    <FormLabel className="text-base">Incluir informações de contato</FormLabel>
                     <FormDescription>
                       Permita que entremos em contato para mais detalhes
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                 </FormItem>
               )}
@@ -318,11 +299,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
                   <FormItem>
                     <FormLabel>Email para Contato</FormLabel>
                     <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        {...field}
-                      />
+                      <Input type="email" placeholder="seu@email.com" {...field} />
                     </FormControl>
                     <FormDescription>
                       Usado apenas para esclarecer dúvidas sobre este feedback
@@ -335,18 +312,10 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
 
             {/* Informações sobre privacidade */}
             <div className="bg-muted p-4 rounded-lg text-sm">
-              <h4 className="font-medium mb-2">
-                🔒 Informações de Privacidade
-              </h4>
+              <h4 className="font-medium mb-2">🔒 Informações de Privacidade</h4>
               <ul className="text-muted-foreground space-y-1">
-                <li>
-                  • Coletamos informações técnicas (navegador, resolução) para
-                  melhor suporte
-                </li>
-                <li>
-                  • Seu email só será usado se você optar por incluir
-                  informações de contato
-                </li>
+                <li>• Coletamos informações técnicas (navegador, resolução) para melhor suporte</li>
+                <li>• Seu email só será usado se você optar por incluir informações de contato</li>
                 <li>• Todos os feedbacks são tratados de forma confidencial</li>
                 <li>• Você pode enviar feedback anonimamente</li>
               </ul>
@@ -362,11 +331,7 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
               >
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="min-w-[120px]"
-              >
+              <Button type="submit" disabled={isSubmitting} className="min-w-[120px]">
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -386,4 +351,3 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
     </Dialog>
   );
 }
-

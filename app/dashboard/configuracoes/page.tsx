@@ -3,8 +3,6 @@
 import { logger } from "@/lib/utils/logger";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import {
   Card,
   CardContent,
@@ -44,9 +42,7 @@ import {
 export default function ConfiguracoesPage() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const { toast } = useToast();
-  const router = useRouter();
-  const supabase = createClientComponentClient();
-  const user = useProtectedRoute();
+  useProtectedRoute();
 
   // Hooks TanStack Query
   const { data: settingsData, isLoading } = useUserSettingsQuery();

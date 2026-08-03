@@ -1,5 +1,12 @@
-import TestTrigger from "../test-trigger"
+export const dynamic = "force-dynamic";
+
+import { notFound } from "next/navigation";
+import TestTrigger from "../test-trigger";
 
 export default function TestTriggerPage() {
-  return <TestTrigger />
+  if (process.env.NODE_ENV === "production") {
+    notFound();
+  }
+
+  return <TestTrigger />;
 }

@@ -1,6 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { UserSettings } from "@/lib/types";
 
 interface UserSettingsResponse {
@@ -10,6 +13,10 @@ interface UserSettingsResponse {
 }
 
 async function fetchUserSettings(): Promise<UserSettings> {
+  if (isNestDomainEnabled("profile")) {
+    return apiRequest<UserSettings>("/settings");
+  }
+
   const response = await fetch("/api/user-settings");
   const result: UserSettingsResponse = await response.json();
 
@@ -20,9 +27,14 @@ async function fetchUserSettings(): Promise<UserSettings> {
   return result.data;
 }
 
-async function updateUserSettings(
-  settingsData: UserSettings
-): Promise<UserSettings> {
+async function updateUserSettings(settingsData: UserSettings): Promise<UserSettings> {
+  if (isNestDomainEnabled("profile")) {
+    return apiRequest<UserSettings>("/settings", {
+      method: "PUT",
+      body: settingsData,
+    });
+  }
+
   const response = await fetch("/api/user-settings", {
     method: "PUT",
     headers: {
@@ -30,7 +42,6 @@ async function updateUserSettings(
     },
     body: JSON.stringify(settingsData),
   });
-
   const result: UserSettingsResponse = await response.json();
 
   if (!result.success) {
@@ -41,27 +52,11 @@ async function updateUserSettings(
 }
 
 export function useUserSettingsQuery() {
-  const { toast } = useToast();
-
-  const queryFn = useCallback(fetchUserSettings, []);
-
-  const query = useQuery<UserSettings, Error>({
-    queryKey: ["user-settings"],
-    queryFn,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  return useQuery<UserSettings, Error>({
+    queryKey: queryKeys.profile.settings,
+    queryFn: fetchUserSettings,
+    staleTime: 1000 * 60 * 5,
   });
-
-  useEffect(() => {
-    if (query.isError && query.error) {
-      toast({
-        title: "Erro ao carregar configurações",
-        description: query.error.message,
-        variant: "destructive",
-      });
-    }
-  }, [query.isError, query.error, toast]);
-
-  return query;
 }
 
 interface UpdateUserSettingsOptions {
@@ -69,34 +64,29 @@ interface UpdateUserSettingsOptions {
   onError?: (error: Error) => void;
 }
 
-export function useUpdateUserSettingsMutation(
-  options: UpdateUserSettingsOptions = {}
-) {
+export function useUpdateUserSettingsMutation(options: UpdateUserSettingsOptions = {}) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: updateUserSettings,
     onSuccess: (data) => {
-      // Invalidate and refetch user settings
-      queryClient.invalidateQueries({ queryKey: ["user-settings"] });
-
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.profile.settings,
+      });
       toast({
         title: "Configurações atualizadas",
         description: "Suas preferências foram atualizadas com sucesso",
         variant: "success",
       });
-
       options.onSuccess?.(data);
     },
     onError: (error: Error) => {
       toast({
         title: "Erro",
-        description:
-          error.message || "Não foi possível atualizar suas configurações",
+        description: error.message || "Não foi possível atualizar suas configurações",
         variant: "destructive",
       });
-
       options.onError?.(error);
     },
   });

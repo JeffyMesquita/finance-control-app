@@ -24,7 +24,7 @@ export async function getTransactions(
   category?: string,
   search?: string
 ): Promise<PaginatedResult<TransactionData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -133,7 +133,7 @@ export async function getTransactions(
 export async function getRecentTransactions(
   limit = 5
 ): Promise<BaseActionResult<TransactionData[]>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -179,7 +179,7 @@ export async function getRecentTransactions(
 export async function createTransaction(
   transaction: CreateTransactionData
 ): Promise<BaseActionResult<TransactionData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -221,7 +221,7 @@ export async function updateTransaction(
   id: string,
   transaction: UpdateTransactionData
 ): Promise<BaseActionResult<TransactionData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -279,7 +279,7 @@ export async function updateTransaction(
 export async function deleteTransaction(
   id: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -326,7 +326,7 @@ export async function deleteTransaction(
 export async function deleteTransactions(
   ids: string[]
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -378,7 +378,7 @@ export async function deleteTransactions(
 export async function getTransactionStats(
   filters?: TransactionFilters
 ): Promise<BaseActionResult<TransactionStats>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -449,7 +449,7 @@ export async function getTransactionStats(
 
 // Helper function to update account balance based on transactions
 async function updateAccountBalance(accountId: string): Promise<void> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

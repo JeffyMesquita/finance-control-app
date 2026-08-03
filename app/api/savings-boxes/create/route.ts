@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const savingsBox: CreateSavingsBoxData = await request.json();
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

@@ -1,8 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { logger } from "@/lib/utils/logger";
 import {
   Select,
   SelectContent,
@@ -10,154 +8,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/lib/supabase/database.types";
-import { useToast } from "@/components/ui/use-toast";
-import { supabaseCache } from "@/lib/supabase/cache";
-import { useCurrentUser } from "@/hooks/use-current-user";
-import type { UserSettings } from "@/lib/types";
+import { Switch } from "@/components/ui/switch";
 
-const CACHE_KEY = "user-settings";
+import type { UserSettings } from "@/lib/types";
+import {
+  useUpdateUserSettingsMutation,
+  useUserSettingsQuery,
+} from "@/useCases/useUserSettingsQuery";
 
 export function SettingsForm() {
-  const { user, loading: userLoading } = useCurrentUser();
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const { toast } = useToast();
-  const supabase = createClientComponentClient<Database>();
-
-  // Configurações padrão
-  const defaultSettings = useMemo(
-    (): UserSettings => ({
-      id: user?.id || "",
-      default_currency: "BRL",
-      date_format: "DD/MM/YYYY",
-      theme: "light",
-      email_notifications: true,
-      app_notifications: true,
-      budget_alerts: true,
-      due_date_alerts: true,
-      language: "pt-BR",
-      created_at: null,
-      updated_at: null,
-    }),
-    [user?.id]
-  );
-
-  const fetchSettings = useCallback(async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-
-      // Verifica cache primeiro
-      const cachedSettings = supabaseCache.get(CACHE_KEY);
-      if (cachedSettings) {
-        setSettings(cachedSettings as UserSettings);
-        setLoading(false);
-        return;
-      }
-
-      // Busca no banco usando o ID do usuário
-      const { data: settingsData, error } = await supabase
-        .from("user_settings")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          // Não existe configuração, usa padrão
-          setSettings(defaultSettings);
-        } else {
-          throw error;
-        }
-      } else {
-        setSettings(settingsData as unknown as UserSettings);
-        supabaseCache.set(CACHE_KEY, settingsData);
-      }
-    } catch (error) {
-      logger.error("Error fetching settings:", error as Error);
-      // Em caso de erro, usa configurações padrão
-      setSettings(defaultSettings);
-      toast({
-        title: "Aviso",
-        description:
-          "Configurações não encontradas. Usando configurações padrão.",
-        variant: "default",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user, supabase, defaultSettings, toast]);
-
-  const updateSettings = useCallback(
-    async (field: keyof UserSettings, value: any) => {
-      if (!user || !settings) return;
-
-      try {
-        setUpdating(true);
-
-        // Atualiza no banco de dados
-        const { error } = await supabase.from("user_settings").upsert({
-          ...settings,
-          [field]: value,
-          updated_at: new Date().toISOString(),
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        // Atualiza estado local
-        const updatedSettings = { ...settings, [field]: value };
-        setSettings(updatedSettings);
-
-        // Atualiza cache
-        supabaseCache.set(CACHE_KEY, updatedSettings);
-
-        toast({
-          title: "Sucesso",
-          description: "Configuração atualizada com sucesso.",
-          variant: "success",
-        });
-      } catch (error) {
-        logger.error("Error updating settings:", error as Error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível atualizar a configuração.",
-          variant: "destructive",
-        });
-      } finally {
-        setUpdating(false);
-      }
-    },
-    [user, settings, supabase, toast]
-  );
-
+  const { data: settings, isError, isLoading } = useUserSettingsQuery();
+  const { mutate: updateSettings, isPending: updating } = useUpdateUserSettingsMutation();
   const handleSwitchChange = useCallback(
     (field: keyof UserSettings) => {
       if (!settings) return;
-      updateSettings(field, !settings[field]);
+      updateSettings({ ...settings, [field]: !settings[field] });
     },
     [settings, updateSettings]
   );
 
   const handleSelectChange = useCallback(
     (field: keyof UserSettings, value: string) => {
-      updateSettings(field, value);
+      if (!settings) return;
+      updateSettings({ ...settings, [field]: value });
     },
-    [updateSettings]
+    [settings, updateSettings]
   );
 
-  useEffect(() => {
-    if (user && !userLoading) {
-      fetchSettings();
-    }
-  }, [user, userLoading, fetchSettings]);
-
-  if (loading || userLoading) {
+  if (isLoading) {
     return (
       <Card className="animate-pulse">
         <CardHeader>
@@ -181,16 +59,14 @@ export function SettingsForm() {
     );
   }
 
-  if (!settings) {
+  if (isError || !settings) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Configurações</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Não foi possível carregar as configurações.
-          </p>
+          <p className="text-muted-foreground">Não foi possível carregar as configurações.</p>
         </CardContent>
       </Card>
     );
@@ -300,9 +176,7 @@ export function SettingsForm() {
             <Label htmlFor="default-currency">Moeda Padrão</Label>
             <Select
               value={settings.default_currency}
-              onValueChange={(value) =>
-                handleSelectChange("default_currency", value)
-              }
+              onValueChange={(value) => handleSelectChange("default_currency", value)}
               disabled={updating}
             >
               <SelectTrigger id="default-currency">
@@ -320,9 +194,7 @@ export function SettingsForm() {
             <Label htmlFor="date-format">Formato de Data</Label>
             <Select
               value={settings.date_format}
-              onValueChange={(value) =>
-                handleSelectChange("date_format", value)
-              }
+              onValueChange={(value) => handleSelectChange("date_format", value)}
               disabled={updating}
             >
               <SelectTrigger id="date-format">

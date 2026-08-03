@@ -1,27 +1,27 @@
 "use client";
 
+import { motion } from "framer-motion";
+import {
+  ArrowUpDown,
+  BarChart3,
+  CreditCard,
+  Download,
+  Goal,
+  LayoutDashboard,
+  Menu,
+  PiggyBank,
+  Shield,
+  Sliders,
+  TrendingUp,
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Menu } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/use-current-user";
-import {
-  LayoutDashboard,
-  ArrowUpDown,
-  BarChart3,
-  Goal,
-  CreditCard,
-  Download,
-  User,
-  Sliders,
-  PiggyBank,
-  Shield,
-  TrendingUp,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const routeItems = [
   {
@@ -82,7 +82,7 @@ export function MobileNav() {
   const { user } = useCurrentUser();
 
   // Verificar se o usuário é admin
-  const isAdmin = user?.id === process.env.NEXT_PUBLIC_ADMIN_USER_ID;
+  const isAdmin = user?.role === "ADMIN";
 
   // Adicionar item admin ao final da lista se for admin
   const allRouteItems = isAdmin
@@ -133,10 +133,7 @@ export function MobileNav() {
                           return pathname === "/dashboard";
                         }
                         // Para outras páginas, verifica se é exata ou uma subpágina
-                        return (
-                          pathname === item.href ||
-                          pathname.startsWith(item.href + "/")
-                        );
+                        return pathname === item.href || pathname.startsWith(`${item.href}/`);
                       })()
                         ? "bg-primary/10 font-medium text-primary"
                         : "text-muted-foreground hover:bg-muted",
@@ -145,16 +142,10 @@ export function MobileNav() {
                     )}
                   >
                     <item.icon
-                      className={cn(
-                        "h-4 w-4",
-                        isAdminItem && "text-red-600 dark:text-red-400"
-                      )}
+                      className={cn("h-4 w-4", isAdminItem && "text-red-600 dark:text-red-400")}
                     />
                     <span
-                      className={cn(
-                        isAdminItem &&
-                          "text-red-700 dark:text-red-300 font-medium"
-                      )}
+                      className={cn(isAdminItem && "text-red-700 dark:text-red-300 font-medium")}
                     >
                       {item.title}
                     </span>
@@ -168,4 +159,3 @@ export function MobileNav() {
     </Drawer>
   );
 }
-

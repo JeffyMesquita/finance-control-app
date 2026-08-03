@@ -12,18 +12,24 @@ O painel administrativo fornece uma visão completa e detalhada de todos os aspe
 
 ## 🔐 **Configuração de Acesso**
 
-### **1. Definir ID do Administrador**
+### **1. Definir a claim administrativa**
 
-Adicione ao seu arquivo `.env.local`:
+O acesso administrativo não usa IDs públicos nem variáveis `NEXT_PUBLIC_*`. Atribua a claim controlada pelo servidor no usuário do Supabase:
 
-```env
-# Admin Configuration
-NEXT_PUBLIC_ADMIN_USER_ID=5b2ee7d6-63ee-4d84-9e01-6aacb85ef2b4
+```json
+{
+  "role": "admin"
+}
 ```
 
-⚠️ **IMPORTANTE:** Substitua pelo ID real do usuário que deve ter acesso administrativo.
+A claim deve ficar em `app_metadata` e ser alterada apenas por um fluxo administrativo seguro (service role no backend). O navegador recebe apenas o papel normalizado `ADMIN` pela sessão.
 
-### **2. Como Encontrar o ID do Usuário**
+### **2. Verificar o acesso**
+
+1. Faça login com o usuário que possui `app_metadata.role = "admin"`.
+2. Confirme que a sessão retorna `role: "ADMIN"` em `/auth/me`.
+3. Usuários sem a claim devem ser redirecionados e receber `403` nas ações administrativas.
+## **2. Como Encontrar o ID do Usuário**
 
 **Opção 1 - Via Supabase Dashboard:**
 
@@ -142,9 +148,8 @@ async function verifyAdmin() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const adminId = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
-  if (!user || user.id !== adminId) {
+  if (!user || user.app_metadata?.role !== "admin") {
     throw new Error("Unauthorized: Admin access required");
   }
 }
@@ -271,7 +276,7 @@ referrals: {
 
 ### **Acesso Negado**
 
-1. ✅ Verificar se o `NEXT_PUBLIC_ADMIN_USER_ID` está correto
+1. ✅ Verificar se `app_metadata.role` é `admin` no Supabase
 2. ✅ Confirmar que o usuário está logado
 3. ✅ Limpar cache do navegador
 4. ✅ Verificar console para erros

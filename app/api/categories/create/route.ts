@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const category: CreateCategoryData = await request.json();
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { GoalData } from "@/lib/types/actions";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { GoalData } from "@/lib/types/actions";
 
 interface UpdateGoalProgressResponse {
   success: boolean;
@@ -13,25 +16,18 @@ interface UpdateProgressOptions {
   onError?: (error: Error) => void;
 }
 
-async function updateGoalProgress(params: {
-  id: string;
-  amount: number;
-}): Promise<GoalData> {
+async function updateGoalProgress(params: { id: string; amount: number }): Promise<GoalData> {
+  if (isNestDomainEnabled("goals"))
+    return apiRequest<GoalData>("/goals/update-progress", { method: "PUT", body: params });
   const response = await fetch("/api/goals/update-progress", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
-
-  const result: UpdateGoalProgressResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to update goal progress");
-  }
-
-  return result.data!;
+  const result = (await response.json()) as UpdateGoalProgressResponse;
+  if (!result.success || !result.data)
+    throw new Error(result.error || "Falha ao atualizar progresso");
+  return result.data;
 }
 
 export function useUpdateGoalProgressMutation(options?: UpdateProgressOptions) {
@@ -40,9 +36,9 @@ export function useUpdateGoalProgressMutation(options?: UpdateProgressOptions) {
 
   return useMutation({
     mutationFn: updateGoalProgress,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
 
       toast({
         title: "Sucesso",

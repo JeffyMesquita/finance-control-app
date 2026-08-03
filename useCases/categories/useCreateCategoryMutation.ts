@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { CreateCategoryData } from "@/lib/types/actions";
+
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { CategoryData, CreateCategoryData } from "@/lib/types/actions";
 
 interface UseCreateCategoryMutationOptions {
   onSuccess?: () => void;
@@ -7,24 +11,36 @@ interface UseCreateCategoryMutationOptions {
 }
 
 export function useCreateCategoryMutation(
-  options?: UseCreateCategoryMutationOptions
+  options?: UseCreateCategoryMutationOptions,
 ) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: CreateCategoryData) => {
-      const res = await fetch("/api/categories/create", {
+      if (isNestDomainEnabled("categories")) {
+        const category = await apiRequest<CategoryData>("/categories/create", {
+          body: data,
+          method: "POST",
+        });
+        return { success: true, data: category };
+      }
+
+      const response = await fetch("/api/categories/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Erro ao criar categoria");
-      return res.json();
+      if (!response.ok) {
+        throw new Error("Erro ao criar categoria");
+      }
+
+      return response.json() as Promise<{ success: boolean; data: CategoryData }>;
     },
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
       options?.onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       options?.onError?.(error);
     },
   });

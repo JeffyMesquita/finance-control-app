@@ -1,5 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UpdateCategoryData } from "@/lib/types/actions";
+
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { CategoryData, UpdateCategoryData } from "@/lib/types/actions";
 
 interface UseUpdateCategoryMutationOptions {
   onSuccess?: () => void;
@@ -7,24 +11,36 @@ interface UseUpdateCategoryMutationOptions {
 }
 
 export function useUpdateCategoryMutation(
-  options?: UseUpdateCategoryMutationOptions
+  options?: UseUpdateCategoryMutationOptions,
 ) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: { id: string } & UpdateCategoryData) => {
-      const res = await fetch("/api/categories/update", {
+      if (isNestDomainEnabled("categories")) {
+        const category = await apiRequest<CategoryData>("/categories/update", {
+          body: data,
+          method: "PUT",
+        });
+        return { success: true, data: category };
+      }
+
+      const response = await fetch("/api/categories/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Erro ao atualizar categoria");
-      return res.json();
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar categoria");
+      }
+
+      return response.json() as Promise<{ success: boolean; data: CategoryData }>;
     },
-    onSuccess: (...args) => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
       options?.onSuccess?.();
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       options?.onError?.(error);
     },
   });

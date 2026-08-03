@@ -2,41 +2,31 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/lib/supabase/database.types";
+
+import { sessionApi } from "@/lib/api/session";
+import { queryKeys } from "@/lib/api/query-keys";
 
 export function useCurrentUser() {
   const queryClient = useQueryClient();
-  const supabase = createClientComponentClient<Database>();
-
-  const fetchUser = useCallback(async () => {
-    const res = await fetch("/api/current-user");
-    if (!res.ok) {
-      throw new Error("Erro ao buscar usuário atual");
-    }
-    return await res.json();
-  }, []);
-
   const {
     data: user,
     isLoading: loading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["current-user"],
-    queryFn: fetchUser,
-    staleTime: 1000 * 60 * 5,
+    queryKey: queryKeys.auth.currentUser,
+    queryFn: sessionApi.getCurrentUser,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
-  // Função de logout
   const logout = useCallback(async () => {
-    await supabase.auth.signOut();
-    queryClient.removeQueries({ queryKey: ["current-user"] });
-  }, [supabase, queryClient]);
+    await sessionApi.logout();
+    queryClient.removeQueries({ queryKey: queryKeys.auth.currentUser });
+  }, [queryClient]);
 
-  // Refresh manual
   const refresh = useCallback(() => {
-    refetch();
+    void refetch();
   }, [refetch]);
 
   return { user, loading, error, refresh, logout };

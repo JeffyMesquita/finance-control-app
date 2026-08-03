@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { UpdateSavingsBoxData, SavingsBoxData } from "@/lib/types/actions";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { SavingsBoxData, UpdateSavingsBoxData } from "@/lib/types/actions";
 
 interface UpdateSavingsBoxResponse {
   success: boolean;
@@ -16,21 +19,17 @@ interface UpdateSavingsBoxOptions {
 async function updateSavingsBox(
   params: { id: string } & UpdateSavingsBoxData
 ): Promise<SavingsBoxData> {
+  if (isNestDomainEnabled("savings-boxes"))
+    return apiRequest<SavingsBoxData>("/savings-boxes/update", { method: "PUT", body: params });
   const response = await fetch("/api/savings-boxes/update", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
-
-  const result: UpdateSavingsBoxResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to update savings box");
-  }
-
-  return result.data!;
+  const result = (await response.json()) as UpdateSavingsBoxResponse;
+  if (!result.success || !result.data)
+    throw new Error(result.error || "Falha ao atualizar cofrinho");
+  return result.data;
 }
 
 export function useUpdateSavingsBoxMutation(options?: UpdateSavingsBoxOptions) {
@@ -39,10 +38,10 @@ export function useUpdateSavingsBoxMutation(options?: UpdateSavingsBoxOptions) {
 
   return useMutation({
     mutationFn: updateSavingsBox,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["savings-boxes"] });
-      queryClient.invalidateQueries({ queryKey: ["savings-boxes-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.savingsBoxes.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.savingsBoxes.stats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
 
       toast({
         title: "Sucesso",

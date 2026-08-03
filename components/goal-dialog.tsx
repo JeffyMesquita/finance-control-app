@@ -1,10 +1,10 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
 import type React from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components/ui/button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -22,31 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
-import { createGoal, updateGoal } from "@/app/actions/goals";
-import { getAccounts } from "@/app/actions/accounts";
-import { getCategories } from "@/app/actions/categories";
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
-
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  color: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-};
-
-type Account = {
-  id: string;
-  name: string;
-  type: string;
-  balance: number;
-  currency: string;
-};
+import type { GoalData } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
+import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
+import { useCreateGoalMutation } from "@/useCases/goals/useCreateGoalMutation";
+import { useUpdateGoalMutation } from "@/useCases/goals/useUpdateGoalMutation";
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
 
 type SavingsBox = {
   id: string;
@@ -117,31 +100,26 @@ const INITIAL_FORM_DATA: FormData = {
   savings_box_id: "",
 };
 
-export function GoalDialog({
-  open,
-  onOpenChange,
-  goal,
-  onSuccess,
-}: GoalDialogProps) {
+export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [savingsBoxes, setSavingsBoxes] = useState<SavingsBox[]>([]);
+  const accountsQuery = useAccountsQuery();
+  const accounts = accountsQuery.data?.data ?? [];
+  const categoriesQuery = useCategoriesQuery();
+  const categories = categoriesQuery.data?.data ?? [];
+  const savingsBoxesQuery = useSavingsBoxesQuery();
+  const savingsBoxes = (savingsBoxesQuery.data ?? []) as SavingsBox[];
+  const createGoalMutation = useCreateGoalMutation();
+  const updateGoalMutation = useUpdateGoalMutation();
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
 
   const isEditing = !!goal;
-
   useEffect(() => {
     if (open) {
-      fetchData();
-
       if (goal) {
         // Formato das datas para input
         const startDate = new Date(goal.start_date).toISOString().split("T")[0];
-        const targetDate = new Date(goal.target_date)
-          .toISOString()
-          .split("T")[0];
+        const targetDate = new Date(goal.target_date).toISOString().split("T")[0];
 
         setFormData({
           name: goal.name,
@@ -158,24 +136,6 @@ export function GoalDialog({
       }
     }
   }, [open, goal]);
-
-  async function fetchData() {
-    try {
-      const [accountsData, categoriesData, savingsBoxesData] =
-        await Promise.all([getAccounts(), getCategories(), getSavingsBoxes()]);
-      setAccounts(accountsData.data || ([] as Account[]));
-      setCategories(categoriesData.data || ([] as Category[]));
-      setSavingsBoxes(savingsBoxesData.data || ([] as SavingsBox[]));
-    } catch (error) {
-      logger.error("Erro ao carregar dados:", error as Error);
-      toast({
-        title: "Erro ao Carregar",
-        description:
-          "Não foi possível carregar as contas, categorias e cofrinhos. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -228,12 +188,13 @@ export function GoalDialog({
         savings_box_id: formData.savings_box_id || null,
       };
 
-      let result;
-
+      let result: { success: boolean; data?: GoalData; error?: string };
       if (isEditing) {
-        result = await updateGoal(goal.id, goalData);
+        const data = await updateGoalMutation.mutateAsync({ id: goal.id, ...goalData });
+        result = { success: true, data };
       } else {
-        result = await createGoal(goalData);
+        const data = await createGoalMutation.mutateAsync(goalData);
+        result = { success: true, data };
       }
 
       if (result.success) {
@@ -301,9 +262,7 @@ export function GoalDialog({
                   id="target_amount"
                   name="target_amount"
                   placeholder="R$ 0,00"
-                  value={
-                    formData.target_amount ? Number(formData.target_amount) : 0
-                  }
+                  value={formData.target_amount ? Number(formData.target_amount) : 0}
                   onValueChange={handleCurrencyChange("target_amount")}
                   required
                 />
@@ -314,11 +273,7 @@ export function GoalDialog({
                   id="current_amount"
                   name="current_amount"
                   placeholder="R$ 0,00"
-                  value={
-                    formData.current_amount
-                      ? Number(formData.current_amount)
-                      : 0
-                  }
+                  value={formData.current_amount ? Number(formData.current_amount) : 0}
                   onValueChange={handleCurrencyChange("current_amount")}
                   required
                 />
@@ -378,10 +333,7 @@ export function GoalDialog({
               <Select
                 value={formData.category_id || "none"}
                 onValueChange={(value) =>
-                  handleSelectChange(
-                    "category_id",
-                    value === "none" ? "" : value
-                  )
+                  handleSelectChange("category_id", value === "none" ? "" : value)
                 }
               >
                 <SelectTrigger id="category">
@@ -404,10 +356,7 @@ export function GoalDialog({
               <Select
                 value={formData.savings_box_id || "none"}
                 onValueChange={(value) =>
-                  handleSelectChange(
-                    "savings_box_id",
-                    value === "none" ? "" : value
-                  )
+                  handleSelectChange("savings_box_id", value === "none" ? "" : value)
                 }
               >
                 <SelectTrigger id="savings_box">

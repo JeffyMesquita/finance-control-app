@@ -1,5 +1,22 @@
 "use client";
 
+import {
+  AlertTriangle,
+  Bug,
+  Calendar,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  Eye,
+  Filter,
+  Globe,
+  Lightbulb,
+  Loader2,
+  MessageSquare,
+  Star,
+  User,
+} from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,28 +37,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
 // Hooks TanStack Query
 import {
   useAdminFeedbacksQuery,
   useUpdateFeedbackMutation,
 } from "@/useCases/admin/useAdminFeedbacksQuery";
-import {
-  AlertTriangle,
-  Bug,
-  Calendar,
-  CheckCircle,
-  Clock,
-  ExternalLink,
-  Eye,
-  Filter,
-  Globe,
-  Lightbulb,
-  Loader2,
-  MessageSquare,
-  Star,
-  User,
-} from "lucide-react";
 
 // Types
 interface Feedback {
@@ -52,7 +52,12 @@ interface Feedback {
   email?: string;
   priority: string;
   status: string;
-  browser_info?: any;
+  browser_info?: {
+    userAgent?: string;
+    language?: string;
+    platform?: string;
+    viewport?: { width?: number; height?: number };
+  };
   page_url?: string;
   user_id?: string;
   admin_notes?: string;
@@ -72,8 +77,7 @@ const feedbackTypes = [
     label: "Sugestão",
     description: "Ideias para melhorar o sistema",
     icon: Lightbulb,
-    color:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
   },
   {
     value: "BUG_REPORT",
@@ -94,8 +98,7 @@ const feedbackTypes = [
     label: "Nova Funcionalidade",
     description: "Solicitar nova funcionalidade",
     icon: Star,
-    color:
-      "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
   },
   {
     value: "OTHER",
@@ -107,9 +110,6 @@ const feedbackTypes = [
 ];
 
 export default function AdminFeedbacksPage() {
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
-    null
-  );
   const [adminNotes, setAdminNotes] = useState("");
   const [filters, setFilters] = useState({
     type: "all",
@@ -136,13 +136,9 @@ export default function AdminFeedbacksPage() {
         feedbackId,
         updates: {
           status: newStatus,
-          resolved_at:
-            newStatus === "RESOLVED" ? new Date().toISOString() : undefined,
           admin_notes: adminNotes || undefined,
         },
       });
-
-      setSelectedFeedback(null);
       setAdminNotes("");
     } catch (error) {
       console.error("Erro ao atualizar feedback:", error);
@@ -219,9 +215,7 @@ export default function AdminFeedbacksPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Gestão de Feedbacks</h1>
-        <p className="text-muted-foreground">
-          Sistema de gerenciamento de feedbacks dos usuários
-        </p>
+        <p className="text-muted-foreground">Sistema de gerenciamento de feedbacks dos usuários</p>
       </div>
 
       {/* Filtros */}
@@ -235,25 +229,26 @@ export default function AdminFeedbacksPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Buscar</label>
+              <label htmlFor="feedback-search" className="text-sm font-medium mb-2 block">
+                Buscar
+              </label>
               <Input
+                id="feedback-search"
                 placeholder="Título, descrição ou email..."
                 value={filters.search}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, search: e.target.value }))
-                }
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Tipo</label>
+              <label htmlFor="feedback-type" className="text-sm font-medium mb-2 block">
+                Tipo
+              </label>
               <Select
                 value={filters.type}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, type: value }))
-                }
+                onValueChange={(value) => setFilters((prev) => ({ ...prev, type: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="feedback-type">
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
@@ -268,14 +263,14 @@ export default function AdminFeedbacksPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Status</label>
+              <label htmlFor="feedback-status" className="text-sm font-medium mb-2 block">
+                Status
+              </label>
               <Select
                 value={filters.status}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, status: value }))
-                }
+                onValueChange={(value) => setFilters((prev) => ({ ...prev, status: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="feedback-status">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -289,16 +284,14 @@ export default function AdminFeedbacksPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <label htmlFor="feedback-priority" className="text-sm font-medium mb-2 block">
                 Prioridade
               </label>
               <Select
                 value={filters.priority}
-                onValueChange={(value) =>
-                  setFilters((prev) => ({ ...prev, priority: value }))
-                }
+                onValueChange={(value) => setFilters((prev) => ({ ...prev, priority: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger id="feedback-priority">
                   <SelectValue placeholder="Todas as prioridades" />
                 </SelectTrigger>
                 <SelectContent>
@@ -325,9 +318,7 @@ export default function AdminFeedbacksPage() {
           <CardContent className="p-6">
             <div className="text-center">
               <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
-                Nenhum feedback encontrado
-              </h3>
+              <h3 className="text-lg font-semibold mb-2">Nenhum feedback encontrado</h3>
               <p className="text-muted-foreground">
                 {feedbacks.length === 0
                   ? "Não há feedbacks cadastrados no sistema."
@@ -361,13 +352,9 @@ export default function AdminFeedbacksPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
                             <IconComponent className="h-4 w-4" />
-                            <Badge className={typeConfig.color}>
-                              {typeConfig.label}
-                            </Badge>
+                            <Badge className={typeConfig.color}>{typeConfig.label}</Badge>
                           </div>
-                          <Badge
-                            className={getPriorityColor(feedback.priority)}
-                          >
+                          <Badge className={getPriorityColor(feedback.priority)}>
                             {getPriorityLabel(feedback.priority)}
                           </Badge>
                           <Badge className={getStatusColor(feedback.status)}>
@@ -389,9 +376,7 @@ export default function AdminFeedbacksPage() {
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
-                            {new Date(feedback.created_at).toLocaleDateString(
-                              "pt-BR"
-                            )}
+                            {new Date(feedback.created_at).toLocaleDateString("pt-BR")}
                           </div>
                           {feedback.user?.email && (
                             <div className="flex items-center gap-1">
@@ -402,9 +387,7 @@ export default function AdminFeedbacksPage() {
                           {feedback.page_url && (
                             <div className="flex items-center gap-1">
                               <Globe className="h-4 w-4" />
-                              <span className="truncate max-w-48">
-                                {feedback.page_url}
-                              </span>
+                              <span className="truncate max-w-48">{feedback.page_url}</span>
                             </div>
                           )}
                         </div>
@@ -418,7 +401,6 @@ export default function AdminFeedbacksPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setSelectedFeedback(feedback);
                                 setAdminNotes(feedback.admin_notes || "");
                               }}
                             >
@@ -433,34 +415,24 @@ export default function AdminFeedbacksPage() {
                               </DialogTitle>
                               <DialogDescription>
                                 Feedback enviado em{" "}
-                                {new Date(
-                                  feedback.created_at
-                                ).toLocaleDateString("pt-BR")}
+                                {new Date(feedback.created_at).toLocaleDateString("pt-BR")}
                               </DialogDescription>
                             </DialogHeader>
 
                             <div className="space-y-6">
                               {/* Status e Prioridade */}
                               <div className="flex gap-2">
-                                <Badge
-                                  className={getPriorityColor(
-                                    feedback.priority
-                                  )}
-                                >
+                                <Badge className={getPriorityColor(feedback.priority)}>
                                   {getPriorityLabel(feedback.priority)}
                                 </Badge>
-                                <Badge
-                                  className={getStatusColor(feedback.status)}
-                                >
+                                <Badge className={getStatusColor(feedback.status)}>
                                   {getStatusLabel(feedback.status)}
                                 </Badge>
                               </div>
 
                               {/* Descrição */}
                               <div>
-                                <h4 className="font-semibold mb-2">
-                                  Descrição
-                                </h4>
+                                <h4 className="font-semibold mb-2">Descrição</h4>
                                 <p className="text-sm bg-muted p-4 rounded-lg whitespace-pre-wrap">
                                   {feedback.description}
                                 </p>
@@ -468,20 +440,15 @@ export default function AdminFeedbacksPage() {
 
                               {/* Informações do usuário */}
                               <div>
-                                <h4 className="font-semibold mb-2">
-                                  Informações do Usuário
-                                </h4>
+                                <h4 className="font-semibold mb-2">Informações do Usuário</h4>
                                 <div className="grid grid-cols-2 gap-4 text-sm">
                                   <div>
                                     <span className="font-medium">Email:</span>{" "}
-                                    {feedback.user?.email ||
-                                      feedback.email ||
-                                      "Não informado"}
+                                    {feedback.user?.email || feedback.email || "Não informado"}
                                   </div>
                                   <div>
                                     <span className="font-medium">Nome:</span>{" "}
-                                    {feedback.user?.full_name ||
-                                      "Não informado"}
+                                    {feedback.user?.full_name || "Não informado"}
                                   </div>
                                   <div className="col-span-2">
                                     <span className="font-medium">Página:</span>{" "}
@@ -493,33 +460,23 @@ export default function AdminFeedbacksPage() {
                               {/* Informações técnicas */}
                               {feedback.browser_info && (
                                 <div>
-                                  <h4 className="font-semibold mb-2">
-                                    Informações Técnicas
-                                  </h4>
+                                  <h4 className="font-semibold mb-2">Informações Técnicas</h4>
                                   <div className="text-sm bg-muted p-4 rounded-lg">
                                     <div>
-                                      <span className="font-medium">
-                                        Navegador:
-                                      </span>{" "}
+                                      <span className="font-medium">Navegador:</span>{" "}
                                       {feedback.browser_info.userAgent}
                                     </div>
                                     <div>
-                                      <span className="font-medium">
-                                        Idioma:
-                                      </span>{" "}
+                                      <span className="font-medium">Idioma:</span>{" "}
                                       {feedback.browser_info.language}
                                     </div>
                                     <div>
-                                      <span className="font-medium">
-                                        Plataforma:
-                                      </span>{" "}
+                                      <span className="font-medium">Plataforma:</span>{" "}
                                       {feedback.browser_info.platform}
                                     </div>
                                     {feedback.browser_info.viewport && (
                                       <div>
-                                        <span className="font-medium">
-                                          Viewport:
-                                        </span>{" "}
+                                        <span className="font-medium">Viewport:</span>{" "}
                                         {feedback.browser_info.viewport.width}x
                                         {feedback.browser_info.viewport.height}
                                       </div>
@@ -530,33 +487,22 @@ export default function AdminFeedbacksPage() {
 
                               {/* Notas administrativas */}
                               <div>
-                                <h4 className="font-semibold mb-2">
-                                  Notas Administrativas
-                                </h4>
+                                <h4 className="font-semibold mb-2">Notas Administrativas</h4>
                                 <Textarea
                                   placeholder="Adicione notas internas sobre este feedback..."
                                   value={adminNotes}
-                                  onChange={(e) =>
-                                    setAdminNotes(e.target.value)
-                                  }
+                                  onChange={(e) => setAdminNotes(e.target.value)}
                                   rows={3}
                                 />
                               </div>
 
                               {/* Ações de status */}
                               <div>
-                                <h4 className="font-semibold mb-3">
-                                  Atualizar Status
-                                </h4>
+                                <h4 className="font-semibold mb-3">Atualizar Status</h4>
                                 <div className="flex gap-2 flex-wrap">
                                   {feedback.status !== "IN_PROGRESS" && (
                                     <Button
-                                      onClick={() =>
-                                        handleStatusUpdate(
-                                          feedback.id,
-                                          "IN_PROGRESS"
-                                        )
-                                      }
+                                      onClick={() => handleStatusUpdate(feedback.id, "IN_PROGRESS")}
                                       variant="outline"
                                       size="sm"
                                     >
@@ -566,12 +512,7 @@ export default function AdminFeedbacksPage() {
                                   )}
                                   {feedback.status !== "RESOLVED" && (
                                     <Button
-                                      onClick={() =>
-                                        handleStatusUpdate(
-                                          feedback.id,
-                                          "RESOLVED"
-                                        )
-                                      }
+                                      onClick={() => handleStatusUpdate(feedback.id, "RESOLVED")}
                                       variant="outline"
                                       size="sm"
                                     >
@@ -581,12 +522,7 @@ export default function AdminFeedbacksPage() {
                                   )}
                                   {feedback.status !== "CLOSED" && (
                                     <Button
-                                      onClick={() =>
-                                        handleStatusUpdate(
-                                          feedback.id,
-                                          "CLOSED"
-                                        )
-                                      }
+                                      onClick={() => handleStatusUpdate(feedback.id, "CLOSED")}
                                       variant="outline"
                                       size="sm"
                                     >
@@ -595,9 +531,7 @@ export default function AdminFeedbacksPage() {
                                   )}
                                   {feedback.status !== "OPEN" && (
                                     <Button
-                                      onClick={() =>
-                                        handleStatusUpdate(feedback.id, "OPEN")
-                                      }
+                                      onClick={() => handleStatusUpdate(feedback.id, "OPEN")}
                                       variant="outline"
                                       size="sm"
                                     >
@@ -614,9 +548,7 @@ export default function AdminFeedbacksPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              window.open(feedback.page_url, "_blank")
-                            }
+                            onClick={() => window.open(feedback.page_url, "_blank")}
                           >
                             <ExternalLink className="h-4 w-4" />
                           </Button>

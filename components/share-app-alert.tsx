@@ -1,38 +1,31 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-import { useEffect, useState, useCallback } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Copy,
-  X,
+  Facebook,
+  Instagram,
+  Linkedin,
+  MessageCircle,
+  Send,
   Share2,
   Twitter,
-  Facebook,
-  Linkedin,
-  Instagram,
-  Send,
-  MessageCircle,
+  X,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
-import { getReferralStats } from "@/app/actions/referrals";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useToast } from "@/hooks/use-toast";
+import { useReferralStatsQuery } from "@/lib/api/referrals";
+import { logger } from "@/lib/utils/logger";
 
 const SESSION_KEY = "shareAlertDismissed";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
 export function ShareAppAlert() {
   const [visible, setVisible] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [exiting] = useState(false);
   const { toast } = useToast();
   const [inviteCount, setInviteCount] = useState(0);
   const { user, loading: userLoading } = useCurrentUser();
@@ -47,48 +40,32 @@ export function ShareAppAlert() {
     localStorage.setItem(SESSION_KEY, "true");
   };
 
-  const fetchStats = useCallback(async () => {
-    if (!user) return;
+  const referralStatsQuery = useReferralStatsQuery();
 
-    try {
-      const result = await getReferralStats();
-      if (result.success && result.data) {
-        const stats = result.data;
-        const formattedStats = {
-          totalReferrals: stats?.referralCount || 0,
-          activeReferrals: stats?.badges?.length || 0,
-          referrer: stats?.referrer,
-        };
-        setReferralStats(formattedStats);
-        setInviteCount(stats?.referralCount || 0);
-      } else {
-        logger.error(
-          "Error fetching referral stats:",
-          new Error(result.error || "Falha ao carregar estatísticas")
-        );
-      }
-    } catch (error) {
-      logger.error("Error fetching referral stats:", error as Error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar as estatísticas de indicação.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user, toast]);
+  useEffect(() => {
+    if (!referralStatsQuery.data) return;
+    const stats = referralStatsQuery.data;
+    setReferralStats({
+      totalReferrals: stats.referralCount,
+      activeReferrals: stats.badges.length,
+      referrer: stats.referrer,
+    });
+    setInviteCount(stats.referralCount);
+  }, [referralStatsQuery.data]);
 
+  useEffect(() => {
+    if (!referralStatsQuery.error) return;
+    logger.error("Error fetching referral stats:", referralStatsQuery.error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar as estatísticas de indicação.",
+      variant: "destructive",
+    });
+  }, [referralStatsQuery.error, toast]);
   useEffect(() => {
     const isDismissed = localStorage.getItem(SESSION_KEY) === "true";
     setVisible(!isDismissed);
   }, []);
-
-  useEffect(() => {
-    if (user && !userLoading) {
-      fetchStats();
-    }
-  }, [user, userLoading, fetchStats]);
 
   const getShareUrl = useCallback(() => {
     if (!user) return BASE_URL;
@@ -101,8 +78,7 @@ export function ShareAppAlert() {
       await navigator.clipboard.writeText(shareUrl);
       toast({
         title: "🔗 Link copiado!",
-        description:
-          "Link de convite copiado com sucesso! Compartilhe com seus amigos! 🚀",
+        description: "Link de convite copiado com sucesso! Compartilhe com seus amigos! 🚀",
         variant: "info",
       });
     } catch (error) {
@@ -124,17 +100,13 @@ export function ShareAppAlert() {
         twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
           text
         )}&url=${encodeURIComponent(shareUrl)}`,
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-          shareUrl
-        )}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
         linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
           shareUrl
         )}`,
         telegram: `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}`,
         whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
-        instagram: `https://www.instagram.com/share?url=${encodeURIComponent(
-          shareUrl
-        )}`,
+        instagram: `https://www.instagram.com/share?url=${encodeURIComponent(shareUrl)}`,
       };
 
       window.open(urls[platform as keyof typeof urls], "_blank");
@@ -142,7 +114,7 @@ export function ShareAppAlert() {
     [getShareUrl]
   );
 
-  if (!visible || !user || isLoading || userLoading) return null;
+  if (!visible || !user || referralStatsQuery.isPending || userLoading) return null;
 
   return (
     <AnimatePresence>
@@ -173,11 +145,9 @@ export function ShareAppAlert() {
               <CardDescription className="text-blue-900 dark:text-blue-100">
                 {inviteCount > 0 ? (
                   <p>
-                    Você já trouxe <b>{inviteCount}</b> amigos para a revolução
-                    financeira! 🥳
+                    Você já trouxe <b>{inviteCount}</b> amigos para a revolução financeira! 🥳
                     <br />
-                    Continue espalhando a palavra e colecione distintivos
-                    exclusivos! 🚀🏅
+                    Continue espalhando a palavra e colecione distintivos exclusivos! 🚀🏅
                     <br />
                     Quem compartilha, brilha! ✨
                   </p>
@@ -185,8 +155,7 @@ export function ShareAppAlert() {
                   <p>
                     Que tal ser o herói financeiro do seu grupo? 🦸‍♂️💸
                     <br />
-                    Compartilhe o app com seus amigos e desbloqueie distintivos
-                    incríveis! 🏅🎉
+                    Compartilhe o app com seus amigos e desbloqueie distintivos incríveis! 🏅🎉
                     <br />
                     Quanto mais amigos, mais diversão (e conquistas)! 😄🤝
                   </p>

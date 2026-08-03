@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { UpdateGoalData, GoalData } from "@/lib/types/actions";
+import { apiRequest } from "@/lib/api/client";
+import { queryKeys } from "@/lib/api/query-keys";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import type { GoalData, UpdateGoalData } from "@/lib/types/actions";
 
 interface UpdateGoalResponse {
   success: boolean;
@@ -13,24 +16,17 @@ interface UpdateGoalOptions {
   onError?: (error: Error) => void;
 }
 
-async function updateGoal(
-  params: { id: string } & UpdateGoalData
-): Promise<GoalData> {
+async function updateGoal(params: { id: string } & UpdateGoalData): Promise<GoalData> {
+  if (isNestDomainEnabled("goals"))
+    return apiRequest<GoalData>("/goals/update", { method: "PUT", body: params });
   const response = await fetch("/api/goals/update", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
   });
-
-  const result: UpdateGoalResponse = await response.json();
-
-  if (!result.success) {
-    throw new Error(result.error || "Failed to update goal");
-  }
-
-  return result.data!;
+  const result = (await response.json()) as UpdateGoalResponse;
+  if (!result.success || !result.data) throw new Error(result.error || "Falha ao atualizar meta");
+  return result.data;
 }
 
 export function useUpdateGoalMutation(options?: UpdateGoalOptions) {
@@ -39,9 +35,9 @@ export function useUpdateGoalMutation(options?: UpdateGoalOptions) {
 
   return useMutation({
     mutationFn: updateGoal,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    onSuccess: (_data) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
 
       toast({
         title: "Sucesso",

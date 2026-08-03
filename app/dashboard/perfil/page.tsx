@@ -6,7 +6,6 @@ import type React from "react";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -55,7 +54,6 @@ export default function PerfilPage() {
   // Hooks TanStack Query
   const { data: profileData, isLoading } = useUserProfileQuery();
   const updateProfileMutation = useUpdateUserProfileMutation();
-  const supabase = createClientComponentClient();
 
   // Hook para busca de CEP com debounce
   const {

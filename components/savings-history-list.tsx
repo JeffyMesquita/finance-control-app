@@ -1,19 +1,5 @@
 "use client";
 
-import { getSavingsBoxes } from "@/app/actions/savings-boxes";
-import { getSavingsTransactionsByUser } from "@/app/actions/savings-transactions";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SavingsTransactionData } from "@/lib/types/actions";
-import { logger } from "@/lib/utils/logger";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -25,32 +11,20 @@ import {
   PiggyBank,
   Wallet,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface SavingsTransaction {
-  id: string;
-  amount: number;
-  type: "DEPOSIT" | "WITHDRAW" | "TRANSFER";
-  description: string | null;
-  created_at: string;
-  savings_box: {
-    id: string;
-    name: string;
-    color: string | null;
-    icon: string | null;
-  } | null;
-  target_box: {
-    id: string;
-    name: string;
-    color: string | null;
-    icon: string | null;
-  } | null;
-  source_account: {
-    id: string;
-    name: string;
-    type: string;
-  } | null;
-}
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { SavingsTransactionData } from "@/lib/types/actions";
+import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
+import { useSavingsTransactionsQuery } from "@/useCases/savings-boxes/useSavingsTransactionsQuery";
 
 interface SavingsHistoryListProps {
   limit?: number;
@@ -63,54 +37,13 @@ export function SavingsHistoryList({
   showFilters = true,
   boxId,
 }: SavingsHistoryListProps) {
-  const [transactions, setTransactions] = useState<SavingsTransactionData[]>(
-    []
-  );
-  const [allBoxes, setAllBoxes] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const transactionsQuery = useSavingsTransactionsQuery(boxId, limit);
+  const boxesQuery = useSavingsBoxesQuery();
+  const transactions = transactionsQuery.data ?? [];
+  const allBoxes = boxesQuery.data ?? [];
+  const isLoading = transactionsQuery.isLoading;
   const [filterType, setFilterType] = useState<string>("all");
   const [filterBox, setFilterBox] = useState<string>("all");
-
-  useEffect(() => {
-    loadData();
-  }, [limit]);
-
-  useEffect(() => {
-    if (showFilters) {
-      loadBoxes();
-    }
-  }, [showFilters]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const result = await getSavingsTransactionsByUser(limit);
-      if (result.success && result.data) {
-        setTransactions(result.data || []);
-      } else {
-        setTransactions([]);
-      }
-    } catch (error) {
-      logger.error("Erro ao carregar transações:", error as Error);
-      setTransactions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadBoxes = async () => {
-    try {
-      const result = await getSavingsBoxes();
-      if (result.success && result.data) {
-        setAllBoxes(result.data || []);
-      } else {
-        setAllBoxes([]);
-      }
-    } catch (error) {
-      logger.error("Erro ao carregar cofrinhos:", error as Error);
-      setAllBoxes([]);
-    }
-  };
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
@@ -142,28 +75,19 @@ export function SavingsHistoryList({
     switch (type) {
       case "DEPOSIT":
         return (
-          <Badge
-            variant="secondary"
-            className="bg-green-50 text-green-700 border-green-200"
-          >
+          <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
             Depósito
           </Badge>
         );
       case "WITHDRAW":
         return (
-          <Badge
-            variant="secondary"
-            className="bg-red-50 text-red-700 border-red-200"
-          >
+          <Badge variant="secondary" className="bg-red-50 text-red-700 border-red-200">
             Saque
           </Badge>
         );
       case "TRANSFER":
         return (
-          <Badge
-            variant="secondary"
-            className="bg-blue-50 text-blue-700 border-blue-200"
-          >
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
             Transferência
           </Badge>
         );
@@ -173,11 +97,7 @@ export function SavingsHistoryList({
   };
 
   const filteredTransactions = transactions.filter((transaction) => {
-    if (
-      boxId &&
-      transaction.savings_box?.id !== boxId &&
-      transaction.target_box?.id !== boxId
-    ) {
+    if (boxId && transaction.savings_box?.id !== boxId && transaction.target_box?.id !== boxId) {
       return false;
     }
 
@@ -186,10 +106,7 @@ export function SavingsHistoryList({
     }
 
     if (filterBox !== "all") {
-      if (
-        transaction.savings_box?.id !== filterBox &&
-        transaction.target_box?.id !== filterBox
-      ) {
+      if (transaction.savings_box?.id !== filterBox && transaction.target_box?.id !== filterBox) {
         return false;
       }
     }
@@ -208,11 +125,8 @@ export function SavingsHistoryList({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse flex items-center gap-3 p-3"
-              >
+            {["one", "two", "three"].map((skeleton) => (
+              <div key={skeleton} className="animate-pulse flex items-center gap-3 p-3">
                 <div className="h-10 w-10 bg-gray-200 rounded-lg"></div>
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -300,9 +214,7 @@ export function SavingsHistoryList({
                 {/* Informações da transação */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium truncate">
-                      {getTransactionTitle(transaction)}
-                    </h4>
+                    <h4 className="font-medium truncate">{getTransactionTitle(transaction)}</h4>
                     {getTransactionBadge(transaction.type)}
                   </div>
 
@@ -354,26 +266,23 @@ export function SavingsHistoryList({
                       <div
                         className="w-3 h-3 rounded"
                         style={{
-                          backgroundColor:
-                            transaction.savings_box.color || "#3B82F6",
+                          backgroundColor: transaction.savings_box.color || "#3B82F6",
                         }}
                         title={transaction.savings_box.name}
                       />
                     )}
-                    {transaction.type === "TRANSFER" &&
-                      transaction.target_box && (
-                        <>
-                          <ArrowRightLeft className="h-2 w-2 text-muted-foreground" />
-                          <div
-                            className="w-3 h-3 rounded"
-                            style={{
-                              backgroundColor:
-                                transaction.target_box.color || "#3B82F6",
-                            }}
-                            title={transaction.target_box.name}
-                          />
-                        </>
-                      )}
+                    {transaction.type === "TRANSFER" && transaction.target_box && (
+                      <>
+                        <ArrowRightLeft className="h-2 w-2 text-muted-foreground" />
+                        <div
+                          className="w-3 h-3 rounded"
+                          style={{
+                            backgroundColor: transaction.target_box.color || "#3B82F6",
+                          }}
+                          title={transaction.target_box.name}
+                        />
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

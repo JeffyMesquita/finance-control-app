@@ -1,10 +1,24 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import {
+  AlertCircle,
+  DollarSign,
+  Filter,
+  Grid3X3,
+  List,
+  PiggyBank,
+  Plus,
+  Search,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { InvestmentDialog } from "@/components/investment-dialog";
+import { InvestmentRowActions } from "@/components/investment-row-actions";
+import { InvestmentsPageSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,30 +29,17 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Plus,
-  TrendingUp,
-  DollarSign,
-  Target,
-  PiggyBank,
-  Search,
-  Filter,
-  Grid3X3,
-  List,
-  AlertCircle,
-} from "lucide-react";
-import {
-  Investment,
-  InvestmentSummary,
-  InvestmentCategoryStats,
   INVESTMENT_CATEGORIES,
-  InvestmentCategory,
   INVESTMENT_CATEGORY_COLORS,
+  Investment,
+  type InvestmentCategory,
+  InvestmentCategoryStats,
+  InvestmentSummary,
 } from "@/lib/types/investments";
-import { InvestmentsPageSkeleton } from "@/components/skeletons";
-
+import { logger } from "@/lib/utils/logger";
+import { useInvestmentSummaryQuery } from "@/useCases/investments/useInvestmentSummaryQuery";
 // Hooks TanStack Query
 import { useInvestmentsQuery } from "@/useCases/investments/useInvestmentsQuery";
-import { useInvestmentSummaryQuery } from "@/useCases/investments/useInvestmentSummaryQuery";
 
 type ViewMode = "grid" | "list";
 type SortBy = "name" | "return" | "amount" | "category" | "date";
@@ -48,14 +49,8 @@ export default function InvestimentosPage() {
   const { toast } = useToast();
 
   // Hooks TanStack Query
-  const {
-    data: investments = [],
-    isLoading,
-    error,
-    refetch,
-  } = useInvestmentsQuery();
-  const { data: summary, isLoading: isSummaryLoading } =
-    useInvestmentSummaryQuery();
+  const { data: investments = [], isLoading, error, refetch } = useInvestmentsQuery();
+  const { data: summary, isLoading: isSummaryLoading } = useInvestmentSummaryQuery();
 
   // Estados da interface
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -84,10 +79,7 @@ export default function InvestimentosPage() {
           }
 
           // Filtro por categoria
-          if (
-            filterCategory !== "all" &&
-            investment.category !== filterCategory
-          ) {
+          if (filterCategory !== "all" && investment.category !== filterCategory) {
             return false;
           }
 
@@ -97,14 +89,11 @@ export default function InvestimentosPage() {
           switch (sortBy) {
             case "name":
               return a.name.localeCompare(b.name);
-            case "return":
-              const returnA =
-                ((a.current_amount - a.initial_amount) / a.initial_amount) *
-                100;
-              const returnB =
-                ((b.current_amount - b.initial_amount) / b.initial_amount) *
-                100;
+            case "return": {
+              const returnA = ((a.current_amount - a.initial_amount) / a.initial_amount) * 100;
+              const returnB = ((b.current_amount - b.initial_amount) / b.initial_amount) * 100;
               return returnB - returnA;
+            }
             case "amount":
               return b.current_amount - a.current_amount;
             case "category":
@@ -112,10 +101,7 @@ export default function InvestimentosPage() {
                 INVESTMENT_CATEGORIES[b.category]
               );
             case "date":
-              return (
-                new Date(b.investment_date).getTime() -
-                new Date(a.investment_date).getTime()
-              );
+              return new Date(b.investment_date).getTime() - new Date(a.investment_date).getTime();
             default:
               return 0;
           }
@@ -135,9 +121,7 @@ export default function InvestimentosPage() {
         <Card className="text-center py-12 bg-stone-100 dark:bg-stone-900">
           <CardContent>
             <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              Erro ao carregar investimentos
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">Erro ao carregar investimentos</h3>
             <p className="text-muted-foreground mb-4">
               {error instanceof Error ? error.message : "Erro inesperado"}
             </p>
@@ -155,26 +139,24 @@ export default function InvestimentosPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Investimentos</h1>
-            <p className="text-muted-foreground">
-              Gerencie sua carteira de investimentos
-            </p>
+            <p className="text-muted-foreground">Gerencie sua carteira de investimentos</p>
           </div>
         </div>
 
         <Card className="text-center py-16 bg-stone-100 dark:bg-stone-900">
           <CardContent>
             <TrendingUp className="mx-auto h-20 w-20 text-muted-foreground mb-6" />
-            <h3 className="text-2xl font-semibold mb-4">
-              Sua primeira carteira
-            </h3>
+            <h3 className="text-2xl font-semibold mb-4">Sua primeira carteira</h3>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Comece a acompanhar seus investimentos: ações, renda fixa, fundos
-              e muito mais. Mantenha controle total da sua carteira.
+              Comece a acompanhar seus investimentos: ações, renda fixa, fundos e muito mais.
+              Mantenha controle total da sua carteira.
             </p>
-            <Button size="lg">
-              <Plus className="mr-2 h-5 w-5" />
-              Criar Primeiro Investimento
-            </Button>
+            <InvestmentDialog>
+              <Button size="lg">
+                <Plus className="mr-2 h-5 w-5" />
+                Criar Primeiro Investimento
+              </Button>
+            </InvestmentDialog>
           </CardContent>
         </Card>
       </div>
@@ -189,18 +171,18 @@ export default function InvestimentosPage() {
           <h1 className="text-3xl font-bold tracking-tight">Investimentos</h1>
           <p className="text-muted-foreground">
             {summary?.active_investments || 0}{" "}
-            {(summary?.active_investments || 0) === 1
-              ? "investimento"
-              : "investimentos"}{" "}
-            •{formatCurrency(summary?.current_value || 0)} •
+            {(summary?.active_investments || 0) === 1 ? "investimento" : "investimentos"} •
+            {formatCurrency(summary?.current_value || 0)} •
             {(summary?.return_percentage || 0) >= 0 ? "+" : ""}
             {(summary?.return_percentage || 0).toFixed(2)}%
           </p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Novo Investimento
-        </Button>
+        <InvestmentDialog>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Investimento
+          </Button>
+        </InvestmentDialog>
       </div>
 
       {/* Cards de Resumo */}
@@ -208,15 +190,11 @@ export default function InvestimentosPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Valor Investido
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Valor Investido</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(summary.total_invested)}
-              </div>
+              <div className="text-2xl font-bold">{formatCurrency(summary.total_invested)}</div>
             </CardContent>
           </Card>
 
@@ -226,28 +204,20 @@ export default function InvestimentosPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(summary.current_value)}
-              </div>
+              <div className="text-2xl font-bold">{formatCurrency(summary.current_value)}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Rentabilidade
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Rentabilidade</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(summary.total_return)}
-              </div>
+              <div className="text-2xl font-bold">{formatCurrency(summary.total_return)}</div>
               <p
                 className={`text-xs ${
-                  summary.return_percentage >= 0
-                    ? "text-green-600"
-                    : "text-red-600"
+                  summary.return_percentage >= 0 ? "text-green-600" : "text-red-600"
                 }`}
               >
                 {summary.return_percentage >= 0 ? "+" : ""}
@@ -258,19 +228,13 @@ export default function InvestimentosPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Investimentos Ativos
-              </CardTitle>
+              <CardTitle className="text-sm font-medium">Investimentos Ativos</CardTitle>
               <PiggyBank className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {summary.active_investments}
-              </div>
+              <div className="text-2xl font-bold">{summary.active_investments}</div>
               <p className="text-xs text-muted-foreground">
-                {summary.active_investments === 1
-                  ? "investimento"
-                  : "investimentos"}
+                {summary.active_investments === 1 ? "investimento" : "investimentos"}
               </p>
             </CardContent>
           </Card>
@@ -294,10 +258,7 @@ export default function InvestimentosPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Filtros */}
           <div className="flex flex-1 gap-3">
-            <Select
-              value={sortBy}
-              onValueChange={(value) => setSortBy(value as SortBy)}
-            >
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
               <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-none">
                 <SelectValue />
               </SelectTrigger>
@@ -312,9 +273,7 @@ export default function InvestimentosPage() {
 
             <Select
               value={filterCategory}
-              onValueChange={(value) =>
-                setFilterCategory(value as FilterCategory)
-              }
+              onValueChange={(value) => setFilterCategory(value as FilterCategory)}
             >
               <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-none">
                 <SelectValue />
@@ -368,22 +327,21 @@ export default function InvestimentosPage() {
           {filteredAndSortedInvestments.length === 0 ? (
             <div className="text-center py-8">
               <Filter className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                Nenhum investimento encontrado
-              </h3>
+              <h3 className="text-lg font-medium mb-2">Nenhum investimento encontrado</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Tente ajustar os filtros ou criar um novo investimento
               </p>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Criar Investimento
-              </Button>
+              <InvestmentDialog>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Criar Investimento
+                </Button>
+              </InvestmentDialog>
             </div>
           ) : (
             <div className="space-y-4">
               {filteredAndSortedInvestments.map((investment) => {
-                const returnAmount =
-                  investment.current_amount - investment.initial_amount;
+                const returnAmount = investment.current_amount - investment.initial_amount;
                 const returnPercentage =
                   investment.initial_amount > 0
                     ? (returnAmount / investment.initial_amount) * 100
@@ -418,24 +376,22 @@ export default function InvestimentosPage() {
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <p className="font-medium">
-                        {formatCurrency(investment.current_amount)}
-                      </p>
-                      <div
-                        className={`flex items-center text-sm ${
-                          isPositive ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        <TrendingUp
-                          className={`h-3 w-3 mr-1 ${
-                            !isPositive ? "rotate-180" : ""
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="font-medium">{formatCurrency(investment.current_amount)}</p>
+                        <div
+                          className={`flex items-center text-sm ${
+                            isPositive ? "text-green-600" : "text-red-600"
                           }`}
-                        />
-                        {isPositive ? "+" : ""}
-                        {formatCurrency(returnAmount)} (
-                        {returnPercentage.toFixed(2)}%)
+                        >
+                          <TrendingUp
+                            className={`h-3 w-3 mr-1 ${!isPositive ? "rotate-180" : ""}`}
+                          />
+                          {isPositive ? "+" : ""}
+                          {formatCurrency(returnAmount)} ({returnPercentage.toFixed(2)}%)
+                        </div>
                       </div>
+                      <InvestmentRowActions investment={investment} />
                     </div>
                   </div>
                 );

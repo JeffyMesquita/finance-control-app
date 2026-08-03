@@ -5,7 +5,10 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-type LogoProps = React.ImgHTMLAttributes<HTMLImageElement> & {
+type LogoProps = Omit<
+  React.ImgHTMLAttributes<HTMLImageElement>,
+  "alt" | "height" | "src" | "width"
+> & {
   className?: string;
   light?: boolean;
   dark?: boolean;

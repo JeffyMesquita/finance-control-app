@@ -1,10 +1,21 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle,
+  Link2,
+  PiggyBank,
+  Target,
+  TrendingUp,
+} from "lucide-react";
 
 import type React from "react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import {
   Dialog,
   DialogContent,
@@ -14,24 +25,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { CurrencyInput } from "@/components/ui/currency-input";
 import { useToast } from "@/hooks/use-toast";
-import { updateGoalProgress } from "@/app/actions/goals";
-import { depositToSavingsBox } from "@/app/actions/savings-transactions";
-import { createTransaction } from "@/app/actions/transactions";
 import { formatCurrency } from "@/lib/utils";
-import {
-  Target,
-  PiggyBank,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle,
-  Link2,
-  Plus,
-  ArrowRight,
-} from "lucide-react";
+import { logger } from "@/lib/utils/logger";
+import { useGoalContributionMutation } from "@/useCases/goals/useGoalContributionMutation";
 
 type Goal = {
   id: string;
@@ -67,6 +64,7 @@ export function ContributeDialog({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [amount, setAmount] = useState<number>(0);
+  const contributionMutation = useGoalContributionMutation();
 
   const isLinkedToSavingsBox = !!goal?.savings_box_id;
 
@@ -83,52 +81,21 @@ export function ContributeDialog({
     setIsSubmitting(true);
 
     try {
-      if (isLinkedToSavingsBox && goal.savings_box_id) {
-        const result = await depositToSavingsBox(
-          goal.savings_box_id,
-          amount,
-          goal.account_id,
-          `Contribuição para meta: ${goal.name}`
-        );
+      await contributionMutation.mutateAsync({
+        goalId: goal.id,
+        savingsBoxId: goal.savings_box_id,
+        amount,
+        account_id: goal.account_id,
+        description: `Contribui??o para meta: ${goal.name}`,
+      });
 
-        if (!result.success) {
-          throw new Error(result.error || "Falha ao depositar no cofrinho");
-        }
-
-        toast({
-          title: "Contribuição Realizada!",
-          description: `${formatCurrency(amount)} depositados no cofrinho "${
-            goal.savings_box?.name
-          }". Sua meta foi atualizada automaticamente.`,
-          variant: "success",
-        });
-      } else {
-        const result = await updateGoalProgress(goal.id, amount);
-
-        if (!result.success) {
-          throw new Error(
-            result.error || "Falha ao atualizar progresso da meta"
-          );
-        }
-
-        await createTransaction({
-          type: "EXPENSE",
-          amount: -amount,
-          description: `Contribuição para meta: ${goal.name}`,
-          date: new Date().toISOString(),
-          category_id: null,
-          account_id: goal.account_id,
-          notes: `Contribuição direta para meta ${goal.name}`,
-        });
-
-        toast({
-          title: "Contribuição Realizada!",
-          description: `${formatCurrency(amount)} adicionados à sua meta "${
-            goal.name
-          }".`,
-          variant: "success",
-        });
-      }
+      toast({
+        title: "Contribui??o Realizada!",
+        description: goal.savings_box_id
+          ? `${formatCurrency(amount)} depositados no cofrinho "${goal.savings_box?.name}".`
+          : `${formatCurrency(amount)} adicionados ? sua meta "${goal.name}".`,
+        variant: "success",
+      });
 
       onOpenChange(false);
       setAmount(0);
@@ -181,8 +148,7 @@ export function ContributeDialog({
                   <div className="flex-1">
                     <h4 className="font-medium">{goal.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {formatCurrency(currentAmount)} de{" "}
-                      {formatCurrency(targetAmount)} •{" "}
+                      {formatCurrency(currentAmount)} de {formatCurrency(targetAmount)} •{" "}
                       {Math.round(progressPercentage)}% concluído
                     </p>
                   </div>
@@ -219,9 +185,7 @@ export function ContributeDialog({
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium">Cofrinho Vinculado</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {goal.savings_box.name}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{goal.savings_box.name}</p>
                     </div>
                     <div className="text-right">
                       <CheckCircle className="h-5 w-5 text-emerald-600 ml-auto" />
@@ -241,12 +205,10 @@ export function ContributeDialog({
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                     <div className="flex-1">
-                      <h4 className="font-medium text-blue-900 dark:text-blue-100">
-                        Sugestão
-                      </h4>
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100">Sugestão</h4>
                       <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                        Vincule esta meta a um cofrinho para melhor organização
-                        e controle das suas economias.
+                        Vincule esta meta a um cofrinho para melhor organização e controle das suas
+                        economias.
                       </p>
                       <Button
                         type="button"
@@ -294,17 +256,11 @@ export function ContributeDialog({
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-muted-foreground">
-                          Valor atual:
-                        </span>
-                        <p className="font-mono">
-                          {formatCurrency(currentAmount)}
-                        </p>
+                        <span className="text-muted-foreground">Valor atual:</span>
+                        <p className="font-mono">{formatCurrency(currentAmount)}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">
-                          Novo valor:
-                        </span>
+                        <span className="text-muted-foreground">Novo valor:</span>
                         <p className="font-mono font-medium text-green-700 dark:text-green-300">
                           {formatCurrency(currentAmount + amount)}
                         </p>
@@ -315,10 +271,7 @@ export function ContributeDialog({
                       <div className="flex justify-between text-sm">
                         <span>Progresso:</span>
                         <span className="font-medium text-green-700 dark:text-green-300">
-                          {Math.round(
-                            ((currentAmount + amount) / targetAmount) * 100
-                          )}
-                          %
+                          {Math.round(((currentAmount + amount) / targetAmount) * 100)}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-1">
@@ -338,9 +291,7 @@ export function ContributeDialog({
                     {currentAmount + amount >= targetAmount && (
                       <div className="flex items-center gap-2 text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 rounded p-2">
                         <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium">
-                          Meta será concluída! 🎉
-                        </span>
+                        <span className="text-sm font-medium">Meta será concluída! 🎉</span>
                       </div>
                     )}
                   </div>
@@ -350,9 +301,9 @@ export function ContributeDialog({
 
             {isLinkedToSavingsBox && (
               <div className="text-xs text-muted-foreground bg-muted/30 rounded p-3">
-                <strong>Como funciona:</strong> O valor será depositado no
-                cofrinho "{goal.savings_box?.name}" e sua meta será
-                automaticamente atualizada com o novo saldo.
+                <strong>Como funciona:</strong> O valor será depositado no cofrinho "
+                {goal.savings_box?.name}" e sua meta será automaticamente atualizada com o novo
+                saldo.
               </div>
             )}
           </div>
@@ -395,4 +346,3 @@ export function ContributeDialog({
     </Dialog>
   );
 }
-
