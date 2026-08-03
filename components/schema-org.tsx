@@ -1,9 +1,9 @@
-import { Organization, WebSite, WebPage } from "schema-dts";
 import { JsonLd } from "react-schemaorg";
+import type { FAQPage, Organization, WebPage, WebSite } from "schema-dts";
 
 interface SchemaOrgProps {
-  type: "Organization" | "WebSite" | "WebPage";
-  data: Organization | WebSite | WebPage;
+  type: "Organization" | "WebSite" | "WebPage" | "FAQPage";
+  data: Organization | WebSite | WebPage | FAQPage;
 }
 
 export function SchemaOrg({ type, data }: SchemaOrgProps) {
@@ -17,4 +17,3 @@ export function SchemaOrg({ type, data }: SchemaOrgProps) {
     />
   );
 }
-

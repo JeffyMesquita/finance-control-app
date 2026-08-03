@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 96" fill="none">
-  <rect width="96" height="96" rx="28" fill="#162019"/>
-  <path d="M24 70 48 18l24 52M34 54h28" stroke="#F7F8F4" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M72 56c-16 16-34 16-50 0" stroke="#34D399" stroke-width="8" stroke-linecap="round"/>
-  <text x="116" y="63" fill="#F7F8F4" font-family="Geist,Arial,sans-serif" font-size="46" font-weight="650" letter-spacing="-2">AjeitaGrana</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 112" fill="none">
+  <rect width="112" height="112" rx="30" fill="#F7F8F4"/>
+  <path d="M14 87 45.5 22.5c1.8-3.7 6.8-3.7 8.6 0L85 87M30 64h39" stroke="#162019" stroke-width="10.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 85c19.2-6.8 33.7.9 48.3-14.8C73.4 56.8 83.4 40.2 103 34" stroke="#162019" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="102" cy="34" r="4.2" fill="#162019"/>
+  <text x="142" y="75" fill="#162019" font-family="Geist,Arial,sans-serif" font-size="51" font-weight="650" letter-spacing="-2.4">AjeitaGrana</text>
 </svg>

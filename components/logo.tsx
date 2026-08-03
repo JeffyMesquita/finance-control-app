@@ -1,43 +1,54 @@
 import type React from "react";
 import { cn } from "@/lib/utils";
 
-type LogoProps = Omit<React.SVGProps<SVGSVGElement>, "aria-label"> & {
+type LogoProps = React.HTMLAttributes<HTMLSpanElement> & {
   dark?: boolean;
   light?: boolean;
+  compact?: boolean;
 };
 
-export function Logo({ className, dark, light, ...props }: LogoProps) {
-  const textColor = light ? "#F7F8F4" : dark ? "#162019" : "currentColor";
+/** The AjeitaGrana mark: a geometric A with an emerald progress path. */
+export function Logo({ className, dark, light, compact = false, ...props }: LogoProps) {
+  const foreground = light ? "#F7F8F4" : dark ? "#162019" : "currentColor";
 
   return (
-    <svg
+    <span
       aria-label="AjeitaGrana"
-      className={cn("h-9 w-auto", className)}
-      fill="none"
+      className={cn("inline-flex h-9 w-fit items-center gap-2", className)}
       role="img"
-      viewBox="0 0 212 48"
-      xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <path
-        d="M12 38 24 8l12 30M17 28h14"
-        stroke="#047857"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="5"
-      />
-      <path d="M36 30c9 8 18 7 27-4" stroke="#047857" strokeLinecap="round" strokeWidth="4" />
-      <text
-        fill={textColor}
-        fontFamily="Geist, Arial, sans-serif"
-        fontSize="25"
-        fontWeight="650"
-        letterSpacing="-1.2"
-        x="72"
-        y="32"
+      <svg
+        aria-hidden="true"
+        className="h-full w-auto shrink-0"
+        fill="none"
+        viewBox="0 0 56 48"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        AjeitaGrana
-      </text>
-    </svg>
+        <path
+          d="M5 40 21.1 7.3c.9-1.8 3.4-1.8 4.3 0L42 40M13 28h20"
+          stroke={foreground}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="5.2"
+        />
+        <path
+          d="M5 39c9.2-3.2 16.2.4 23.2-7.1C34.1 25.6 39 17.1 50.2 14"
+          stroke="#047857"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="4.2"
+        />
+        <circle cx="50" cy="14" fill="#047857" r="2.2" />
+      </svg>
+      {!compact && (
+        <span
+          className="whitespace-nowrap text-[1.1em] font-semibold tracking-[-0.055em]"
+          style={{ color: foreground }}
+        >
+          AjeitaGrana
+        </span>
+      )}
+    </span>
   );
 }

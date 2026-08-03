@@ -22,16 +22,19 @@ const geistMono = Geist_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: brand.colors.emerald,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: brand.colors.offWhite },
+    { media: "(prefers-color-scheme: dark)", color: brand.colors.charcoal },
+  ],
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(brand.url),
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   applicationName: brand.name,
   category: "finance",
   title: {
-    default: `${brand.name} — Controle financeiro sem complicação`,
+    default: `${brand.name} — organização financeira pessoal`,
     template: `%s | ${brand.name}`,
   },
   description: brand.description,
@@ -39,6 +42,11 @@ export const metadata: Metadata = {
   creator: "Jeferson Mesquita",
   publisher: "Jeferson Mesquita",
   alternates: { canonical: "/" },
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/brand/ajeitagrana-symbol.svg", type: "image/svg+xml" },
@@ -56,16 +64,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "pt_BR",
     url: brand.url,
-    title: `${brand.name} — Controle financeiro sem complicação`,
+    title: `${brand.name} — organização financeira pessoal`,
     description: brand.description,
     siteName: brand.name,
-    images: [{ url: "/brand/ajeitagrana-512.png", width: 512, height: 512, alt: brand.name }],
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: `${brand.name} — organização financeira pessoal`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${brand.name} — Controle financeiro sem complicação`,
+    title: `${brand.name} — organização financeira pessoal`,
     description: brand.description,
-    images: ["/brand/ajeitagrana-512.png"],
+    images: ["/twitter-image.png"],
   },
   robots: {
     index: true,

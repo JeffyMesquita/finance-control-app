@@ -4,14 +4,14 @@ import { brand } from "@/lib/brand";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: brand.url,
-    name: `${brand.name} — Controle financeiro`,
+    name: "AjeitaGrana — organização financeira pessoal",
     short_name: brand.name,
     description: brand.description,
     start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: brand.colors.offWhite,
-    theme_color: brand.colors.emerald,
+    theme_color: brand.colors.charcoal,
     lang: "pt-BR",
     dir: "ltr",
     categories: ["finance", "productivity"],

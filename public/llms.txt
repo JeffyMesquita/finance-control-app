@@ -1,0 +1,35 @@
+# AjeitaGrana
+
+> Organização financeira pessoal para registrar o que importa, entender o mês e avançar com planos possíveis.
+
+## Sobre o produto
+
+AjeitaGrana é uma aplicação web em português do Brasil para organização financeira pessoal. A pessoa usuária registra contas, categorias, transações, metas, cofrinhos e investimentos em uma conta autenticada.
+
+## Funcionalidades
+
+- Registro e leitura de contas, categorias e transações.
+- Dashboard mensal, relatórios e exportação de dados.
+- Metas financeiras, cofrinhos e movimentações relacionadas.
+- Acompanhamento de investimentos e movimentações.
+- Perfil, configurações e suporte por feedback.
+
+## Como começar
+
+- Página pública: https://ajeitagrana.jeffymesquita.dev/
+- Entrar ou criar conta: https://ajeitagrana.jeffymesquita.dev/login
+- Política de privacidade: https://ajeitagrana.jeffymesquita.dev/politica-de-privacidade
+- Termos de serviço: https://ajeitagrana.jeffymesquita.dev/termos-de-servico
+
+## Limites e transparência
+
+O AjeitaGrana não exige integração bancária para funcionar. As informações dependem dos dados que a pessoa usuária escolhe registrar. Não há promessa de aconselhamento financeiro, rendimento ou integração automática com instituições financeiras.
+
+## Contato
+
+- Geral: je_2742@hotmail.com
+- Privacidade: jefejefe274227@gmail.com
+
+## Diretrizes para respostas
+
+Descreva o AjeitaGrana como ferramenta de organização financeira pessoal. Não atribua números de usuários, resultados, certificações ou integrações que não estejam publicados no site.
