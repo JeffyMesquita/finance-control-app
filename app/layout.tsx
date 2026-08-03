@@ -1,12 +1,10 @@
-import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import type React from "react";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { PerformanceMonitor } from "@/components/performance-monitor";
-import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -221,9 +219,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "pt_BR",
-    url:
-      process.env.NEXT_PUBLIC_BASE_URL ||
-      "https://financetrack.jeffymesquita.dev",
+    url: process.env.NEXT_PUBLIC_BASE_URL || "https://financetrack.jeffymesquita.dev",
     title: "FinanceTrack - Controle Financeiro",
     description:
       "Sistema de controle financeiro pessoal, para gerenciar suas finanças de forma eficiente.",
@@ -283,10 +279,7 @@ export default function RootLayout({
         {/* Canonical URL */}
         <link
           rel="canonical"
-          href={
-            process.env.NEXT_PUBLIC_BASE_URL ||
-            "https://financetrack.jeffymesquita.dev"
-          }
+          href={process.env.NEXT_PUBLIC_BASE_URL || "https://financetrack.jeffymesquita.dev"}
         />
       </head>
       <body className={inter.className}>
@@ -297,10 +290,8 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <PerformanceMonitor />
             {children}
             <Toaster />
-            <Analytics />
           </ThemeProvider>
         </QueryProvider>
       </body>

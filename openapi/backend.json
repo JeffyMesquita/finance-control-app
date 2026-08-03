@@ -4515,18 +4515,11 @@
           },
           "message": {
             "type": "string"
-          },
-          "events": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
           }
         },
         "required": [
           "deprecated",
-          "message",
-          "events"
+          "message"
         ]
       },
       "AdminAnalyticsResponseDto": {

@@ -27,8 +27,7 @@ interface LogContext {
 
 // Configurações baseadas em variáveis de ambiente
 const LOG_LEVEL =
-  (process.env.LOG_LEVEL as LogLevel) ||
-  (process.env.NODE_ENV === "production" ? "info" : "debug");
+  (process.env.LOG_LEVEL as LogLevel) || (process.env.NODE_ENV === "production" ? "info" : "debug");
 const isServer = typeof window === "undefined";
 
 class AdvancedConsoleLogger {
@@ -57,10 +56,6 @@ class AdvancedConsoleLogger {
   info(message: string, context?: LogContext): void {
     if (this.shouldLog("info")) {
       this.logMessage("info", message, context);
-
-      if (this.isProduction && !isServer) {
-        this.sendToMonitoring("info", message, context);
-      }
     }
   }
 
@@ -70,10 +65,6 @@ class AdvancedConsoleLogger {
   warn(message: string, context?: LogContext): void {
     if (this.shouldLog("warn")) {
       this.logMessage("warn", message, context);
-
-      if (this.isProduction && !isServer) {
-        this.sendToMonitoring("warn", message, context);
-      }
     }
   }
 
@@ -90,17 +81,14 @@ class AdvancedConsoleLogger {
     this.logMessage("error", message, errorContext);
 
     if (!isServer) {
-      this.sendToMonitoring("error", message, { ...errorContext, error });
-
       // Sentry apenas no cliente
       if (this.isProduction) {
         try {
-          // @ts-ignore
           window.Sentry?.captureException(error || new Error(message), {
             tags: { component: context?.component },
             extra: context,
           });
-        } catch (e) {
+        } catch {
           // Fail silently
         }
       }
@@ -110,11 +98,7 @@ class AdvancedConsoleLogger {
   /**
    * Log principal usando console nativo
    */
-  private logMessage(
-    level: LogLevel,
-    message: string,
-    context?: LogContext
-  ): void {
+  private logMessage(level: LogLevel, message: string, context?: LogContext): void {
     if (this.isTest) return;
 
     const timestamp = new Date().toISOString();
@@ -138,11 +122,7 @@ class AdvancedConsoleLogger {
     const formattedMessage = `${emoji} [${timestamp}] ${level.toUpperCase()}: ${message}`;
 
     if (context && Object.keys(context).length > 0) {
-      method(
-        `%c${formattedMessage}`,
-        `color: ${color}; font-weight: bold;`,
-        context
-      );
+      method(`%c${formattedMessage}`, `color: ${color}; font-weight: bold;`, context);
     } else {
       method(`%c${formattedMessage}`, `color: ${color}; font-weight: bold;`);
     }
@@ -165,10 +145,7 @@ class AdvancedConsoleLogger {
     const duration = performance.now() - startTime;
     const perfContext = { ...context, duration, performance: true };
 
-    this.info(
-      `⚡ Performance: ${label} - ${duration.toFixed(2)}ms`,
-      perfContext
-    );
+    this.info(`⚡ Performance: ${label} - ${duration.toFixed(2)}ms`, perfContext);
 
     if (duration > 1000) {
       this.warn(`Operação lenta detectada: ${label}`, perfContext);
@@ -208,11 +185,7 @@ class AdvancedConsoleLogger {
   /**
    * Log estruturado
    */
-  structured(
-    level: LogLevel,
-    message: string,
-    data: Record<string, any>
-  ): void {
+  structured(level: LogLevel, message: string, data: Record<string, any>): void {
     this.logMessage(level, message, { ...data, structured: true });
   }
 
@@ -236,29 +209,6 @@ class AdvancedConsoleLogger {
       isServer,
       environment: process.env.NODE_ENV,
     };
-  }
-
-  private sendToMonitoring(
-    level: LogLevel,
-    message: string,
-    context?: LogContext
-  ): void {
-    try {
-      // @ts-ignore
-      if (window.va) {
-        window.va("event", {
-          name: "Log Event",
-          data: {
-            level,
-            message: message.substring(0, 100),
-            component: context?.component,
-            userId: context?.userId,
-          },
-        });
-      }
-    } catch (e) {
-      // Fail silently
-    }
   }
 
   private getLogEmoji(level: LogLevel): string {
@@ -302,10 +252,8 @@ export function useLogger(componentName: string) {
   return {
     debug: (message: string, data?: any) =>
       logger.debug(message, { component: componentName, data }),
-    info: (message: string, data?: any) =>
-      logger.info(message, { component: componentName, data }),
-    warn: (message: string, data?: any) =>
-      logger.warn(message, { component: componentName, data }),
+    info: (message: string, data?: any) => logger.info(message, { component: componentName, data }),
+    warn: (message: string, data?: any) => logger.warn(message, { component: componentName, data }),
     error: (message: string, error?: Error, data?: any) =>
       logger.error(message, error, { component: componentName, data }),
     structured: (level: LogLevel, message: string, data?: any) =>
@@ -316,10 +264,7 @@ export function useLogger(componentName: string) {
 /**
  * Decorator para logging
  */
-export function withLogging<T extends (...args: any[]) => any>(
-  fn: T,
-  functionName: string
-): T {
+export function withLogging<T extends (...args: any[]) => any>(fn: T, functionName: string): T {
   return ((...args: any[]) => {
     const startTime = performance.now();
 
@@ -396,7 +341,6 @@ export const dev = {
 declare global {
   interface Window {
     Sentry?: any;
-    va?: any;
   }
 }
 
