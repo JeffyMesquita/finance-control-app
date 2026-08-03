@@ -1,8 +1,8 @@
 "use server";
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
+
 import type { BaseActionResult } from "@/lib/types/actions";
 import { logger } from "@/lib/utils/logger";
 
@@ -59,7 +59,7 @@ export interface AdminStats {
 
 // Verificar se usuário é admin
 async function verifyAdmin() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -79,7 +79,7 @@ async function verifyAdmin() {
 export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
   try {
     await verifyAdmin();
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     // Dates for filtering
     const now = new Date();
@@ -243,7 +243,7 @@ export async function getAdminStats(): Promise<BaseActionResult<AdminStats>> {
 export async function getAdminUsers(page = 1, limit = 20) {
   try {
     await verifyAdmin();
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const offset = (page - 1) * limit;
 
@@ -695,7 +695,7 @@ export async function updateFeedbackStatus(
 ) {
   try {
     await verifyAdmin();
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const { data, error } = await supabase
       .from("feedbacks")
@@ -758,7 +758,7 @@ export async function getUsageAnalytics() {
 export async function getReferralsData() {
   try {
     await verifyAdmin();
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     // Buscar todos os convites
     const { data: invites } = await supabase

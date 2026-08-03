@@ -2,8 +2,8 @@
 
 import { logger } from "@/lib/utils/logger";
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createServerClient } from "@/lib/supabase/server";
+
 import { revalidatePath } from "next/cache";
 import {
   Investment,
@@ -48,7 +48,7 @@ export async function createInvestment(
   data: CreateInvestmentData
 ): Promise<BaseActionResult<Investment>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -113,7 +113,7 @@ export async function getInvestments(): Promise<
   BaseActionResult<Investment[]>
 > {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -156,7 +156,7 @@ export async function getInvestmentById(
   id: string
 ): Promise<BaseActionResult<Investment>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -201,7 +201,7 @@ export async function updateInvestment(
   data: UpdateInvestmentData
 ): Promise<BaseActionResult<Investment>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -258,7 +258,7 @@ export async function deleteInvestment(
   id: string
 ): Promise<BaseActionResult<void>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -301,7 +301,7 @@ export async function createInvestmentTransaction(
   data: CreateInvestmentTransactionData
 ): Promise<BaseActionResult<InvestmentTransaction>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -378,7 +378,7 @@ export async function getInvestmentTransactions(
   investmentId?: string
 ): Promise<BaseActionResult<InvestmentTransaction[]>> {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -428,7 +428,7 @@ export async function getInvestmentSummary(): Promise<
   BaseActionResult<InvestmentSummary>
 > {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createServerClient();
 
     const {
       data: { user },

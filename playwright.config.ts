@@ -24,6 +24,8 @@ export default defineConfig({
         PORT: "3001",
         PUBLIC_APP_URL: frontendUrl,
         CORS_ORIGINS: frontendUrl,
+        AUTH_REGISTER_RATE_LIMIT: "20",
+        AUTH_REGISTER_RATE_LIMIT_TTL_MS: String(60 * 60 * 1000),
       },
       reuseExistingServer: false,
       timeout: 120_000,

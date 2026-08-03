@@ -36,6 +36,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/api/client";
+import type { components } from "@/lib/api/generated/schema";
 import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { FeedbackType } from "@/lib/types/feedback";
 import { getBrowserInfo } from "@/lib/utils/browser-info";
@@ -131,9 +132,9 @@ export function FeedbackDialog({ children }: FeedbackDialogProps) {
         title: data.title,
         description: data.description,
         email: includeContactInfo ? data.email : undefined,
-        browser_info: browserInfo,
+        browser_info: { ...browserInfo },
         page_url: window.location.href,
-      };
+      } satisfies components["schemas"]["CreateFeedbackDto"];
 
       const result = isNestDomainEnabled("feedback")
         ? {

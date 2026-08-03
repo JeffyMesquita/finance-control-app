@@ -12,7 +12,7 @@ import type {
 } from "@/lib/types/actions";
 
 export async function getAccounts(): Promise<BaseActionResult<AccountData[]>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -44,7 +44,7 @@ export async function getAccounts(): Promise<BaseActionResult<AccountData[]>> {
 export async function createAccount(
   account: CreateAccountData
 ): Promise<BaseActionResult<AccountData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -82,7 +82,7 @@ export async function updateAccount(
   id: string,
   account: UpdateAccountData
 ): Promise<BaseActionResult<AccountData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -118,7 +118,7 @@ export async function updateAccount(
 export async function deleteAccount(
   id: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -155,7 +155,7 @@ export async function getAccountWithStats(
     AccountData & { stats: { totalTransactions: number; balance: number } }
   >
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

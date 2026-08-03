@@ -2,7 +2,7 @@
 
 > Operational tracker for the gradual migration. This file is intentionally mirrored in `finance-control-app` and `finance-control-backend`; update both copies in the same delivery.
 >
-> Last review: 2026-07-30
+> Last review: 2026-08-01
 > Branch: `codex/complete-next-nest-migration`
 > Scope: local work only. No remote migration, deploy, push, or PR is authorized by this tracker.
 
@@ -126,3 +126,6 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-07-29 | Goals/savings browser matrix | `playwright test e2e/goals-savings.spec.ts --project=chromium --project=firefox --project=webkit` with external local servers | 3 tests passed across Chromium, Firefox and WebKit; mutation envelopes, balances, history, cleanup and logout verified. |
 | 2026-07-29 | Cross-browser auth guard | frontend typecheck/build + browser matrix | Removed automatic logout on transient unauthenticated guard state; Firefox registration no longer loses the newly created session. |
 | 2026-07-30 | Investments / feedback / referrals / admin | backend `tsc --noEmit`, `nest build`, `jest --runInBand` (70 suites / 479 tests), `openapi:generate`; frontend `typecheck`, `contracts:check`, `test:unit` (3 files / 6 tests), `build` | Contracts and local code paths are green; domain remains `[~]` until Supabase PgTAP, authenticated Supertest and Chromium/Firefox/WebKit E2E evidence is collected. |
+| 2026-08-01 | Investment/feedback/referral contract cut | backend `pnpm typecheck`, `pnpm build`, `pnpm openapi:check`, targeted Biome and Jest 72 suites / 486 tests; frontend `pnpm contracts:check`, `pnpm typecheck`, `pnpm build`, targeted Biome and Vitest 3 files / 6 tests | OpenAPI request/response schemas, PDF-safe feedback notification adapters and referral TanStack Query path are green; `pnpm e2e:preflight` remains blocked because Docker Desktop/Supabase local is stopped, so investments and remaining-domain checkboxes stay `[~]`. |
+| 2026-08-01 | Deploy runtime compatibility | frontend `pnpm build` with production guards + backend/ frontend `engines.node >=20.9.0` | Next production build passed without public Supabase variables; `/auth/debug` and `/auth/test-trigger` stay dynamic and return not-found in production; Vercel remains production and Render frontend remains optional validation. |
+| 2026-08-01 | Admin contract + production smoke gate | backend `pnpm openapi:check`, `pnpm typecheck`, `pnpm build`, Jest 72 suites / 486 tests; frontend `pnpm contracts:check`, `pnpm typecheck`, `pnpm exec node --check scripts/smoke-production.mjs` | Admin stats/feedback/referrals/analytics now have OpenAPI response schemas and validated pagination; smoke script is ready but remains unexecuted until a Vercel URL is supplied; local Supabase/browser proof remains pending. |

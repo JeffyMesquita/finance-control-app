@@ -1,12 +1,14 @@
 "use client";
 
-import { useProcessReferral } from "@/useCases/useProcessReferral";
 import { useEffect } from "react";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
+import { useProcessReferral } from "@/useCases/useProcessReferral";
 
 export function ReferralTrigger() {
   const { mutate } = useProcessReferral();
 
   useEffect(() => {
+    if (isNestDomainEnabled("referrals")) return;
     const referralId = localStorage.getItem("referral_id");
     if (!referralId) return;
 

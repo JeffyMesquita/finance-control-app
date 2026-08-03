@@ -5,7 +5,7 @@ import type { UserSettings } from "@/lib/types";
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -63,7 +63,7 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   try {
     const settingsData: UserSettings = await request.json();
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

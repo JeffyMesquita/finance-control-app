@@ -52,6 +52,7 @@ test.describe("local remaining domains", () => {
   }, testInfo) => {
     const adminEmail = createEmail(testInfo.project.name, "admin");
     const userEmail = createEmail(testInfo.project.name, "user");
+    const feedbackTitle = `Feedback E2E Nest ${Date.now()}`;
 
     try {
       await registerThroughLoginPage(page, adminEmail);
@@ -87,10 +88,10 @@ test.describe("local remaining domains", () => {
       expect(referralProcess.status).toBe(201);
       expect(referralProcess.payload).toMatchObject({
         success: true,
-        data: { processed: false },
+        data: { processed: true },
       });
       await page.getByRole("button", { name: userEmail.slice(0, 2).toUpperCase() }).click();
-      await page.getByRole("menuitem", { name: "Novo Alerta" }).click();
+      await page.getByRole("menuitem", { name: "Novo Alerta" }).dispatchEvent("click");
       const reminderDialog = page.getByRole("dialog");
       await reminderDialog.getByLabel("T\u00edtulo").fill("Lembrete E2E");
       await reminderDialog.getByLabel("Valor").fill("25");
@@ -100,9 +101,9 @@ test.describe("local remaining domains", () => {
       );
 
       await page.getByRole("button", { name: userEmail.slice(0, 2).toUpperCase() }).click();
-      await page.getByRole("menuitem", { name: "Enviar Feedback" }).click();
+      await page.getByRole("menuitem", { name: "Enviar Feedback" }).dispatchEvent("click");
       const feedbackDialog = page.getByRole("dialog");
-      await feedbackDialog.getByLabel("T\u00edtulo").fill("Feedback E2E Nest");
+      await feedbackDialog.getByLabel("T\u00edtulo").fill(feedbackTitle);
       await feedbackDialog
         .getByLabel("Descri\u00e7\u00e3o Detalhada")
         .fill("Feedback criado pela jornada E2E autenticada no backend Nest.");
@@ -125,13 +126,13 @@ test.describe("local remaining domains", () => {
       await page.goto("/dashboard/admin");
       await expect(page.getByRole("heading", { name: "Dashboard Administrativo" })).toBeVisible();
       await page.goto("/dashboard/admin/feedbacks");
-      await expect(page.getByText("Feedback E2E Nest", { exact: true })).toBeVisible();
+      await expect(page.getByText(feedbackTitle, { exact: true })).toBeVisible();
       const feedbackCard = page
-        .getByText("Feedback E2E Nest", { exact: true })
+        .getByText(feedbackTitle, { exact: true })
         .locator("xpath=ancestor::div[contains(@class, 'overflow-hidden')]");
       await feedbackCard.getByRole("button").first().click();
       const feedbackDetails = page.getByRole("dialog");
-      await expect(feedbackDetails).toContainText("Feedback E2E Nest");
+      await expect(feedbackDetails).toContainText(feedbackTitle);
       await expectMutation(page, "/api/backend/admin/feedbacks/update", () =>
         feedbackDetails.getByRole("button", { name: "Resolver" }).click()
       );

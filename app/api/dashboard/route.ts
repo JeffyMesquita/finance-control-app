@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },

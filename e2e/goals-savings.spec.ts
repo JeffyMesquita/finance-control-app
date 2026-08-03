@@ -91,8 +91,7 @@ test.describe("local goals and savings boxes", () => {
       const goalDialog = page.getByRole("dialog");
       await goalDialog.locator('input[name="name"]').fill("Meta emergência E2E");
       await goalDialog.locator('input[name="target_amount"]').fill("50000");
-      await goalDialog.locator("#account").click();
-      await page.getByRole("option", { name: "Conta metas E2E" }).click();
+
       await expectMutation(page, "/api/backend/goals/create", () =>
         goalDialog.getByRole("button", { name: "Criar Meta" }).click()
       );

@@ -1393,6 +1393,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /**
+         * Processa uma indicação legada
+         * @deprecated
+         */
         post: operations["ReferralController_process"];
         delete?: never;
         options?: never;
@@ -1420,34 +1424,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        LoginRequestDto: {
-            /** @example user@example.com */
-            email: string;
-            password: string;
-            /** @description Token emitido pelo reCAPTCHA */
-            recaptchaToken: string;
-        };
-        RegisterRequestDto: {
-            /** @example user@example.com */
-            email: string;
-            password: string;
-            /** @description Token emitido pelo reCAPTCHA */
-            recaptchaToken: string;
-            /**
-             * Format: uuid
-             * @description Identificador do usu?rio que fez a indica??o (first-touch)
-             */
-            referralId?: string;
-        };
-        LegacyEmailAuthRequestDto: {
-            /** @example user@example.com */
-            email: string;
-            password: string;
-            /** @description Token emitido pelo reCAPTCHA */
-            recaptchaToken: string;
-            /** @description Adaptador tempor?rio para o fluxo legado */
-            isRegister: boolean;
-        };
+        Function: Record<string, never>;
         CreateAccountRequestDto: {
             /** @example Conta principal */
             name: string;
@@ -1590,16 +1567,255 @@ export interface components {
             data: Record<string, never>;
             error: string;
         };
-        CreateInvestmentDto: Record<string, never>;
-        UpdateInvestmentDto: Record<string, never>;
-        DeleteInvestmentDto: Record<string, never>;
-        CreateInvestmentTransactionDto: Record<string, never>;
+        InvestmentResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            user_id: string;
+            name: string;
+            /** @enum {string} */
+            category: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            description?: string | null;
+            /** @example 1000 */
+            initial_amount: number;
+            /** @example 1200 */
+            current_amount: number;
+            /** @example 5000 */
+            target_amount?: number | null;
+            /** Format: date */
+            investment_date: string;
+            /** Format: date-time */
+            last_updated: string;
+            is_active: boolean;
+            color?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        InvestmentListResponseDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentResponseDto"][];
+            total: number;
+            page: number;
+            limit: number;
+            offset: number;
+            hasMore: boolean;
+        };
+        InvestmentSummaryResponseDto: {
+            total_invested: number;
+            current_value: number;
+            total_return: number;
+            return_percentage: number;
+            monthly_contributions: number;
+            active_investments: number;
+        };
+        InvestmentSummaryResponseEnvelopeDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentSummaryResponseDto"];
+        };
+        InvestmentCategoryStatsResponseDto: {
+            /** @enum {string} */
+            category: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            total_amount: number;
+            percentage: number;
+            return_amount: number;
+            return_percentage: number;
+        };
+        InvestmentCategoryStatsResponseEnvelopeDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentCategoryStatsResponseDto"][];
+        };
+        InvestmentResponseEnvelopeDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentResponseDto"];
+        };
+        CreateInvestmentDto: {
+            /** @example Reserva de emergência */
+            name: string;
+            /** @enum {string} */
+            category?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            /**
+             * @deprecated
+             * @enum {string}
+             */
+            type?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            /** @example 1000 */
+            initial_amount: number;
+            /** @example 5000 */
+            target_amount?: number | null;
+            /** Format: date */
+            investment_date?: string;
+            description?: string | null;
+            color?: string | null;
+        };
+        UpdateInvestmentDto: {
+            /** Format: uuid */
+            id: string;
+            name?: string;
+            /** @enum {string} */
+            category?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            /**
+             * @deprecated
+             * @enum {string}
+             */
+            type?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+            current_amount?: number | null;
+            target_amount?: number | null;
+            /** Format: date */
+            investment_date?: string;
+            is_active?: boolean;
+            description?: string | null;
+            color?: string | null;
+        };
+        DeleteInvestmentDto: {
+            /** Format: uuid */
+            id: string;
+        };
+        InvestmentMutationSuccessResponseDto: {
+            /** @default true */
+            success: boolean;
+        };
+        InvestmentTransactionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            investment_id: string;
+            /** Format: uuid */
+            user_id: string;
+            /** @enum {string} */
+            type: "aporte" | "resgate" | "rendimento" | "taxa";
+            /** @example 100 */
+            amount: number;
+            description?: string | null;
+            /** Format: date */
+            transaction_date: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        InvestmentTransactionListResponseDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentTransactionResponseDto"][];
+            total: number;
+            page: number;
+            limit: number;
+            offset: number;
+            hasMore: boolean;
+        };
+        CreateInvestmentTransactionDto: {
+            /** Format: uuid */
+            investment_id: string;
+            /** @enum {string} */
+            type: "aporte" | "resgate" | "rendimento" | "taxa";
+            /** @example 100 */
+            amount: number;
+            description?: string | null;
+            /** Format: date */
+            transaction_date?: string;
+        };
+        InvestmentTransactionResponseEnvelopeDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["InvestmentTransactionResponseDto"];
+        };
         GetAdminSummaryResponse: {
             success: boolean;
             data: Record<string, never>;
             error: string;
         };
+        AdminUserStatsDto: {
+            total: number;
+            newThisMonth: number;
+            newThisWeek: number;
+            activeThisMonth: number;
+        };
+        AdminCountAmountDto: {
+            count: number;
+            amount: number;
+        };
+        AdminTransactionTypeStatsDto: {
+            income: components["schemas"]["AdminCountAmountDto"];
+            expense: components["schemas"]["AdminCountAmountDto"];
+        };
+        AdminTransactionStatsDto: {
+            total: number;
+            totalAmount: number;
+            thisMonth: number;
+            thisMonthAmount: number;
+            byType: components["schemas"]["AdminTransactionTypeStatsDto"];
+        };
+        AdminGoalStatsDto: {
+            total: number;
+            completed: number;
+            inProgress: number;
+            averageProgress: number;
+            totalTargetAmount: number;
+            totalCurrentAmount: number;
+        };
+        AdminSavingsBoxStatsDto: {
+            total: number;
+            totalSaved: number;
+            averageAmount: number;
+            activeBoxes: number;
+        };
+        AdminFeedbackStatsDto: {
+            total: number;
+            thisMonth: number;
+            byType: Record<string, never>;
+            byStatus: Record<string, never>;
+            byPriority: Record<string, never>;
+        };
+        AdminTopReferrerDto: {
+            referrer_id: string;
+            count: number;
+        };
+        AdminReferralStatsDto: {
+            totalInvites: number;
+            successfulReferrals: number;
+            conversionRate: number;
+            topReferrers: components["schemas"]["AdminTopReferrerDto"][];
+        };
+        AdminStatsDataDto: {
+            users: components["schemas"]["AdminUserStatsDto"];
+            transactions: components["schemas"]["AdminTransactionStatsDto"];
+            goals: components["schemas"]["AdminGoalStatsDto"];
+            savingsBoxes: components["schemas"]["AdminSavingsBoxStatsDto"];
+            feedbacks: components["schemas"]["AdminFeedbackStatsDto"];
+            referrals: components["schemas"]["AdminReferralStatsDto"];
+        };
+        AdminStatsResponseDto: {
+            success: boolean;
+            data: components["schemas"]["AdminStatsDataDto"];
+        };
+        AdminPaginatedResponseDto: {
+            success: boolean;
+            data: Record<string, never>[];
+            total: number;
+            page: number;
+            limit: number;
+            hasMore: boolean;
+        };
         UpdateFeedbackDto: Record<string, never>;
+        AdminFeedbackUpdateResponseDto: {
+            success: boolean;
+            data: Record<string, never>;
+        };
+        AdminAnalyticsDataDto: {
+            deprecated: boolean;
+            message: string;
+            events: Record<string, never>[];
+        };
+        AdminAnalyticsResponseDto: {
+            success: boolean;
+            data: components["schemas"]["AdminAnalyticsDataDto"];
+        };
         ExportResponse: {
             success: boolean;
             data: Record<string, never>;
@@ -1641,12 +1857,96 @@ export interface components {
             /** @default true */
             includeNotes: boolean;
         };
-        CreateFeedbackDto: Record<string, never>;
+        CreateFeedbackDto: {
+            /** @example BUG_REPORT */
+            type: string;
+            /** @example Problema no extrato */
+            title: string;
+            /** @example Detalhes do problema */
+            description: string;
+            /** Format: email */
+            email?: string;
+            /** @example HIGH */
+            priority?: string;
+            browser_info?: {
+                [key: string]: unknown;
+            } | null;
+            /** Format: uri */
+            page_url?: string;
+        };
+        FeedbackResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            user_id: string;
+            type: string;
+            title: string;
+            description: string;
+            priority: string;
+            status: string;
+            /** Format: email */
+            email?: string | null;
+            browser_info?: {
+                [key: string]: unknown;
+            } | null;
+            page_url?: string | null;
+            admin_notes?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        FeedbackResponseEnvelopeDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["FeedbackResponseDto"];
+        };
+        FeedbackListResponseDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["FeedbackResponseDto"][];
+            total: number;
+            page: number;
+            limit: number;
+            hasMore: boolean;
+        };
         ReportsOverviewResponse: {
             success: boolean;
             data: Record<string, never>;
         };
+        ReferralRecordDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            referred_id: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        ReferralBadgeDto: {
+            badge_type: string;
+            /** Format: date-time */
+            earned_at: string;
+        };
+        ReferralStatsDto: {
+            total_referrals: number;
+            referrals: components["schemas"]["ReferralRecordDto"][];
+            badges: components["schemas"]["ReferralBadgeDto"][];
+        };
+        ReferralStatsResponseDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["ReferralStatsDto"];
+        };
         ProcessReferralDto: Record<string, never>;
+        ReferralProcessDto: {
+            total_referrals: number;
+            processed: boolean;
+        };
+        ReferralProcessResponseDto: {
+            /** @default true */
+            success: boolean;
+            data: components["schemas"]["ReferralProcessDto"];
+        };
         CreatePaymentReminderDto: Record<string, never>;
     };
     responses: never;
@@ -1718,7 +2018,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LoginRequestDto"];
+                "application/json": components["schemas"]["Function"];
             };
         };
         responses: {
@@ -1739,7 +2039,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RegisterRequestDto"];
+                "application/json": components["schemas"]["Function"];
             };
         };
         responses: {
@@ -1760,7 +2060,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LegacyEmailAuthRequestDto"];
+                "application/json": components["schemas"]["Function"];
             };
         };
         responses: {
@@ -3156,6 +3456,7 @@ export interface operations {
             query?: {
                 search?: string;
                 category?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
+                /** @deprecated */
                 type?: "renda_fixa" | "acoes" | "fundos" | "fiis" | "criptomoedas" | "commodities" | "internacional" | "previdencia" | "outros";
                 limit?: number;
                 offset?: number;
@@ -3170,7 +3471,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentListResponseDto"];
+                };
             };
         };
     };
@@ -3187,7 +3490,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentSummaryResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3204,7 +3509,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentCategoryStatsResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3223,7 +3530,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3244,7 +3553,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3265,7 +3576,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3286,13 +3599,19 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentMutationSuccessResponseDto"];
+                };
             };
         };
     };
     InvestmentTransactionController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                investment_id?: string;
+                limit?: number;
+                offset?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3303,7 +3622,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentTransactionListResponseDto"];
+                };
             };
         };
     };
@@ -3324,7 +3645,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InvestmentTransactionResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3379,13 +3702,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminStatsResponseDto"];
+                };
             };
         };
     };
     AdminExtendedController_feedbacks: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3396,7 +3724,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminPaginatedResponseDto"];
+                };
             };
         };
     };
@@ -3417,13 +3747,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminFeedbackUpdateResponseDto"];
+                };
             };
         };
     };
     AdminExtendedController_referrals: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3434,7 +3769,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminPaginatedResponseDto"];
+                };
             };
         };
     };
@@ -3451,7 +3788,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminAnalyticsResponseDto"];
+                };
             };
         };
     };
@@ -3527,7 +3866,10 @@ export interface operations {
     };
     FeedbackController_list: {
         parameters: {
-            query?: never;
+            query?: {
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3538,7 +3880,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FeedbackListResponseDto"];
+                };
             };
         };
     };
@@ -3559,7 +3903,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FeedbackResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3578,7 +3924,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["FeedbackResponseEnvelopeDto"];
+                };
             };
         };
     };
@@ -3614,7 +3962,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ReferralStatsResponseDto"];
+                };
             };
         };
     };
@@ -3631,11 +3981,13 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["ReferralProcessResponseDto"];
+                };
             };
         };
     };

@@ -13,7 +13,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

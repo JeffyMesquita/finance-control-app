@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { getCategories } from "@/app/actions/categories";
+
 import { Button } from "@/components/ui/button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import {
@@ -26,20 +26,10 @@ import { useToast } from "@/hooks/use-toast";
 import type { GoalData } from "@/lib/types/actions";
 import { logger } from "@/lib/utils/logger";
 import { useAccountsQuery } from "@/useCases/accounts/useAccountsQuery";
+import { useCategoriesQuery } from "@/useCases/categories/useCategoriesQuery";
 import { useCreateGoalMutation } from "@/useCases/goals/useCreateGoalMutation";
 import { useUpdateGoalMutation } from "@/useCases/goals/useUpdateGoalMutation";
 import { useSavingsBoxesQuery } from "@/useCases/savings-boxes/useSavingsBoxesQuery";
-
-type Category = {
-  id: string;
-  name: string;
-  type: string;
-  icon: string;
-  color: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-};
 
 type SavingsBox = {
   id: string;
@@ -115,7 +105,8 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const accountsQuery = useAccountsQuery();
   const accounts = accountsQuery.data?.data ?? [];
-  const [categories, setCategories] = useState<Category[]>([]);
+  const categoriesQuery = useCategoriesQuery();
+  const categories = categoriesQuery.data?.data ?? [];
   const savingsBoxesQuery = useSavingsBoxesQuery();
   const savingsBoxes = (savingsBoxesQuery.data ?? []) as SavingsBox[];
   const createGoalMutation = useCreateGoalMutation();
@@ -123,12 +114,8 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
 
   const isEditing = !!goal;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Legacy dialog initialization remains until categories and savings boxes use query hooks.
   useEffect(() => {
     if (open) {
-      fetchData();
-
       if (goal) {
         // Formato das datas para input
         const startDate = new Date(goal.start_date).toISOString().split("T")[0];
@@ -149,26 +136,6 @@ export function GoalDialog({ open, onOpenChange, goal, onSuccess }: GoalDialogPr
       }
     }
   }, [open, goal]);
-
-  async function fetchData() {
-    try {
-      const [, categoriesData, savingsBoxesData] = await Promise.all([
-        accountsQuery.refetch(),
-        getCategories(),
-        Promise.resolve({ success: true, data: savingsBoxes }),
-      ]);
-      setCategories(categoriesData.data || ([] as Category[]));
-      if (savingsBoxesData.success) void savingsBoxesQuery.refetch();
-    } catch (error) {
-      logger.error("Erro ao carregar dados:", error as Error);
-      toast({
-        title: "Erro ao Carregar",
-        description:
-          "Não foi possível carregar as contas, categorias e cofrinhos. Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    }
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

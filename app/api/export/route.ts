@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       year,
     } = await request.json();
 
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
           );
           error = transactionsError.message;
         } else {
-          data = transactionsData as TransactionData[];
+          data = transactionsData as unknown as TransactionData[];
         }
         break;
 

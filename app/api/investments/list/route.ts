@@ -20,7 +20,7 @@ const convertInvestmentFromDB = (investment: any): Investment => ({
 
 export async function GET() {
   try {
-    const supabase = createServerClient();
+    const supabase = await createServerClient();
 
     const {
       data: { user },

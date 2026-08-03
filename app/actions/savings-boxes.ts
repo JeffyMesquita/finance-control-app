@@ -14,7 +14,7 @@ import type {
 export async function getSavingsBoxes(): Promise<
   BaseActionResult<SavingsBoxData[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -97,7 +97,7 @@ export async function getSavingsBoxes(): Promise<
 export async function getSavingsBoxById(
   id: string
 ): Promise<BaseActionResult<SavingsBoxData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -143,7 +143,7 @@ export async function getSavingsBoxById(
 export async function createSavingsBox(
   savingsBox: CreateSavingsBoxData
 ): Promise<BaseActionResult<SavingsBoxData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -210,7 +210,7 @@ export async function updateSavingsBox(
   id: string,
   savingsBox: UpdateSavingsBoxData
 ): Promise<BaseActionResult<SavingsBoxData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -283,7 +283,7 @@ export async function updateSavingsBox(
 export async function deleteSavingsBox(
   id: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -347,7 +347,7 @@ export async function deleteSavingsBox(
 }
 
 export async function getSavingsBoxesTotal(): Promise<number> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -374,7 +374,7 @@ export async function getSavingsBoxesTotal(): Promise<number> {
 export async function getSavingsBoxesSummary(): Promise<
   BaseActionResult<any[]>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -442,7 +442,7 @@ export async function getSavingsBoxesSummary(): Promise<
 }
 
 export async function getSavingsBoxesStats(): Promise<BaseActionResult<any>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -514,7 +514,7 @@ export async function getSavingsBoxesStats(): Promise<BaseActionResult<any>> {
 export async function restoreSavingsBox(
   id: string
 ): Promise<BaseActionResult<SavingsBoxData>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },

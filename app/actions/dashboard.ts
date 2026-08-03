@@ -58,7 +58,7 @@ export async function getDashboardData(): Promise<
   BaseActionResult<DashboardData>
 > {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },
@@ -284,7 +284,7 @@ export async function getMonthlyData(): Promise<
   BaseActionResult<MonthlyData[]>
 > {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },
@@ -359,7 +359,7 @@ export async function getExpenseBreakdown(
   month: "current" | "previous" = "current"
 ): Promise<BaseActionResult<ExpenseBreakdownItem[]>> {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },
@@ -433,7 +433,7 @@ export async function getExpenseBreakdown(
 
 export async function getGoalsStats(): Promise<BaseActionResult<GoalsStats>> {
   try {
-    const supabase = createActionClient();
+    const supabase = await createActionClient();
 
     const {
       data: { user },

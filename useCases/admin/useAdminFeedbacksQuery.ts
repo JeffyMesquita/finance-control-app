@@ -20,7 +20,7 @@ interface AdminFeedbacksData {
 
 interface UpdateFeedbackInput {
   feedbackId: string;
-  updates: { status?: string; admin_notes?: string; resolved_at?: string };
+  updates: { status?: string; admin_notes?: string };
 }
 
 function toQuery(filters: FeedbackFilters): URLSearchParams {

@@ -1,6 +1,6 @@
 import { handleReferral } from "@/app/actions/referrals";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createServerClient } from "@/lib/supabase/server";
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logger } from "@/lib/utils/logger";
@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
+    const supabase = await createServerClient();
 
     // Exchange code for session
     const { error: sessionError } = await supabase.auth.exchangeCodeForSession(

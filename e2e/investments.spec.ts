@@ -57,21 +57,20 @@ test.describe("local investments", () => {
       );
       await expect(page.getByText("Investimento E2E", { exact: true })).toBeVisible();
 
-      const row = page.locator("div").filter({ hasText: "Investimento E2E" }).last();
-      await row.getByRole("button", { name: "Registrar movimentação" }).click();
+      await page.getByRole("button", { name: /Registrar movimenta/ }).click();
       const movementDialog = page.getByRole("dialog");
       await movementDialog.getByPlaceholder("R$ 0,00").fill("2500");
       await expectMutation(page, "/api/backend/investment-transactions", () =>
         movementDialog.getByRole("button", { name: "Registrar" }).click()
       );
 
-      await row.getByRole("button", { name: "Ver histórico" }).click();
+      await page.getByRole("button", { name: /Ver hist/ }).click();
       await expect(page.getByRole("dialog").getByText(/R\$\s*25,00/u)).toBeVisible();
-      await page.getByRole("button", { name: "Ver histórico" }).press("Escape");
+      await page.keyboard.press("Escape");
 
       page.once("dialog", (browserDialog) => browserDialog.accept());
       await expectMutation(page, "/api/backend/investments/delete", () =>
-        row.getByRole("button", { name: "Excluir investimento" }).click()
+        page.getByRole("button", { name: "Excluir investimento" }).click()
       );
       await expect(page.getByText("Investimento E2E", { exact: true })).not.toBeVisible();
     } finally {

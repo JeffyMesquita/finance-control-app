@@ -52,7 +52,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequestDto"
+                "$ref": "#/components/schemas/Function"
               }
             }
           }
@@ -77,7 +77,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequestDto"
+                "$ref": "#/components/schemas/Function"
               }
             }
           }
@@ -103,7 +103,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LegacyEmailAuthRequestDto"
+                "$ref": "#/components/schemas/Function"
               }
             }
           }
@@ -2218,7 +2218,6 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
               "enum": [
                 "renda_fixa",
                 "acoes",
@@ -2229,13 +2228,15 @@
                 "internacional",
                 "previdencia",
                 "outros"
-              ]
+              ],
+              "type": "string"
             }
           },
           {
             "name": "type",
             "required": false,
             "in": "query",
+            "deprecated": true,
             "schema": {
               "type": "string",
               "enum": [
@@ -2256,6 +2257,8 @@
             "required": false,
             "in": "query",
             "schema": {
+              "minimum": 1,
+              "maximum": 100,
               "default": 20,
               "type": "number"
             }
@@ -2265,6 +2268,7 @@
             "required": false,
             "in": "query",
             "schema": {
+              "minimum": 0,
               "default": 0,
               "type": "number"
             }
@@ -2272,7 +2276,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentListResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2292,7 +2303,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentSummaryResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2311,7 +2329,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentCategoryStatsResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2339,7 +2364,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2368,7 +2400,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2397,7 +2436,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2426,7 +2472,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentMutationSuccessResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2442,10 +2495,48 @@
     "/investment-transactions": {
       "get": {
         "operationId": "InvestmentTransactionController_list",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "investment_id",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentTransactionListResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2472,7 +2563,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentTransactionResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2543,7 +2641,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStatsResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2559,10 +2664,37 @@
     "/admin/feedbacks/list": {
       "get": {
         "operationId": "AdminExtendedController_feedbacks",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaginatedResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2591,7 +2723,14 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminFeedbackUpdateResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2607,10 +2746,37 @@
     "/admin/referrals": {
       "get": {
         "operationId": "AdminExtendedController_referrals",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminPaginatedResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2630,7 +2796,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminAnalyticsResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2825,7 +2998,14 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2839,10 +3019,37 @@
       },
       "get": {
         "operationId": "FeedbackController_list",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackListResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2870,7 +3077,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackResponseEnvelopeDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2915,7 +3129,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralStatsResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2930,6 +3151,7 @@
     },
     "/referrals/process": {
       "post": {
+        "deprecated": true,
         "operationId": "ReferralController_process",
         "parameters": [],
         "requestBody": {
@@ -2943,8 +3165,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReferralProcessResponseDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2952,6 +3181,7 @@
             "bearer": []
           }
         ],
+        "summary": "Processa uma indicação legada",
         "tags": [
           "Referrals"
         ]
@@ -3004,81 +3234,9 @@
       }
     },
     "schemas": {
-      "LoginRequestDto": {
+      "Function": {
         "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          },
-          "recaptchaToken": {
-            "type": "string",
-            "description": "Token emitido pelo reCAPTCHA"
-          }
-        },
-        "required": [
-          "email",
-          "password",
-          "recaptchaToken"
-        ]
-      },
-      "RegisterRequestDto": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          },
-          "recaptchaToken": {
-            "type": "string",
-            "description": "Token emitido pelo reCAPTCHA"
-          },
-          "referralId": {
-            "type": "string",
-            "description": "Identificador do usu?rio que fez a indica??o (first-touch)",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "email",
-          "password",
-          "recaptchaToken"
-        ]
-      },
-      "LegacyEmailAuthRequestDto": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          },
-          "password": {
-            "type": "string",
-            "minLength": 8
-          },
-          "recaptchaToken": {
-            "type": "string",
-            "description": "Token emitido pelo reCAPTCHA"
-          },
-          "isRegister": {
-            "type": "boolean",
-            "description": "Adaptador tempor?rio para o fluxo legado"
-          }
-        },
-        "required": [
-          "email",
-          "password",
-          "recaptchaToken",
-          "isRegister"
-        ]
+        "properties": {}
       },
       "CreateAccountRequestDto": {
         "type": "object",
@@ -3482,21 +3640,552 @@
           "error"
         ]
       },
+      "InvestmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "initial_amount": {
+            "type": "number",
+            "example": 1000
+          },
+          "current_amount": {
+            "type": "number",
+            "example": 1200
+          },
+          "target_amount": {
+            "type": "number",
+            "nullable": true,
+            "example": 5000
+          },
+          "investment_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "last_updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "name",
+          "category",
+          "initial_amount",
+          "current_amount",
+          "investment_date",
+          "last_updated",
+          "is_active",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "InvestmentListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvestmentResponseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total",
+          "page",
+          "limit",
+          "offset",
+          "hasMore"
+        ]
+      },
+      "InvestmentSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "total_invested": {
+            "type": "number"
+          },
+          "current_value": {
+            "type": "number"
+          },
+          "total_return": {
+            "type": "number"
+          },
+          "return_percentage": {
+            "type": "number"
+          },
+          "monthly_contributions": {
+            "type": "number"
+          },
+          "active_investments": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total_invested",
+          "current_value",
+          "total_return",
+          "return_percentage",
+          "monthly_contributions",
+          "active_investments"
+        ]
+      },
+      "InvestmentSummaryResponseEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvestmentSummaryResponseDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InvestmentCategoryStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ]
+          },
+          "total_amount": {
+            "type": "number"
+          },
+          "percentage": {
+            "type": "number"
+          },
+          "return_amount": {
+            "type": "number"
+          },
+          "return_percentage": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "category",
+          "total_amount",
+          "percentage",
+          "return_amount",
+          "return_percentage"
+        ]
+      },
+      "InvestmentCategoryStatsResponseEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvestmentCategoryStatsResponseDto"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "InvestmentResponseEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvestmentResponseDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
       "CreateInvestmentDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Reserva de emergência"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ],
+            "deprecated": true
+          },
+          "initial_amount": {
+            "type": "number",
+            "example": 1000,
+            "minimum": 0.01
+          },
+          "target_amount": {
+            "type": "number",
+            "nullable": true,
+            "example": 5000,
+            "minimum": 0.01
+          },
+          "investment_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "initial_amount"
+        ]
       },
       "UpdateInvestmentDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "renda_fixa",
+              "acoes",
+              "fundos",
+              "fiis",
+              "criptomoedas",
+              "commodities",
+              "internacional",
+              "previdencia",
+              "outros"
+            ],
+            "deprecated": true
+          },
+          "current_amount": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0
+          },
+          "target_amount": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0.01
+          },
+          "investment_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
       },
       "DeleteInvestmentDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "InvestmentMutationSuccessResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "InvestmentTransactionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "investment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "aporte",
+              "resgate",
+              "rendimento",
+              "taxa"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "example": 100
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "investment_id",
+          "user_id",
+          "type",
+          "amount",
+          "transaction_date",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "InvestmentTransactionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvestmentTransactionResponseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "offset": {
+            "type": "number"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total",
+          "page",
+          "limit",
+          "offset",
+          "hasMore"
+        ]
       },
       "CreateInvestmentTransactionDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "investment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "aporte",
+              "resgate",
+              "rendimento",
+              "taxa"
+            ]
+          },
+          "amount": {
+            "type": "number",
+            "example": 100,
+            "minimum": 0.01
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "investment_id",
+          "type",
+          "amount"
+        ]
+      },
+      "InvestmentTransactionResponseEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/InvestmentTransactionResponseDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
       },
       "GetAdminSummaryResponse": {
         "type": "object",
@@ -3517,9 +4206,343 @@
           "error"
         ]
       },
+      "AdminUserStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "newThisMonth": {
+            "type": "number"
+          },
+          "newThisWeek": {
+            "type": "number"
+          },
+          "activeThisMonth": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "newThisMonth",
+          "newThisWeek",
+          "activeThisMonth"
+        ]
+      },
+      "AdminCountAmountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "count",
+          "amount"
+        ]
+      },
+      "AdminTransactionTypeStatsDto": {
+        "type": "object",
+        "properties": {
+          "income": {
+            "$ref": "#/components/schemas/AdminCountAmountDto"
+          },
+          "expense": {
+            "$ref": "#/components/schemas/AdminCountAmountDto"
+          }
+        },
+        "required": [
+          "income",
+          "expense"
+        ]
+      },
+      "AdminTransactionStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "thisMonth": {
+            "type": "number"
+          },
+          "thisMonthAmount": {
+            "type": "number"
+          },
+          "byType": {
+            "$ref": "#/components/schemas/AdminTransactionTypeStatsDto"
+          }
+        },
+        "required": [
+          "total",
+          "totalAmount",
+          "thisMonth",
+          "thisMonthAmount",
+          "byType"
+        ]
+      },
+      "AdminGoalStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "completed": {
+            "type": "number"
+          },
+          "inProgress": {
+            "type": "number"
+          },
+          "averageProgress": {
+            "type": "number"
+          },
+          "totalTargetAmount": {
+            "type": "number"
+          },
+          "totalCurrentAmount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "completed",
+          "inProgress",
+          "averageProgress",
+          "totalTargetAmount",
+          "totalCurrentAmount"
+        ]
+      },
+      "AdminSavingsBoxStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "totalSaved": {
+            "type": "number"
+          },
+          "averageAmount": {
+            "type": "number"
+          },
+          "activeBoxes": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "totalSaved",
+          "averageAmount",
+          "activeBoxes"
+        ]
+      },
+      "AdminFeedbackStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "thisMonth": {
+            "type": "number"
+          },
+          "byType": {
+            "type": "object"
+          },
+          "byStatus": {
+            "type": "object"
+          },
+          "byPriority": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "total",
+          "thisMonth",
+          "byType",
+          "byStatus",
+          "byPriority"
+        ]
+      },
+      "AdminTopReferrerDto": {
+        "type": "object",
+        "properties": {
+          "referrer_id": {
+            "type": "string"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "referrer_id",
+          "count"
+        ]
+      },
+      "AdminReferralStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalInvites": {
+            "type": "number"
+          },
+          "successfulReferrals": {
+            "type": "number"
+          },
+          "conversionRate": {
+            "type": "number"
+          },
+          "topReferrers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminTopReferrerDto"
+            }
+          }
+        },
+        "required": [
+          "totalInvites",
+          "successfulReferrals",
+          "conversionRate",
+          "topReferrers"
+        ]
+      },
+      "AdminStatsDataDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "$ref": "#/components/schemas/AdminUserStatsDto"
+          },
+          "transactions": {
+            "$ref": "#/components/schemas/AdminTransactionStatsDto"
+          },
+          "goals": {
+            "$ref": "#/components/schemas/AdminGoalStatsDto"
+          },
+          "savingsBoxes": {
+            "$ref": "#/components/schemas/AdminSavingsBoxStatsDto"
+          },
+          "feedbacks": {
+            "$ref": "#/components/schemas/AdminFeedbackStatsDto"
+          },
+          "referrals": {
+            "$ref": "#/components/schemas/AdminReferralStatsDto"
+          }
+        },
+        "required": [
+          "users",
+          "transactions",
+          "goals",
+          "savingsBoxes",
+          "feedbacks",
+          "referrals"
+        ]
+      },
+      "AdminStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminStatsDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AdminPaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total",
+          "page",
+          "limit",
+          "hasMore"
+        ]
+      },
       "UpdateFeedbackDto": {
         "type": "object",
         "properties": {}
+      },
+      "AdminFeedbackUpdateResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "AdminAnalyticsDataDto": {
+        "type": "object",
+        "properties": {
+          "deprecated": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "deprecated",
+          "message",
+          "events"
+        ]
+      },
+      "AdminAnalyticsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AdminAnalyticsDataDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
       },
       "ExportResponse": {
         "type": "object",
@@ -3655,7 +4678,161 @@
       },
       "CreateFeedbackDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "BUG_REPORT",
+            "maxLength": 40
+          },
+          "title": {
+            "type": "string",
+            "example": "Problema no extrato",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "example": "Detalhes do problema",
+            "maxLength": 10000
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "priority": {
+            "type": "string",
+            "example": "HIGH"
+          },
+          "browser_info": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true
+          },
+          "page_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "description"
+        ]
+      },
+      "FeedbackResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "browser_info": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true
+          },
+          "page_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "admin_notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "type",
+          "title",
+          "description",
+          "priority",
+          "status",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "FeedbackResponseEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/FeedbackResponseDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
+      "FeedbackListResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedbackResponseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success",
+          "data",
+          "total",
+          "page",
+          "limit",
+          "hasMore"
+        ]
       },
       "ReportsOverviewResponse": {
         "type": "object",
@@ -3672,9 +4849,119 @@
           "data"
         ]
       },
+      "ReferralRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referred_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "referred_id",
+          "created_at"
+        ]
+      },
+      "ReferralBadgeDto": {
+        "type": "object",
+        "properties": {
+          "badge_type": {
+            "type": "string"
+          },
+          "earned_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "badge_type",
+          "earned_at"
+        ]
+      },
+      "ReferralStatsDto": {
+        "type": "object",
+        "properties": {
+          "total_referrals": {
+            "type": "number"
+          },
+          "referrals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferralRecordDto"
+            }
+          },
+          "badges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferralBadgeDto"
+            }
+          }
+        },
+        "required": [
+          "total_referrals",
+          "referrals",
+          "badges"
+        ]
+      },
+      "ReferralStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReferralStatsDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
+      },
       "ProcessReferralDto": {
         "type": "object",
         "properties": {}
+      },
+      "ReferralProcessDto": {
+        "type": "object",
+        "properties": {
+          "total_referrals": {
+            "type": "number"
+          },
+          "processed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "total_referrals",
+          "processed"
+        ]
+      },
+      "ReferralProcessResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReferralProcessDto"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ]
       },
       "CreatePaymentReminderDto": {
         "type": "object",

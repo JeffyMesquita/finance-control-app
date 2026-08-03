@@ -11,7 +11,7 @@ import type { BaseActionResult } from "@/lib/types/actions";
 export async function getUserSettings(): Promise<
   BaseActionResult<UserSettings>
 > {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -43,7 +43,7 @@ export async function getUserSettings(): Promise<
 export async function updateUserSettings(
   settings: UserSettings
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
@@ -75,7 +75,7 @@ export async function updateUserSettings(
 export async function updateTheme(
   theme: string
 ): Promise<BaseActionResult<void>> {
-  const supabase = createActionClient();
+  const supabase = await createActionClient();
 
   const {
     data: { user },
