@@ -1,28 +1,19 @@
-import { Organization, WebSite, WebPage } from "schema-dts";
+import type { Organization, WebPage, WebSite } from "schema-dts";
+import { brand } from "@/lib/brand";
 
 export const organizationData: Organization = {
   "@type": "Organization",
-  name: "Financial Management System",
-  url:
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    "https://financetrack.jeffymesquita.dev",
-  logo: `${process.env.NEXT_PUBLIC_BASE_URL}/logo.png`,
-  sameAs: [
-    "https://twitter.com/yourhandle",
-    "https://linkedin.com/company/yourcompany",
-  ],
+  name: brand.name,
+  url: brand.url,
+  logo: `${brand.url}/brand/ajeitagrana-512.png`,
+  email: brand.contacts.general,
 };
 
 export const websiteData: WebSite = {
   "@type": "WebSite",
-  name: "Financial Management System",
-  url:
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    "https://financetrack.jeffymesquita.dev",
-  potentialAction: {
-    "@type": "SearchAction",
-    target: `${process.env.NEXT_PUBLIC_BASE_URL}/search?q={search_term_string}`,
-  },
+  name: brand.name,
+  url: brand.url,
+  description: brand.description,
 };
 
 export const createWebPageData = (
@@ -30,32 +21,21 @@ export const createWebPageData = (
   description: string,
   path: string,
   breadcrumbs: Array<{ name: string; path: string }>
-): WebPage => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    "https://financetrack.jeffymesquita.dev";
-
-  return {
-    "@type": "WebPage",
-    name: title,
-    description: description,
-    url: `${baseUrl}${path}`,
-    breadcrumb: {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: baseUrl,
-        },
-        ...breadcrumbs.map((crumb, index) => ({
-          "@type": "ListItem" as const,
-          position: index + 2,
-          name: crumb.name,
-          item: `${baseUrl}${crumb.path}`,
-        })),
-      ],
-    },
-  };
-};
+): WebPage => ({
+  "@type": "WebPage",
+  name: title,
+  description,
+  url: brand.url + path,
+  breadcrumb: {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: brand.name, item: brand.url },
+      ...breadcrumbs.map((crumb, index) => ({
+        "@type": "ListItem" as const,
+        position: index + 2,
+        name: crumb.name,
+        item: brand.url + crumb.path,
+      })),
+    ],
+  },
+});

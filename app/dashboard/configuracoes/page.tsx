@@ -1,18 +1,11 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
+import { Bell, DollarSign, Globe, Loader2, Moon, Save, Sun } from "lucide-react";
 
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -20,28 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Loader2,
-  Save,
-  Bell,
-  Moon,
-  Sun,
-  Globe,
-  DollarSign,
-} from "lucide-react";
-import type { UserSettings } from "@/lib/types";
+import { Switch } from "@/components/ui/switch";
 import { useProtectedRoute } from "@/hooks/use-protected-route";
+import type { UserSettings } from "@/lib/types";
+import { logger } from "@/lib/utils/logger";
 
 // Hooks TanStack Query
 import {
-  useUserSettingsQuery,
   useUpdateUserSettingsMutation,
+  useUserSettingsQuery,
 } from "@/useCases/useUserSettingsQuery";
 
 export default function ConfiguracoesPage() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
-  const { toast } = useToast();
   useProtectedRoute();
 
   // Hooks TanStack Query
@@ -86,9 +70,7 @@ export default function ConfiguracoesPage() {
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Configurações</h1>
-        <p className="text-muted-foreground">
-          Personalize sua experiência no FinanceTrack
-        </p>
+        <p className="text-muted-foreground">Personalize sua experiência no AjeitaGrana</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -108,9 +90,7 @@ export default function ConfiguracoesPage() {
               <Label htmlFor="default_currency">Moeda padrão</Label>
               <Select
                 value={settings?.default_currency || "BRL"}
-                onValueChange={(value) =>
-                  handleSelectChange("default_currency", value)
-                }
+                onValueChange={(value) => handleSelectChange("default_currency", value)}
               >
                 <SelectTrigger id="default_currency">
                   <SelectValue placeholder="Selecione uma moeda" />
@@ -128,23 +108,15 @@ export default function ConfiguracoesPage() {
               <Label htmlFor="date_format">Formato de data</Label>
               <Select
                 value={settings?.date_format || "DD/MM/YYYY"}
-                onValueChange={(value) =>
-                  handleSelectChange("date_format", value)
-                }
+                onValueChange={(value) => handleSelectChange("date_format", value)}
               >
                 <SelectTrigger id="date_format">
                   <SelectValue placeholder="Selecione um formato" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="DD/MM/YYYY">
-                    DD/MM/AAAA (31/12/2023)
-                  </SelectItem>
-                  <SelectItem value="MM/DD/YYYY">
-                    MM/DD/AAAA (12/31/2023)
-                  </SelectItem>
-                  <SelectItem value="YYYY-MM-DD">
-                    AAAA-MM-DD (2023-12-31)
-                  </SelectItem>
+                  <SelectItem value="DD/MM/YYYY">DD/MM/AAAA (31/12/2023)</SelectItem>
+                  <SelectItem value="MM/DD/YYYY">MM/DD/AAAA (12/31/2023)</SelectItem>
+                  <SelectItem value="YYYY-MM-DD">AAAA-MM-DD (2023-12-31)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -153,8 +125,7 @@ export default function ConfiguracoesPage() {
               <div className="space-y-0.5">
                 <Label htmlFor="budget_alerts">Alertas de orçamento</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receba alertas quando estiver próximo de atingir seu limite de
-                  orçamento.
+                  Receba alertas quando estiver próximo de atingir seu limite de orçamento.
                 </p>
               </div>
               <Switch
@@ -186,17 +157,13 @@ export default function ConfiguracoesPage() {
               <Bell className="h-5 w-5 text-primary" />
               Notificações
             </CardTitle>
-            <CardDescription>
-              Configure como e quando deseja receber notificações.
-            </CardDescription>
+            <CardDescription>Configure como e quando deseja receber notificações.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="email_notifications">
-                  Notificações por email
-                </Label>
+                <Label htmlFor="email_notifications">Notificações por email</Label>
                 <p className="text-sm text-muted-foreground">
                   Receba atualizações importantes por email.
                 </p>
@@ -204,17 +171,13 @@ export default function ConfiguracoesPage() {
               <Switch
                 id="email_notifications"
                 checked={settings?.email_notifications || false}
-                onCheckedChange={() =>
-                  handleSwitchChange("email_notifications")
-                }
+                onCheckedChange={() => handleSwitchChange("email_notifications")}
               />
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="app_notifications">
-                  Notificações no aplicativo
-                </Label>
+                <Label htmlFor="app_notifications">Notificações no aplicativo</Label>
                 <p className="text-sm text-muted-foreground">
                   Receba notificações dentro do aplicativo.
                 </p>
@@ -234,9 +197,7 @@ export default function ConfiguracoesPage() {
               <Globe className="h-5 w-5 text-primary" />
               Idioma e Região
             </CardTitle>
-            <CardDescription>
-              Configure suas preferências de idioma e região.
-            </CardDescription>
+            <CardDescription>Configure suas preferências de idioma e região.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -266,9 +227,7 @@ export default function ConfiguracoesPage() {
               <Moon className="h-5 w-5 text-primary" />
               Aparência
             </CardTitle>
-            <CardDescription>
-              Personalize a aparência do aplicativo.
-            </CardDescription>
+            <CardDescription>Personalize a aparência do aplicativo.</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -293,10 +252,7 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div className="mt-6 flex justify-end">
-        <Button
-          onClick={handleSettingsUpdate}
-          disabled={updateSettingsMutation.isPending}
-        >
+        <Button onClick={handleSettingsUpdate} disabled={updateSettingsMutation.isPending}>
           {updateSettingsMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

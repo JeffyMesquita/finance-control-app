@@ -2,7 +2,7 @@
 
 ## 🎯 **Visão Geral**
 
-O painel administrativo fornece uma visão completa e detalhada de todos os aspectos do seu app FinanceTrack, incluindo:
+O painel administrativo fornece uma visão completa e detalhada de todos os aspectos do seu app AjeitaGrana, incluindo:
 
 - 📊 **Métricas gerais** (usuários, transações, metas, cofrinhos)
 - 👥 **Gestão de usuários** com estatísticas detalhadas

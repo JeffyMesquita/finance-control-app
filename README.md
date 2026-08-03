@@ -1,4 +1,4 @@
-# 💸 FinanceTrack - Sistema Completo de Gestão Financeira
+# 💸 AjeitaGrana - Sistema Completo de Gestão Financeira
 
 > **Plataforma completa de controle financeiro pessoal e empresarial**, desenvolvida com foco em automação, análise inteligente e experiência do usuário excepcional.
 
@@ -9,7 +9,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 
-[🚀 Demo Ao Vivo](https://financetrack.jeffymesquita.dev) • [📋 Roadmap 2025](./docs/ROADMAP_MELHORIAS_2025.md) • [📖 Documentação](./docs/)
+[🚀 Demo Ao Vivo](https://ajeitagrana.jeffymesquita.dev) • [📋 Roadmap 2025](./docs/ROADMAP_MELHORIAS_2025.md) • [📖 Documentação](./docs/)
 
 </div>
 
@@ -17,9 +17,9 @@
 
 ## 🌟 **Visão Geral**
 
-O **FinanceTrack** é uma solução completa de gestão financeira que vai muito além de um simples controle de gastos. É uma plataforma inteligente que combina automação, análise preditiva e uma interface moderna para transformar a forma como você gerencia suas finanças.
+O **AjeitaGrana** é uma solução completa de gestão financeira que vai muito além de um simples controle de gastos. É uma plataforma inteligente que combina automação, análise preditiva e uma interface moderna para transformar a forma como você gerencia suas finanças.
 
-### 🎯 **Por que FinanceTrack?**
+### 🎯 **Por que AjeitaGrana?**
 
 - 🧠 **Inteligência Financeira**: Analytics avançadas e insights automáticos
 - 🔄 **Automação Total**: Débitos recorrentes, lembretes e relatórios automáticos
@@ -130,7 +130,7 @@ Performance Monitor # Core Web Vitals
 
 ## 📱 **Progressive Web App**
 
-O FinanceTrack é uma **PWA completa** com:
+O AjeitaGrana é uma **PWA completa** com:
 
 - 📱 **Instalação**: Funciona como app nativo
 - 🔄 **Offline-First**: Sincronização automática quando online
@@ -259,7 +259,7 @@ Adoramos contribuições! Veja nosso [Guia de Contribuição](./CONTRIBUTING.md)
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/jeffymesquita/finance-control-app/issues)
 - 💬 **Discussões**: [GitHub Discussions](https://github.com/jeffymesquita/finance-control-app/discussions)
-- 📧 **Email**: contato@jeffymesquita.dev
+- 📧 **Email**: je_2742@hotmail.com
 - 💼 **LinkedIn**: [@jeffymesquita](https://www.linkedin.com/in/jeffymesquita/)
 
 ### **Documentação**

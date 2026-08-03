@@ -3218,8 +3218,8 @@
     }
   },
   "info": {
-    "title": "Finance Control API",
-    "description": "API de controle financeiro",
+    "title": "AjeitaGrana API",
+    "description": "API do AjeitaGrana para controle financeiro pessoal",
     "version": "1.0",
     "contact": {}
   },

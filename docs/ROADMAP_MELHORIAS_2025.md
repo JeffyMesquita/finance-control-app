@@ -1,4 +1,4 @@
-# 🚀 ROADMAP DE MELHORIAS E IMPLEMENTAÇÕES - FinanceTrack 2025
+# 🚀 ROADMAP DE MELHORIAS E IMPLEMENTAÇÕES - AjeitaGrana 2025
 
 > **Documento Estratégico**: Planejamento completo de melhorias, novas funcionalidades e otimizações para os próximos 6-12 meses de desenvolvimento.
 
@@ -33,7 +33,7 @@
 - 📈 Logs e monitoramento integrados
 - 🔒 Timeout configurável (vs 1 segundo dos webhooks padrão)
 
-**Casos de Uso para FinanceTrack**:
+**Casos de Uso para AjeitaGrana**:
 
 - ✅ Débitos recorrentes automáticos
 - ✅ Lembretes de vencimentos

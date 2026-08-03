@@ -1,5 +1,5 @@
-import * as React from "react";
-import { Feedback } from "@/lib/types/feedback";
+import type * as React from "react";
+import type { Feedback } from "@/lib/types/feedback";
 
 interface FeedbackNotificationEmailProps {
   feedback: Feedback;
@@ -28,9 +28,10 @@ const priorityColors = {
   URGENT: "#DC2626",
 };
 
-export const FeedbackNotificationEmail: React.FC<
-  Readonly<FeedbackNotificationEmailProps>
-> = ({ feedback, baseUrl }) => {
+export const FeedbackNotificationEmail: React.FC<Readonly<FeedbackNotificationEmailProps>> = ({
+  feedback,
+  baseUrl,
+}) => {
   return (
     <div
       style={{
@@ -69,7 +70,7 @@ export const FeedbackNotificationEmail: React.FC<
             opacity: "0.9",
           }}
         >
-          FinanceTrack - Sistema de Controle Financeiro
+          AjeitaGrana - Sistema de Controle Financeiro
         </p>
       </div>
 
@@ -187,8 +188,7 @@ export const FeedbackNotificationEmail: React.FC<
               </p>
             )}
             <p style={{ margin: "4px 0" }}>
-              <strong>Data:</strong>{" "}
-              {new Date(feedback.created_at).toLocaleString("pt-BR")}
+              <strong>Data:</strong> {new Date(feedback.created_at).toLocaleString("pt-BR")}
             </p>
           </div>
         </div>
@@ -219,8 +219,7 @@ export const FeedbackNotificationEmail: React.FC<
                 <strong>Navegador:</strong> {feedback.browser_info.userAgent}
               </p>
               <p style={{ margin: "4px 0" }}>
-                <strong>Resolução:</strong>{" "}
-                {feedback.browser_info.viewport.width}x
+                <strong>Resolução:</strong> {feedback.browser_info.viewport.width}x
                 {feedback.browser_info.viewport.height}
               </p>
               <p style={{ margin: "4px 0" }}>
@@ -251,7 +250,7 @@ export const FeedbackNotificationEmail: React.FC<
             Acesse o painel administrativo para gerenciar este feedback:
           </p>
           <a
-            href={`${baseUrl || "https://financetrack.jeffymesquita.dev"}/dashboard/admin/feedbacks/${feedback.id}`}
+            href={`${baseUrl || "https://ajeitagrana.jeffymesquita.dev"}/dashboard/admin/feedbacks/${feedback.id}`}
             style={{
               display: "inline-block",
               backgroundColor: "#3b82f6",
@@ -284,7 +283,7 @@ export const FeedbackNotificationEmail: React.FC<
             color: "#6b7280",
           }}
         >
-          Este email foi enviado automaticamente pelo sistema FinanceTrack.
+          Este email foi enviado automaticamente pelo sistema AjeitaGrana.
           <br />
           Não responda a este email.
         </p>
