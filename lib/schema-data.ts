@@ -5,7 +5,7 @@ export const organizationData: Organization = {
   "@type": "Organization",
   name: brand.name,
   url: brand.url,
-  logo: `${brand.url}${brand.assets.logoHorizontalDark}`,
+  logo: `${brand.url}${brand.assets.icon512}`,
   email: brand.contacts.general,
   contactPoint: {
     "@type": "ContactPoint",
