@@ -3,7 +3,7 @@
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { HeroVisual } from "@/components/hero-visual";
 import { Logo } from "@/components/logo";
@@ -38,6 +38,7 @@ export default function LoginPage() {
       ? (process.env.NEXT_PUBLIC_E2E_RECAPTCHA_TOKEN ?? null)
       : null;
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(e2eRecaptchaToken);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   useEffect(() => {
     localStorage.removeItem("googleLogin");
@@ -107,8 +108,13 @@ export default function LoginPage() {
 
   const handleRecaptcha = (token: string | null) => {
     setRecaptchaToken(token);
+    if (token) setError(null);
   };
 
+  const resetRecaptcha = () => {
+    recaptchaRef.current?.reset();
+    if (!e2eRecaptchaToken) setRecaptchaToken(null);
+  };
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -137,18 +143,31 @@ export default function LoginPage() {
     } catch (error) {
       logger.error("Erro na autenticação:", error as Error);
       setError(error instanceof Error ? error.message : "Erro ao autenticar.");
+      resetRecaptcha();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    if (!recaptchaToken) {
+      setError("Confirme o reCAPTCHA antes de continuar.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    const referralId = localStorage.getItem("referral_id") ?? undefined;
-    window.location.assign(sessionApi.googleLoginUrl(referralId));
+    try {
+      const referralId = localStorage.getItem("referral_id") ?? undefined;
+      await sessionApi.prepareGoogleLogin({ recaptchaToken, referralId });
+      window.location.assign(sessionApi.googleLoginUrl());
+    } catch (error) {
+      logger.error("Erro ao iniciar autenticação Google:", error as Error);
+      setError(error instanceof Error ? error.message : "Não foi possível iniciar o Google.");
+      resetRecaptcha();
+      setIsLoading(false);
+    }
   };
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("pixAlertDismissed", "false");
@@ -259,7 +278,7 @@ export default function LoginPage() {
                 <Button
                   className="w-full flex items-center justify-center gap-2 bg-white text-gray-800 border hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
                   onClick={handleGoogleLogin}
-                  disabled={isLoading}
+                  disabled={isLoading || !recaptchaToken}
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -293,8 +312,11 @@ export default function LoginPage() {
                     </p>
                   ) : (
                     <ReCAPTCHA
+                      ref={recaptchaRef}
                       sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ""}
                       onChange={handleRecaptcha}
+                      onExpired={resetRecaptcha}
+                      onErrored={resetRecaptcha}
                     />
                   )}
                 </div>

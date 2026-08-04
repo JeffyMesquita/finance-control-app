@@ -18,7 +18,7 @@ export function useAdminGuard() {
       return;
     }
 
-    if (user.role === "ADMIN") {
+    if (user.role === "ADMIN" || user.app_metadata?.role?.toLowerCase() === "admin") {
       setIsAdmin(true);
     } else {
       // Usuário não é admin, redirecionar

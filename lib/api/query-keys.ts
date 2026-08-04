@@ -7,6 +7,7 @@ export const queryKeys = {
     settings: ["profile", "settings"] as const,
   },
   dashboard: {
+    overview: ["dashboard", "overview"] as const,
     cards: ["dashboard", "cards"] as const,
     summary: ["dashboard", "summary"] as const,
     monthly: ["dashboard", "monthly"] as const,

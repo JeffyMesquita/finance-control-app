@@ -119,6 +119,31 @@
         ]
       }
     },
+    "/auth/google/prepare": {
+      "post": {
+        "operationId": "AuthController_prepareGoogle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Function"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Prepara o login Google após validação do reCAPTCHA",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/auth/google": {
       "get": {
         "operationId": "AuthController_google",
@@ -1681,6 +1706,25 @@
         ]
       }
     },
+    "/dashboard/overview": {
+      "get": {
+        "operationId": "DashboardController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
     "/dashboard/monthly": {
       "get": {
         "operationId": "DashboardController_getMonthlyData",
@@ -1788,6 +1832,25 @@
     "/savings-boxes/list": {
       "get": {
         "operationId": "SavingsBoxController_getSavingsBoxes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/overview": {
+      "get": {
+        "operationId": "SavingsBoxController_overview",
         "parameters": [],
         "responses": {
           "200": {

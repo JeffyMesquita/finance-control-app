@@ -1,7 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { dashboardDataQueryOptions } from "@/lib/api/query-options";
+import {
+  type DashboardOverviewData,
+  dashboardDataQueryOptions,
+  dashboardOverviewQueryOptions,
+} from "@/lib/api/query-options";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { DashboardData } from "@/lib/types/actions";
 
 interface DashboardDataQueryOptions {
@@ -13,10 +18,20 @@ interface DashboardDataQueryOptions {
 export const DASHBOARD_DATA_QUERY_KEY = "DASHBOARD_DATA_QUERY_KEY";
 
 export function useDashboardDataQuery(options: DashboardDataQueryOptions = {}) {
-  const query = useQuery({
-    ...dashboardDataQueryOptions(),
-    enabled: options.enabled !== false,
+  const enabled = options.enabled !== false;
+  const overviewOptions = dashboardOverviewQueryOptions();
+  const cardsOptions = dashboardDataQueryOptions();
+
+  const nestQuery = useQuery<DashboardOverviewData, Error, DashboardData>({
+    ...(overviewOptions as unknown as UseQueryOptions<DashboardOverviewData, Error, DashboardData>),
+    select: (data) => data.cards,
+    enabled: enabled && isNestDomainEnabled("dashboard"),
   });
+  const legacyQuery = useQuery<DashboardData>({
+    ...(cardsOptions as unknown as UseQueryOptions<DashboardData>),
+    enabled: enabled && !isNestDomainEnabled("dashboard"),
+  });
+  const query = isNestDomainEnabled("dashboard") ? nestQuery : legacyQuery;
 
   const onSuccess = useCallback(
     (data: DashboardData) => options.onSuccess?.(data),

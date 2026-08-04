@@ -257,7 +257,8 @@ export function ReportsOverview() {
 
       {/* Estatísticas de Metas */}
       {goalsStats && (
-        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm relative overflow-hidden min-h-[228px] border-[#047857]/30">
+          <div className="absolute inset-x-0 top-0 h-1 bg-[#047857]" aria-hidden="true" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="text-sm font-medium">Metas Financeiras</CardTitle>
@@ -300,7 +301,8 @@ export function ReportsOverview() {
 
       {/* Estatísticas de Cofrinhos */}
       {savingsBoxStats && (
-        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm relative overflow-hidden min-h-[228px] border-[#047857]/30">
+          <div className="absolute inset-x-0 top-0 h-1 bg-[#047857]" aria-hidden="true" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="text-sm font-medium">Cofrinhos</CardTitle>
@@ -345,7 +347,8 @@ export function ReportsOverview() {
 
       {/* Análise de Integração */}
       {goalsStats && savingsBoxStats && (
-        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm">
+        <Card className="bg-stone-100 dark:bg-stone-900 shadow-sm relative overflow-hidden min-h-[228px] border-[#047857]/30">
+          <div className="absolute inset-x-0 top-0 h-1 bg-[#047857]" aria-hidden="true" />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle className="text-sm font-medium">Análise de Integração</CardTitle>
