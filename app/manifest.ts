@@ -17,13 +17,13 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["finance", "productivity"],
     icons: [
       {
-        src: "/brand/ajeitagrana-192.png",
+        src: brand.assets.icon192,
         sizes: "192x192",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/brand/ajeitagrana-512.png",
+        src: brand.assets.icon512,
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
@@ -34,13 +34,13 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Dashboard",
         short_name: "Dashboard",
         url: "/dashboard",
-        icons: [{ src: "/brand/ajeitagrana-192.png", sizes: "192x192" }],
+        icons: [{ src: brand.assets.icon192, sizes: "192x192" }],
       },
       {
         name: "Nova transação",
         short_name: "Transação",
         url: "/transactions",
-        icons: [{ src: "/brand/ajeitagrana-192.png", sizes: "192x192" }],
+        icons: [{ src: brand.assets.icon192, sizes: "192x192" }],
       },
     ],
   };
