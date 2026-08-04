@@ -37,8 +37,8 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [{ src: brand.assets.icon192, sizes: "192x192" }],
       },
       {
-        name: "Nova transação",
-        short_name: "Transação",
+        name: "Registrar transação",
+        short_name: "Movimento",
         url: "/transactions",
         icons: [{ src: brand.assets.icon192, sizes: "192x192" }],
       },

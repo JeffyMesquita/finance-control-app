@@ -195,14 +195,14 @@ export function LandingPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-400 px-6 py-3.5 font-semibold text-[#102319] transition-transform hover:-translate-y-1"
                 href="/login?mode=register"
               >
-                Começar grátis
+                Criar minha conta
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3.5 font-semibold text-white transition-colors hover:border-emerald-300 hover:text-emerald-300"
                 href="#como-funciona"
               >
-                Ver como funciona
+                Ver o produto
               </Link>
             </div>
             <div className="mt-10 flex flex-wrap gap-x-5 gap-y-3 text-sm text-white/55">
@@ -333,7 +333,7 @@ export function LandingPage() {
             className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-[#047857] px-6 py-3.5 font-semibold text-white transition-transform hover:-translate-y-1"
             href="/login?mode=register"
           >
-            Começar grátis
+            Criar minha conta
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
