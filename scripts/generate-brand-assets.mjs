@@ -33,8 +33,8 @@ await page.setContent(
     symbol.replace("<svg ", '<svg width="200" height="200" ') +
     "</div>" +
     '<div><p style="margin:0 0 22px;color:#6ee7b7;font-size:22px;font-weight:700;letter-spacing:4px">AJEITAGRANA</p>' +
-    '<h1 style="margin:0;max-width:760px;font-size:62px;line-height:1.04;letter-spacing:-2px">Ajeite sua grana.<br>FaÃ§a seus planos avanÃ§arem.</h1>' +
-    '<p style="margin:26px 0 0;max-width:680px;font-size:25px;line-height:1.35;color:#b9c8bf">OrganizaÃ§Ã£o financeira pessoal, sem planilha e sem complicaÃ§Ã£o.</p></div>' +
+    '<h1 style="margin:0;max-width:760px;font-size:62px;line-height:1.04;letter-spacing:-2px">Ajeite sua grana.<br>Faça seus planos avançarem.</h1>' +
+    '<p style="margin:26px 0 0;max-width:680px;font-size:25px;line-height:1.35;color:#b9c8bf">Organização financeira pessoal, sem planilha e sem complicação.</p></div>' +
     "</main></body>"
 );
 await page.screenshot({ path: join(root, "../app/opengraph-image.png") });
