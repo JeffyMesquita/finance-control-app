@@ -13,4 +13,14 @@ export const brand = {
     offWhite: "#F7F8F4",
     emerald: "#047857",
   },
+  assets: {
+    logoHorizontalDark: "/brand/ajeitagrana/marketing/logo-horizontal-dark.png",
+    symbol: "/android-chrome-512x512.png",
+    favicon: "/favicon.ico",
+    favicon16: "/favicon-16x16.png",
+    favicon32: "/favicon-32x32.png",
+    icon180: "/apple-touch-icon.png",
+    icon192: "/android-chrome-192x192.png",
+    icon512: "/android-chrome-512x512.png",
+  },
 } as const;

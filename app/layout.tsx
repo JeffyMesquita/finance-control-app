@@ -49,11 +49,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/brand/ajeitagrana-symbol.svg", type: "image/svg+xml" },
-      { url: "/brand/ajeitagrana-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/ajeitagrana-96.png", sizes: "96x96", type: "image/png" },
+      { url: brand.assets.favicon, sizes: "any" },
+      { url: brand.assets.favicon16, sizes: "16x16", type: "image/png" },
+      { url: brand.assets.favicon32, sizes: "32x32", type: "image/png" },
     ],
-    apple: { url: "/brand/ajeitagrana-180.png", sizes: "180x180" },
+    apple: { url: brand.assets.icon180, sizes: "180x180" },
   },
   appleWebApp: {
     capable: true,
