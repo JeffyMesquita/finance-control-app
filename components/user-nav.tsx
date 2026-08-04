@@ -42,14 +42,15 @@ export function UserNav({ user }: { user?: ApiSession }) {
 
   const displayName = user?.user_metadata?.full_name?.trim() || user?.email || "Usuário";
   const userEmail = user?.email || "";
+  const nameParts = displayName.split(/\s+/).filter(Boolean);
   const initials =
-    displayName
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "U";
+    (nameParts.length > 1
+      ? nameParts
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join("")
+      : displayName.slice(0, 2)
+    ).toUpperCase() || "U";
   const avatarUrl = user?.user_metadata?.avatar_url;
   const [avatarError, setAvatarError] = useState(false);
   const [openAlertModal, setOpenAlertModal] = useState(false);
