@@ -2,8 +2,8 @@
 
 > Operational tracker for the gradual migration. This file is intentionally mirrored in `finance-control-app` and `finance-control-backend`; update both copies in the same delivery.
 >
-> Last review: 2026-08-01
-> Branch: `codex/complete-next-nest-migration`
+> Last review: 2026-08-04
+> Branches: backend `feat/harden-auth-redis-financial-reads`; frontend `feat/strengthen-ajeitagrana-landing`
 > Scope: local work only. No remote migration, deploy, push, or PR is authorized by this tracker.
 
 ## Marking rules
@@ -69,23 +69,23 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 
 ### Investments
 
-- [~] Nest investments expose list, detail, summary, category stats, CRUD and transaction history/mutations with snake_case wire fields and cent conversion.
-- [~] Additive security-invoker RPCs cover initial aporte and locked balance mutations; local PgTAP/RLS and authenticated E2E proof are still required.
-- [~] Frontend has the investments flag path, OpenAPI-generated contract, TanStack query keys, mutations and a legacy fallback; parity fixtures and three-browser E2E remain pending.
+- [x] Nest investments expose list, detail, summary, category stats, CRUD and transaction history/mutations with snake_case wire fields and cent conversion.
+- [x] Additive security-invoker RPCs cover initial aporte and locked balance mutations; local PgTAP/RLS and authenticated E2E proof passed.
+- [x] Frontend has the investments flag path, OpenAPI-generated contract, TanStack query keys, mutations and a legacy fallback; the three-browser E2E passed.
 
 ### Feedback, referrals and administration
 
-- [~] Authenticated Nest feedback create/list/detail, referral stats/process idempotency and badge uniqueness migration are implemented; e-mail port and local authenticated proof remain pending.
-- [~] Admin stats, feedback moderation, referrals and deprecated analytics endpoints use service-role access behind AdminGuard; integration tests and full UI migration remain pending.
-- [~] Active payment-reminder creation now uses the Nest endpoint from the modal; local RLS/E2E proof and removal of dead Supabase prototypes remain pending.
+- [x] Authenticated Nest feedback create/list/detail, referral stats/process idempotency and badge uniqueness migration passed local authenticated proof with fake/noop e-mail adapters.
+- [x] Admin stats, feedback moderation, referrals and deprecated analytics endpoints passed authenticated local proof behind AdminGuard; service_role remained server-side.
+- [x] Active payment-reminder creation now uses the Nest endpoint from the modal; ownership and authenticated local E2E proof passed.
 
 ## Local validation gate
 
 - [x] Loopback-only preflight passed against local Supabase; no Docker or remote service was started by the test runner.
-- [x] `pnpm db:test` passed: 94 PgTAP/RLS/RPC assertions across finance and goals/savings isolation, atomicity and ownership.
-- [x] `pnpm test:e2e:local` in the backend passed: 6 suites / 7 authenticated tests, including A/B ownership and concurrent savings RPCs.
+- [x] `pnpm db:test` passed: 3 files / 131 PgTAP/RLS/RPC tests across all financial domains, isolation, atomicity and ownership.
+- [x] `pnpm test:e2e:local` in the backend passed: 7 suites / 11 authenticated tests, including remaining domains, A/B ownership and concurrent savings RPCs.
 - [x] Backend Jest passed: 70 suites / 479 tests, including goals/savings, PDF and dashboard/report/export parity fixtures.
-- [x] Playwright `e2e/goals-savings.spec.ts` passed: 3 tests in Chromium, Firefox and WebKit against external local Nest/Next servers; the serial journey validates goals, boxes, movements, balances, history and logout.
+- [x] Playwright passed all four local journeys in Chromium, Firefox and WebKit: 4/4 each (12 tests total); investments and remaining domains now include logout and cleanup proof.
 - [x] `pnpm contracts:check` passed after synchronizing the generated frontend schema.
 - [~] Biome global baseline is measured and did not increase: backend `HEAD 331 errors / 556 warnings` -> current `192 / 553`; frontend `HEAD 532 / 331` -> current `531 / 330`. All touched TypeScript files pass targeted Biome; legacy global violations remain.
 
@@ -99,8 +99,8 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 ## Release gate
 
 - [x] Local Supabase migrations/RLS validated.
-- [x] Backend: Node/pnpm 10 typecheck, build, Jest (70 suites/479 tests), authenticated E2E (6/7), PgTAP (94), PDF/parity fixtures and OpenAPI generation/check are green; global Biome baseline remains [~].
-- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest (3 files/6 tests), build and goals/savings Playwright (3 browsers) are green; global Biome baseline remains [~].
+- [x] Backend: typecheck, build, Jest, authenticated E2E (7 suites/11 tests), `db:test` (3 files/131 tests), PDF/parity fixtures and OpenAPI check are green; global Biome baseline remains [~].
+- [x] Frontend: targeted Biome, typecheck, contracts check, Vitest, build and all four Playwright journeys in Chromium/Firefox/WebKit are green; global Biome baseline remains [~].
 - [ ] Staging sequence approved: migrations/RLS -> Nest -> frontend -> per-domain flag activation.
 - [ ] Production authorization explicitly granted. This item remains unchecked by default.
 
@@ -129,3 +129,4 @@ Do not move an item to `[x]` without adding its command/test evidence in the **D
 | 2026-08-01 | Investment/feedback/referral contract cut | backend `pnpm typecheck`, `pnpm build`, `pnpm openapi:check`, targeted Biome and Jest 72 suites / 486 tests; frontend `pnpm contracts:check`, `pnpm typecheck`, `pnpm build`, targeted Biome and Vitest 3 files / 6 tests | OpenAPI request/response schemas, PDF-safe feedback notification adapters and referral TanStack Query path are green; `pnpm e2e:preflight` remains blocked because Docker Desktop/Supabase local is stopped, so investments and remaining-domain checkboxes stay `[~]`. |
 | 2026-08-01 | Deploy runtime compatibility | frontend `pnpm build` with production guards + backend/ frontend `engines.node >=20.9.0` | Next production build passed without public Supabase variables; `/auth/debug` and `/auth/test-trigger` stay dynamic and return not-found in production; Vercel remains production and Render frontend remains optional validation. |
 | 2026-08-01 | Admin contract + production smoke gate | backend `pnpm openapi:check`, `pnpm typecheck`, `pnpm build`, Jest 72 suites / 486 tests; frontend `pnpm contracts:check`, `pnpm typecheck`, `pnpm exec node --check scripts/smoke-production.mjs` | Admin stats/feedback/referrals/analytics now have OpenAPI response schemas and validated pagination; smoke script is ready but remains unexecuted until a Vercel URL is supplied; local Supabase/browser proof remains pending. |
+| 2026-08-04 | Local migration closure | `pnpm db:test` (3 files / 131 tests); `pnpm test:e2e:local` (7 suites / 11 tests); frontend `pnpm build:e2e`; `pnpm exec playwright test --project=chromium` (4 passed), `--project=firefox` (4 passed), `--project=webkit` (4 passed) | Investments, feedback, referrals, administration and payment reminders passed local authenticated proof. No remote service, public teardown endpoint or real e-mail was used. |
