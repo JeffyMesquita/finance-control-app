@@ -1,9 +1,10 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { BellPlus, LogOut, MessageSquare, Moon, Settings, Sun, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertReminderModal } from "@/components/alert-reminder-modal";
 import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,11 +29,13 @@ export function UserNav({ user }: { user?: ApiSession }) {
   };
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     try {
       setTheme("dark");
       await sessionApi.logout();
+      queryClient.clear();
       router.push("/login");
       router.refresh();
     } catch (error) {
@@ -54,6 +57,10 @@ export function UserNav({ user }: { user?: ApiSession }) {
   const avatarUrl = user?.user_metadata?.avatar_url;
   const [avatarError, setAvatarError] = useState(false);
   const [openAlertModal, setOpenAlertModal] = useState(false);
+
+  useEffect(() => {
+    if (avatarUrl) setAvatarError(false);
+  }, [avatarUrl]);
 
   return (
     <>

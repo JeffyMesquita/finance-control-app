@@ -4,6 +4,7 @@ import { queryKeys } from "@/lib/api/query-keys";
 
 export function invalidateFinancialQueries(queryClient: QueryClient) {
   void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.cards });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.overview });
   void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.summary });
   void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.monthly });
   void queryClient.invalidateQueries({

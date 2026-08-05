@@ -35,7 +35,7 @@ export function useExpenseBreakdownQuery(options: ExpenseBreakdownQueryOptions =
   });
   const legacyQuery = useQuery<ExpenseBreakdownItem[]>({
     ...(breakdownOptions as unknown as UseQueryOptions<ExpenseBreakdownItem[]>),
-    enabled: enabled && !isNestDomainEnabled("dashboard"),
+    enabled: enabled && (!isNestDomainEnabled("dashboard") || month === "previous"),
   });
   const query = isNestDomainEnabled("dashboard") && month === "current" ? nestQuery : legacyQuery;
 

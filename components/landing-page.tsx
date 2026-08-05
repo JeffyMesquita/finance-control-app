@@ -157,7 +157,7 @@ export function LandingPage() {
             <nav aria-label="Navegação principal" className="flex items-center gap-2 text-sm">
               <Link
                 className="hidden px-4 py-2 text-white/65 transition-colors hover:text-white sm:inline-flex"
-                href="#como-funciona"
+                href="#recursos"
               >
                 Como funciona
               </Link>
@@ -200,7 +200,7 @@ export function LandingPage() {
               </Link>
               <Link
                 className="inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3.5 font-semibold text-white transition-colors hover:border-emerald-300 hover:text-emerald-300"
-                href="#como-funciona"
+                href="#recursos"
               >
                 Ver o produto
               </Link>

@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { GoalData } from "@/lib/types/actions";
 import { logger } from "@/lib/utils/logger";
 
 // Hooks TanStack Query
@@ -38,30 +39,7 @@ type ViewMode = "grid" | "list";
 type SortBy = "name" | "progress" | "target_date" | "target_amount" | "created";
 type FilterStatus = "all" | "active" | "completed" | "overdue";
 
-type Goal = {
-  id: string;
-  name: string;
-  target_amount: number;
-  current_amount: number;
-  start_date: string;
-  target_date: string;
-  category_id: string | null;
-  account_id: string;
-  savings_box_id: string | null;
-  is_completed: boolean;
-  user_id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  account?: {
-    id: string;
-    name: string;
-  };
-  savings_box?: {
-    id: string;
-    name: string;
-    color: string;
-  };
-};
+type Goal = GoalData;
 
 export default function GoalsPage() {
   // Hooks TanStack Query
@@ -93,7 +71,7 @@ export default function GoalsPage() {
   const handleDeleteGoal = (id: string) => {
     const goal = goals.find((g) => g.id === id);
     if (goal) {
-      setGoalToDelete(goal as unknown as Goal);
+      setGoalToDelete(goal);
       setIsDeleteAlertOpen(true);
     }
   };
@@ -404,7 +382,7 @@ export default function GoalsPage() {
           {filteredAndSortedGoals.map((goal) => (
             <GoalCard
               key={goal.id}
-              goal={goal as unknown as Goal}
+              goal={goal}
               onEdit={handleEditGoal}
               onDelete={handleDeleteGoal}
               onContribute={handleContributeToGoal}
@@ -452,8 +430,8 @@ export default function GoalsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação excluirá permanentemente a meta "{goalToDelete?.name}". Esta ação não pode
-              ser desfeita.
+              Esta ação excluirá permanentemente a meta &quot;{goalToDelete?.name}&quot;. Esta ação
+              não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

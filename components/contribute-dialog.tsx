@@ -36,14 +36,14 @@ type Goal = {
   target_amount: number;
   current_amount: number;
   target_date: string;
-  account_id: string;
+  account_id?: string | null;
   is_completed: boolean;
   savings_box_id: string | null;
   savings_box?: {
     id: string;
     name: string;
     color: string;
-  };
+  } | null;
 };
 
 interface ContributeDialogProps {

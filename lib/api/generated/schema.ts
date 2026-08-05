@@ -1473,7 +1473,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Function: Record<string, never>;
+        LoginRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+        };
+        RegisterRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+            /**
+             * Format: uuid
+             * @description Identificador do usu?rio que fez a indica??o (first-touch)
+             */
+            referralId?: string;
+        };
+        LegacyEmailAuthRequestDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+            /** @description Adaptador tempor?rio para o fluxo legado */
+            isRegister: boolean;
+        };
+        GooglePrepareRequestDto: {
+            /** @description Token emitido pelo reCAPTCHA */
+            recaptchaToken: string;
+            /**
+             * Format: uuid
+             * @description Identificador do indicador capturado no first-touch
+             */
+            referralId?: string;
+        };
         CreateAccountRequestDto: {
             /** @example Conta principal */
             name: string;
@@ -2066,7 +2102,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Function"];
+                "application/json": components["schemas"]["LoginRequestDto"];
             };
         };
         responses: {
@@ -2087,7 +2123,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Function"];
+                "application/json": components["schemas"]["RegisterRequestDto"];
             };
         };
         responses: {
@@ -2108,7 +2144,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Function"];
+                "application/json": components["schemas"]["LegacyEmailAuthRequestDto"];
             };
         };
         responses: {
@@ -2129,7 +2165,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Function"];
+                "application/json": components["schemas"]["GooglePrepareRequestDto"];
             };
         };
         responses: {
@@ -3181,7 +3217,22 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @example true */
+                        success: boolean;
+                        data: {
+                            cards: {
+                                [key: string]: unknown;
+                            };
+                            expenseBreakdown: {
+                                name?: string;
+                                color?: string;
+                                value?: number;
+                            }[];
+                        };
+                    };
+                };
             };
         };
     };
@@ -3289,7 +3340,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @example true */
+                        success: boolean;
+                        data: {
+                            stats: {
+                                [key: string]: unknown;
+                            };
+                            summary: {
+                                [key: string]: unknown;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
             };
         };
     };
