@@ -1488,7 +1488,7 @@ export interface components {
             recaptchaToken: string;
             /**
              * Format: uuid
-             * @description Identificador do usu?rio que fez a indica??o (first-touch)
+             * @description Identificador do usuário que fez a indicação (first-touch)
              */
             referralId?: string;
         };

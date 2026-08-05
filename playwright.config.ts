@@ -1,13 +1,16 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
+const configDir = dirname(fileURLToPath(import.meta.url));
+const backendDir = resolve(configDir, "../finance-control-backend");
 const frontendUrl = "http://127.0.0.1:3000";
 const backendUrl = "http://127.0.0.1:3001";
 const recaptchaToken = process.env.E2E_RECAPTCHA_TEST_TOKEN ?? "local-e2e-recaptcha-token";
 
 function loadLocalE2eEnv(): Record<string, string> {
-  const envPath = resolve("../finance-control-backend/.env.e2e");
+  const envPath = resolve(backendDir, ".env.e2e");
   try {
     return Object.fromEntries(
       readFileSync(envPath, "utf8")
@@ -15,7 +18,7 @@ function loadLocalE2eEnv(): Record<string, string> {
         .filter((line) => line.trim() && !line.trim().startsWith("#"))
         .map((line) => {
           const separator = line.indexOf("=");
-          if (separator < 1) return ["", ""];
+          if (separator < 1) throw new Error(`Entrada inválida em ${envPath}`);
           const key = line.slice(0, separator).trim();
           const value = line
             .slice(separator + 1)
@@ -25,12 +28,35 @@ function loadLocalE2eEnv(): Record<string, string> {
         })
         .filter(([key]) => key.length > 0)
     );
-  } catch {
-    return {};
+  } catch (error) {
+    throw new Error(`Nao foi possivel carregar ${envPath}`, { cause: error });
   }
 }
 
 const localE2eEnv = loadLocalE2eEnv();
+
+const requiredLocalKeys = [
+  "SUPABASE_URL",
+  "SUPABASE_PUBLISHABLE_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "REFERRAL_COOKIE_SECRET",
+] as const;
+for (const key of requiredLocalKeys) {
+  if (!localE2eEnv[key]) {
+    throw new Error(`Variável ${key} ausente em ${resolve(backendDir, ".env.e2e")}`);
+  }
+}
+
+for (const key of ["SUPABASE_URL", "PUBLIC_APP_URL", "CORS_ORIGINS"] as const) {
+  const value = localE2eEnv[key];
+  if (!value) continue;
+  for (const rawUrl of value.split(",")) {
+    const url = new URL(rawUrl.trim());
+    if (!["127.0.0.1", "localhost", "::1"].includes(url.hostname)) {
+      throw new Error(`URL não local em ${key}: ${url.origin}`);
+    }
+  }
+}
 
 export default defineConfig({
   testDir: "./e2e",
@@ -46,7 +72,8 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: "pnpm --dir ../finance-control-backend start:prod",
+      command: "pnpm start:prod",
+      cwd: backendDir,
       env: {
         ...localE2eEnv,
         NODE_ENV: "test",

@@ -3382,6 +3382,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "ft_access"
+      },
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
       }
     },
     "schemas": {
@@ -3424,7 +3429,7 @@
           },
           "referralId": {
             "type": "string",
-            "description": "Identificador do usu?rio que fez a indica??o (first-touch)",
+            "description": "Identificador do usuário que fez a indicação (first-touch)",
             "format": "uuid"
           }
         },

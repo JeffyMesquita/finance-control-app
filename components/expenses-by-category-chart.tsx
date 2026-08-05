@@ -108,6 +108,8 @@ export function ExpensesByCategoryChart({
 
   if (error || !expenseData) return null;
 
+  const categoryKeyCounts = new Map<string, number>();
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -139,9 +141,12 @@ export function ExpensesByCategoryChart({
                 <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value">
-                  {expenseData.map((entry: ExpenseBreakdownItem) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
+                  {expenseData.map((entry: ExpenseBreakdownItem) => {
+                    const baseKey = `${entry.name}-${entry.color}`;
+                    const occurrence = categoryKeyCounts.get(baseKey) ?? 0;
+                    categoryKeyCounts.set(baseKey, occurrence + 1);
+                    return <Cell key={`${baseKey}-${occurrence}`} fill={entry.color} />;
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
