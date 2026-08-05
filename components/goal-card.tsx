@@ -1,44 +1,51 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  Edit,
-  Trash,
-  Target,
-  Calendar,
-  TrendingUp,
-  CheckCircle,
   AlertCircle,
-  PiggyBank,
+  Calendar,
+  CheckCircle,
+  Edit,
   Link2,
+  PiggyBank,
+  Trash,
+  TrendingUp,
   Unlink,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { GoalData } from "@/lib/types/actions";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
-interface GoalCardProps {
-  goal: any;
-  onEdit: (goal: any) => void;
+type GoalCardGoal = Pick<
+  GoalData,
+  | "id"
+  | "name"
+  | "target_amount"
+  | "current_amount"
+  | "target_date"
+  | "is_completed"
+  | "savings_box_id"
+> & {
+  savings_box?: GoalData["savings_box"];
+};
+
+interface GoalCardProps<T extends GoalCardGoal> {
+  goal: T;
+  onEdit: (goal: T) => void;
   onDelete: (id: string) => void;
-  onContribute: (goal: any) => void;
-  onLinkSavingsBox?: (goal: any) => void;
+  onContribute: (goal: T) => void;
+  onLinkSavingsBox?: (goal: T) => void;
 }
 
-export function GoalCard({
+export function GoalCard<T extends GoalCardGoal>({
   goal,
   onEdit,
   onDelete,
   onContribute,
   onLinkSavingsBox,
-}: GoalCardProps) {
+}: GoalCardProps<T>) {
   // Converter valores de centavos para reais
   const currentAmount = goal.current_amount / 100;
   const targetAmount = goal.target_amount / 100;
@@ -46,8 +53,7 @@ export function GoalCard({
   const progress = (currentAmount / targetAmount) * 100;
   const formattedProgress = Math.min(Math.round(progress), 100);
   const daysLeft = Math.ceil(
-    (new Date(goal.target_date).getTime() - new Date().getTime()) /
-      (1000 * 60 * 60 * 24)
+    (new Date(goal.target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
   // Definir cores baseadas no status
@@ -88,19 +94,17 @@ export function GoalCard({
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start gap-3">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold leading-tight">
-              {goal.name}
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold leading-tight">{goal.name}</CardTitle>
             <div className="flex items-center gap-2 mt-2">
               <StatusIcon
                 className={`h-4 w-4 ${
                   statusColor === "emerald"
                     ? "text-emerald-600"
                     : statusColor === "red"
-                    ? "text-red-600"
-                    : statusColor === "amber"
-                    ? "text-amber-600"
-                    : "text-blue-600"
+                      ? "text-red-600"
+                      : statusColor === "amber"
+                        ? "text-amber-600"
+                        : "text-blue-600"
                 }`}
               />
               <span
@@ -108,10 +112,10 @@ export function GoalCard({
                   statusColor === "emerald"
                     ? "text-emerald-700 dark:text-emerald-300"
                     : statusColor === "red"
-                    ? "text-red-700 dark:text-red-300"
-                    : statusColor === "amber"
-                    ? "text-amber-700 dark:text-amber-300"
-                    : "text-blue-700 dark:text-blue-300"
+                      ? "text-red-700 dark:text-red-300"
+                      : statusColor === "amber"
+                        ? "text-amber-700 dark:text-amber-300"
+                        : "text-blue-700 dark:text-blue-300"
                 }`}
               >
                 {getStatusText()}
@@ -166,10 +170,10 @@ export function GoalCard({
                   statusColor === "emerald"
                     ? "bg-emerald-100 dark:bg-emerald-950"
                     : statusColor === "red"
-                    ? "bg-red-100 dark:bg-red-950"
-                    : statusColor === "amber"
-                    ? "bg-amber-100 dark:bg-amber-950"
-                    : "bg-blue-100 dark:bg-blue-950"
+                      ? "bg-red-100 dark:bg-red-950"
+                      : statusColor === "amber"
+                        ? "bg-amber-100 dark:bg-amber-950"
+                        : "bg-blue-100 dark:bg-blue-950"
                 }`}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
@@ -189,17 +193,15 @@ export function GoalCard({
                     goal.is_completed
                       ? "text-emerald-600"
                       : daysLeft < 0
-                      ? "text-red-600"
-                      : daysLeft <= 7
-                      ? "text-amber-600"
-                      : "text-blue-600"
+                        ? "text-red-600"
+                        : daysLeft <= 7
+                          ? "text-amber-600"
+                          : "text-blue-600"
                   }`}
                 />
                 <span className="text-xs text-muted-foreground">Data Alvo</span>
               </div>
-              <p className="text-sm font-medium">
-                {formatDate(goal.target_date)}
-              </p>
+              <p className="text-sm font-medium">{formatDate(goal.target_date)}</p>
             </div>
 
             <div className="space-y-1">
@@ -214,9 +216,7 @@ export function GoalCard({
                 </span>
               </div>
               <p className="text-sm font-medium truncate">
-                {goal.savings_box
-                  ? goal.savings_box.name
-                  : "Sem cofrinho vinculado"}
+                {goal.savings_box ? goal.savings_box.name : "Sem cofrinho vinculado"}
               </p>
             </div>
           </div>
@@ -273,7 +273,7 @@ export function GoalCard({
             {/* Botão de Contribuição */}
             <Button
               onClick={() => onContribute(goal)}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+              className="flex-1 bg-[#047857] hover:bg-[#036a4d] text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <TrendingUp className="mr-2 h-4 w-4" />
               Contribuir
@@ -284,4 +284,3 @@ export function GoalCard({
     </Card>
   );
 }
-

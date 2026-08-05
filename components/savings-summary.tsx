@@ -213,7 +213,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
           {isOnCofrinhoPage && onCreateClick ? (
             <Button
               onClick={onCreateClick}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+              className="w-full bg-[#047857] hover:bg-[#036a4d] text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
               size="sm"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -222,7 +222,7 @@ export function SavingsSummary({ onCreateClick }: SavingsSummaryProps) {
           ) : (
             <Link href="/dashboard/cofrinhos">
               <Button
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+                className="w-full bg-[#047857] hover:bg-[#036a4d] text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
                 size="sm"
               >
                 <Plus className="mr-2 h-4 w-4" />

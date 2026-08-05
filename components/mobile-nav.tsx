@@ -82,7 +82,7 @@ export function MobileNav() {
   const { user } = useCurrentUser();
 
   // Verificar se o usuário é admin
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role === "ADMIN" || user?.app_metadata?.role?.toLowerCase() === "admin";
 
   // Adicionar item admin ao final da lista se for admin
   const allRouteItems = isAdmin

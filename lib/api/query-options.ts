@@ -11,6 +11,11 @@ import type {
   TransactionData,
 } from "@/lib/types/actions";
 
+export interface DashboardOverviewData {
+  cards: DashboardData;
+  expenseBreakdown: ExpenseBreakdownItem[];
+}
+
 export interface QueryApi {
   data<T>(path: string): Promise<T>;
   paginated<T>(path: string): Promise<Extract<PaginatedApiResponse<T>, { success: true }>>;
@@ -86,6 +91,24 @@ async function fetchDashboardData(api: QueryApi): Promise<DashboardData> {
     throw new Error(result.error || "Failed to fetch dashboard data");
   }
   return result.data;
+}
+
+export function dashboardOverviewQueryOptions(api: QueryApi = clientQueryApi) {
+  return queryOptions({
+    queryKey: queryKeys.dashboard.overview,
+    queryFn: async (): Promise<DashboardOverviewData> => {
+      if (isNestDomainEnabled("dashboard")) {
+        return api.data<DashboardOverviewData>("/dashboard/overview");
+      }
+      const [cards, expenseBreakdown] = await Promise.all([
+        fetchDashboardData(api),
+        fetchExpenseBreakdown("current", api),
+      ]);
+      return { cards, expenseBreakdown };
+    },
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
 }
 
 export function dashboardDataQueryOptions(api: QueryApi = clientQueryApi) {

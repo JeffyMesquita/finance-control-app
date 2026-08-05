@@ -52,7 +52,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/LoginRequestDto"
               }
             }
           }
@@ -77,7 +77,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/RegisterRequestDto"
               }
             }
           }
@@ -103,7 +103,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Function"
+                "$ref": "#/components/schemas/LegacyEmailAuthRequestDto"
               }
             }
           }
@@ -114,6 +114,31 @@
           }
         },
         "summary": "Adaptador tempor?rio para login e cadastro por e-mail",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/google/prepare": {
+      "post": {
+        "operationId": "AuthController_prepareGoogle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GooglePrepareRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Prepara o login Google após validação do reCAPTCHA",
         "tags": [
           "Auth"
         ]
@@ -1681,6 +1706,72 @@
         ]
       }
     },
+    "/dashboard/overview": {
+      "get": {
+        "operationId": "DashboardController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "cards",
+                        "expenseBreakdown"
+                      ],
+                      "properties": {
+                        "cards": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "expenseBreakdown": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string"
+                              },
+                              "color": {
+                                "type": "string"
+                              },
+                              "value": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    },
     "/dashboard/monthly": {
       "get": {
         "operationId": "DashboardController_getMonthlyData",
@@ -1792,6 +1883,66 @@
         "responses": {
           "200": {
             "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Savings Boxes"
+        ]
+      }
+    },
+    "/savings-boxes/overview": {
+      "get": {
+        "operationId": "SavingsBoxController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "stats",
+                        "summary",
+                        "total"
+                      ],
+                      "properties": {
+                        "stats": {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        "summary": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": true
+                          }
+                        },
+                        "total": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3231,12 +3382,106 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "ft_access"
+      },
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
       }
     },
     "schemas": {
-      "Function": {
+      "LoginRequestDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken"
+        ]
+      },
+      "RegisterRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          },
+          "referralId": {
+            "type": "string",
+            "description": "Identificador do usuário que fez a indicação (first-touch)",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken"
+        ]
+      },
+      "LegacyEmailAuthRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          },
+          "isRegister": {
+            "type": "boolean",
+            "description": "Adaptador tempor?rio para o fluxo legado"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "recaptchaToken",
+          "isRegister"
+        ]
+      },
+      "GooglePrepareRequestDto": {
+        "type": "object",
+        "properties": {
+          "recaptchaToken": {
+            "type": "string",
+            "description": "Token emitido pelo reCAPTCHA"
+          },
+          "referralId": {
+            "type": "string",
+            "description": "Identificador do indicador capturado no first-touch",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "recaptchaToken"
+        ]
       },
       "CreateAccountRequestDto": {
         "type": "object",

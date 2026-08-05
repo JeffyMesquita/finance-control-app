@@ -1,9 +1,5 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
-import { useExpenseBreakdownQuery } from "@/useCases/useExpenseBreakdownQuery";
 import {
   Bar,
   BarChart,
@@ -14,6 +10,11 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import type { ExpenseBreakdownItem } from "@/lib/types/actions";
+import { formatCurrency } from "@/lib/utils";
+import { useExpenseBreakdownQuery } from "@/useCases/useExpenseBreakdownQuery";
 
 interface ExpensesByCategoryChartProps {
   className?: string;
@@ -21,11 +22,22 @@ interface ExpensesByCategoryChartProps {
 }
 
 const CATEGORY_LABEL_MAX = 10;
-const ellipsis = (str: string, max: number) =>
-  str.length > max ? str.slice(0, max) + "…" : str;
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+type TooltipProps = {
+  active?: boolean;
+  payload?: Array<{ payload: ExpenseBreakdownItem }>;
+};
+
+type YAxisTickProps = {
+  x?: number;
+  y?: number;
+  payload?: { value?: number };
+};
+const ellipsis = (str: string, max: number) =>
+  str.length > max ? str.slice(0, max).concat("…") : str;
+
+const CustomTooltip = ({ active, payload }: TooltipProps) => {
+  if (active && payload?.length) {
     const entry = payload[0].payload;
     return (
       <div className="bg-background p-2 rounded shadow text-xs">
@@ -41,7 +53,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const YAxisCustomTick = (props: any) => {
+const YAxisCustomTick = (props: YAxisTickProps) => {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
@@ -56,7 +68,7 @@ const YAxisCustomTick = (props: any) => {
         fill="#64748b"
         transform="rotate(-10)"
       >
-        {formatCurrency(payload.value)}
+        {formatCurrency(payload?.value ?? 0)}
       </text>
     </g>
   );
@@ -96,6 +108,8 @@ export function ExpensesByCategoryChart({
 
   if (error || !expenseData) return null;
 
+  const categoryKeyCounts = new Map<string, number>();
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -105,9 +119,7 @@ export function ExpensesByCategoryChart({
         <div className="h-[300px]">
           {expenseData.length === 0 ? (
             <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Nenhuma despesa disponível
-              </p>
+              <p className="text-sm text-muted-foreground">Nenhuma despesa disponível</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -129,9 +141,12 @@ export function ExpensesByCategoryChart({
                 <YAxis tick={YAxisCustomTick} width={80} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value">
-                  {expenseData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
+                  {expenseData.map((entry: ExpenseBreakdownItem) => {
+                    const baseKey = `${entry.name}-${entry.color}`;
+                    const occurrence = categoryKeyCounts.get(baseKey) ?? 0;
+                    categoryKeyCounts.set(baseKey, occurrence + 1);
+                    return <Cell key={`${baseKey}-${occurrence}`} fill={entry.color} />;
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

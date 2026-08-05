@@ -46,8 +46,8 @@ type Goal = {
   current_amount: number;
   start_date: string;
   target_date: string;
-  category_id: string | null;
-  account_id: string;
+  category_id?: string | null;
+  account_id?: string | null;
   savings_box_id: string | null;
   is_completed: boolean;
   user_id: string;

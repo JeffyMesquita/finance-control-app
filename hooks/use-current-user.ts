@@ -3,8 +3,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { sessionApi } from "@/lib/api/session";
 import { queryKeys } from "@/lib/api/query-keys";
+import { sessionApi } from "@/lib/api/session";
 
 export function useCurrentUser() {
   const queryClient = useQueryClient();
@@ -22,7 +22,7 @@ export function useCurrentUser() {
 
   const logout = useCallback(async () => {
     await sessionApi.logout();
-    queryClient.removeQueries({ queryKey: queryKeys.auth.currentUser });
+    queryClient.clear();
   }, [queryClient]);
 
   const refresh = useCallback(() => {

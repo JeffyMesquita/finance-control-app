@@ -1,7 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { type UseQueryOptions, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { expenseBreakdownQueryOptions } from "@/lib/api/query-options";
+import {
+  type DashboardOverviewData,
+  dashboardOverviewQueryOptions,
+  expenseBreakdownQueryOptions,
+} from "@/lib/api/query-options";
+import { isNestDomainEnabled } from "@/lib/api/rollout";
 import type { ExpenseBreakdownItem } from "@/lib/types/actions";
 
 interface ExpenseBreakdownQueryOptions {
@@ -15,10 +20,24 @@ export const EXPENSE_BREAKDOWN_QUERY_KEY = "EXPENSE_BREAKDOWN_QUERY_KEY";
 
 export function useExpenseBreakdownQuery(options: ExpenseBreakdownQueryOptions = {}) {
   const month = options.month ?? "current";
-  const query = useQuery({
-    ...expenseBreakdownQueryOptions(month),
-    enabled: options.enabled !== false,
+  const enabled = options.enabled !== false;
+  const overviewOptions = dashboardOverviewQueryOptions();
+  const breakdownOptions = expenseBreakdownQueryOptions(month);
+
+  const nestQuery = useQuery<DashboardOverviewData, Error, ExpenseBreakdownItem[]>({
+    ...(overviewOptions as unknown as UseQueryOptions<
+      DashboardOverviewData,
+      Error,
+      ExpenseBreakdownItem[]
+    >),
+    select: (data) => data.expenseBreakdown,
+    enabled: enabled && isNestDomainEnabled("dashboard") && month === "current",
   });
+  const legacyQuery = useQuery<ExpenseBreakdownItem[]>({
+    ...(breakdownOptions as unknown as UseQueryOptions<ExpenseBreakdownItem[]>),
+    enabled: enabled && (!isNestDomainEnabled("dashboard") || month === "previous"),
+  });
+  const query = isNestDomainEnabled("dashboard") && month === "current" ? nestQuery : legacyQuery;
 
   const onSuccess = useCallback(
     (data: ExpenseBreakdownItem[]) => options.onSuccess?.(data),

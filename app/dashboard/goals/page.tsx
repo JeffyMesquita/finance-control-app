@@ -1,7 +1,7 @@
 "use client";
 
-import { logger } from "@/lib/utils/logger";
-
+import { AlertCircle, Filter, Grid3X3, List, Plus, Search, Target } from "lucide-react";
+import { useMemo, useState } from "react";
 import { ContributeDialog } from "@/components/contribute-dialog";
 import { GoalCard } from "@/components/goal-card";
 import { GoalDialog } from "@/components/goal-dialog";
@@ -28,17 +28,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import {
-  AlertCircle,
-  Filter,
-  Grid3X3,
-  List,
-  Plus,
-  Search,
-  Target,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import type { GoalData } from "@/lib/types/actions";
+import { logger } from "@/lib/utils/logger";
 
 // Hooks TanStack Query
 import { useDeleteGoalMutation } from "@/useCases/goals/useDeleteGoalMutation";
@@ -48,34 +39,9 @@ type ViewMode = "grid" | "list";
 type SortBy = "name" | "progress" | "target_date" | "target_amount" | "created";
 type FilterStatus = "all" | "active" | "completed" | "overdue";
 
-type Goal = {
-  id: string;
-  name: string;
-  target_amount: number;
-  current_amount: number;
-  start_date: string;
-  target_date: string;
-  category_id: string | null;
-  account_id: string;
-  savings_box_id: string | null;
-  is_completed: boolean;
-  user_id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  account?: {
-    id: string;
-    name: string;
-  };
-  savings_box?: {
-    id: string;
-    name: string;
-    color: string;
-  };
-};
+type Goal = GoalData;
 
 export default function GoalsPage() {
-  const { toast } = useToast();
-
   // Hooks TanStack Query
   const { data: goals = [], isLoading, error, refetch } = useGoalsQuery();
   const deleteGoalMutation = useDeleteGoalMutation();
@@ -105,7 +71,7 @@ export default function GoalsPage() {
   const handleDeleteGoal = (id: string) => {
     const goal = goals.find((g) => g.id === id);
     if (goal) {
-      setGoalToDelete(goal as unknown as Goal);
+      setGoalToDelete(goal);
       setIsDeleteAlertOpen(true);
     }
   };
@@ -149,15 +115,12 @@ export default function GoalsPage() {
       average_progress:
         goals.length > 0
           ? Math.round(
-              goals.reduce(
-                (sum, g) => sum + (g.current_amount / g.target_amount) * 100,
-                0
-              ) / goals.length
+              goals.reduce((sum, g) => sum + (g.current_amount / g.target_amount) * 100, 0) /
+                goals.length
             )
           : 0,
-      overdue_goals: goals.filter(
-        (g) => !g.is_completed && new Date(g.target_date) < new Date()
-      ).length,
+      overdue_goals: goals.filter((g) => !g.is_completed && new Date(g.target_date) < new Date())
+        .length,
     }),
     [goals]
   );
@@ -190,21 +153,20 @@ export default function GoalsPage() {
           switch (sortBy) {
             case "name":
               return a.name.localeCompare(b.name);
-            case "progress":
+            case "progress": {
               const progressA = (a.current_amount / a.target_amount) * 100;
               const progressB = (b.current_amount / b.target_amount) * 100;
               return progressB - progressA;
+            }
             case "target_amount":
               return b.target_amount - a.target_amount;
             case "target_date":
-              return (
-                new Date(a.target_date).getTime() -
-                new Date(b.target_date).getTime()
-              );
-            case "created":
+              return new Date(a.target_date).getTime() - new Date(b.target_date).getTime();
+            case "created": {
               const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
               const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
               return dateB - dateA;
+            }
             default:
               return 0;
           }
@@ -224,9 +186,7 @@ export default function GoalsPage() {
         <Card className="text-center py-12 bg-stone-100 dark:bg-stone-900">
           <CardContent>
             <AlertCircle className="mx-auto h-16 w-16 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              Erro ao carregar metas
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">Erro ao carregar metas</h3>
             <p className="text-muted-foreground mb-4">
               {error instanceof Error ? error.message : "Erro inesperado"}
             </p>
@@ -243,24 +203,18 @@ export default function GoalsPage() {
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Metas Financeiras
-            </h1>
-            <p className="text-muted-foreground">
-              Defina e acompanhe suas metas de economia
-            </p>
+            <h1 className="text-3xl font-bold tracking-tight">Metas Financeiras</h1>
+            <p className="text-muted-foreground">Defina e acompanhe suas metas de economia</p>
           </div>
         </div>
 
         <Card className="text-center py-16 bg-stone-100 dark:bg-stone-900">
           <CardContent>
             <Target className="mx-auto h-20 w-20 text-muted-foreground mb-6" />
-            <h3 className="text-2xl font-semibold mb-4">
-              Suas primeiras metas
-            </h3>
+            <h3 className="text-2xl font-semibold mb-4">Suas primeiras metas</h3>
             <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Crie metas financeiras para organizar seus objetivos: viagem, casa
-              própria, emergência, ou qualquer sonho que você tenha.
+              Crie metas financeiras para organizar seus objetivos: viagem, casa própria,
+              emergência, ou qualquer sonho que você tenha.
             </p>
             <Button size="lg" onClick={handleCreateGoal}>
               <Plus className="mr-2 h-5 w-5" />
@@ -284,12 +238,9 @@ export default function GoalsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Metas Financeiras
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Metas Financeiras</h1>
           <p className="text-muted-foreground">
-            {stats.total_goals} {stats.total_goals === 1 ? "meta" : "metas"} •
-            R${" "}
+            {stats.total_goals} {stats.total_goals === 1 ? "meta" : "metas"} • R${" "}
             {(stats.total_saved / 100).toLocaleString("pt-BR", {
               minimumFractionDigits: 2,
             })}{" "}
@@ -309,33 +260,25 @@ export default function GoalsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="bg-stone-100 dark:bg-stone-900">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-700">
-              {stats.active_goals}
-            </div>
+            <div className="text-2xl font-bold text-blue-700">{stats.active_goals}</div>
             <div className="text-sm text-muted-foreground">Metas Ativas</div>
           </CardContent>
         </Card>
         <Card className="bg-stone-100 dark:bg-stone-900">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-700">
-              {stats.completed_goals}
-            </div>
+            <div className="text-2xl font-bold text-green-700">{stats.completed_goals}</div>
             <div className="text-sm text-muted-foreground">Concluídas</div>
           </CardContent>
         </Card>
         <Card className="bg-stone-100 dark:bg-stone-900">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-700">
-              {stats.average_progress}%
-            </div>
+            <div className="text-2xl font-bold text-purple-700">{stats.average_progress}%</div>
             <div className="text-sm text-muted-foreground">Progresso Médio</div>
           </CardContent>
         </Card>
         <Card className="bg-stone-100 dark:bg-stone-900">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-700">
-              {stats.overdue_goals}
-            </div>
+            <div className="text-2xl font-bold text-amber-700">{stats.overdue_goals}</div>
             <div className="text-sm text-muted-foreground">Atrasadas</div>
           </CardContent>
         </Card>
@@ -358,10 +301,7 @@ export default function GoalsPage() {
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Filtros */}
           <div className="flex flex-1 gap-3">
-            <Select
-              value={sortBy}
-              onValueChange={(value) => setSortBy(value as SortBy)}
-            >
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
               <SelectTrigger className="flex-1 sm:w-[160px] sm:flex-none">
                 <SelectValue />
               </SelectTrigger>
@@ -421,9 +361,7 @@ export default function GoalsPage() {
         <Card className="text-center py-12">
           <CardContent>
             <Filter className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">
-              Nenhuma meta encontrada
-            </h3>
+            <h3 className="text-lg font-semibold mb-2">Nenhuma meta encontrada</h3>
             <p className="text-muted-foreground mb-4">
               Tente ajustar os filtros ou criar uma nova meta
             </p>
@@ -492,8 +430,8 @@ export default function GoalsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação excluirá permanentemente a meta "{goalToDelete?.name}".
-              Esta ação não pode ser desfeita.
+              Esta ação excluirá permanentemente a meta &quot;{goalToDelete?.name}&quot;. Esta ação
+              não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

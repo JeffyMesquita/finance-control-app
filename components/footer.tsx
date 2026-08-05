@@ -24,7 +24,7 @@ export function Footer() {
               Entrar
             </Link>
             <Link className="transition-colors hover:text-[#047857]" href="/login?mode=register">
-              Começar grátis
+              Criar minha conta
             </Link>
             <Link className="transition-colors hover:text-[#047857]" href="#como-funciona">
               Como funciona
